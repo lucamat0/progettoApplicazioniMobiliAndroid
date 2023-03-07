@@ -21,10 +21,10 @@ class MainActivity : AppCompatActivity() {
 
         auth = FirebaseAuth.getInstance()
 
-        val nomeCognome = findViewById<EditText>(R.id.nomeCognome)
+        // nomeCognome = findViewById<EditText>(R.id.nomeCognome)
         val email = findViewById<EditText>(R.id.email)
         val password = findViewById<EditText>(R.id.password)
-        val dataNascita = findViewById<EditText>(R.id.dataDiNascita)
+        //val dataNascita = findViewById<EditText>(R.id.dataDiNascita)
 
         val button = findViewById<Button>(R.id.registrati);
 
@@ -44,12 +44,12 @@ class MainActivity : AppCompatActivity() {
                                 // Sign in success, update UI with the signed-in user's information
                                 Log.d("Creazione", "createUserWithEmail:success")
 
-                                val user = auth.currentUser
+                                //val user = auth.currentUser
 
                                 // recupero Id utente, appena memorizzato, ovviamente,
                                 // avendolo essendo appena creato NON é possibile che sia uguale a null,
                                 // quindi lo specifico con !!
-                                val userId = user!!.uid
+                                //val userId = user!!.uid
 
                                 /*
 
