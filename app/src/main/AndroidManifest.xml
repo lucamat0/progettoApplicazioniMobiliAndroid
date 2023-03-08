@@ -3,6 +3,7 @@
     xmlns:tools="http://schemas.android.com/tools">
 
     <application
+        android:enableOnBackInvokedCallback="true"
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"
@@ -11,15 +12,17 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.OggettiUsati"
         tools:targetApi="31">
+
+        <!-- Bisogna indicare la nuova Activity, il sistema operativo, Android sa che esiste e che puó avviarla quando lo chiediamo -->
+        <activity android:name="it.uniupo.a05_01_auth.SignUpActivity"></activity>
+
         <activity
             android:name=".MainActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
     </application>
-
 </manifest>
