@@ -36,7 +36,9 @@ class MainActivity : AppCompatActivity() {
 
             Toast.makeText(baseContext, "Logica login da implementare!", Toast.LENGTH_SHORT).show()
 
-            // Qui dobbiamo implementare la logica del login...
+            // Qui dobbiamo implementare la logica del login... XML per diversi utenti? Amministratore e non amministratore ?
+
+            //startActivity(Intent(this, LoginActivity::class.java))
         }
 
         signUpButton.setOnClickListener {
