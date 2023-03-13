@@ -1,7 +1,6 @@
 package it.uniupo.oggettiusati
 
 import android.os.Bundle
-import android.util.Log
 import android.widget.Button
 import androidx.appcompat.app.AppCompatActivity
 import com.google.firebase.auth.FirebaseAuth
@@ -9,7 +8,7 @@ import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 
-class LoginActivity : AppCompatActivity()  {
+class UserLoginActivity : AppCompatActivity()  {
 
     private lateinit var auth: FirebaseAuth
     private  lateinit var database: FirebaseFirestore
@@ -19,7 +18,7 @@ class LoginActivity : AppCompatActivity()  {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_logged)
+        setContentView(R.layout.activity_user_logged)
 
         auth = FirebaseAuth.getInstance();
         database = Firebase.firestore

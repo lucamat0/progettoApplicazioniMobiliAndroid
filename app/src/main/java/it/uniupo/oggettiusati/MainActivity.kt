@@ -1,6 +1,5 @@
 package it.uniupo.oggettiusati
 
-import android.annotation.SuppressLint
 import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
@@ -13,7 +12,6 @@ import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ktx.database
 import com.google.firebase.ktx.Firebase
-import com.google.type.Date
 import it.uniupo.a05_01_auth.SignUpActivity
 
 class MainActivity : AppCompatActivity() {
@@ -76,8 +74,8 @@ class MainActivity : AppCompatActivity() {
         }
         else{
             val currentUser = auth.currentUser
-
-            startActivity(Intent(this, LoginActivity::class.java))
+            //if
+            startActivity(Intent(this, AdminLoginActivity::class.java))
         }
 
     }

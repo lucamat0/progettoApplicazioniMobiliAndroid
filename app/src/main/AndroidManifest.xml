@@ -15,7 +15,8 @@
 
         <!-- Bisogna indicare la nuova Activity, il sistema operativo, Android sa che esiste e che puó avviarla quando lo chiediamo -->
         <activity android:name="it.uniupo.a05_01_auth.SignUpActivity"></activity>
-        <activity android:name=".LoginActivity"></activity>
+        <activity android:name=".UserLoginActivity"></activity>
+        <activity android:name=".AdminLoginActivity"></activity>
         <activity
             android:name=".MainActivity"
             android:exported="true">
