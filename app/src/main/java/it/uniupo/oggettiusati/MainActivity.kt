@@ -9,6 +9,7 @@ import android.widget.Button
 import android.widget.EditText
 import android.widget.Toast
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ktx.database
 import com.google.firebase.ktx.Firebase
@@ -26,6 +27,8 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
+        auth = FirebaseAuth.getInstance();
+
         val email = findViewById<EditText>(R.id.email)
         val password = findViewById<EditText>(R.id.password)
 
@@ -34,11 +37,27 @@ class MainActivity : AppCompatActivity() {
 
         loginButton.setOnClickListener {
 
-            Toast.makeText(baseContext, "Logica login da implementare!", Toast.LENGTH_SHORT).show()
+            //Toast.makeText(baseContext, "Logica login da implementare!", Toast.LENGTH_SHORT).show()
 
             // Qui dobbiamo implementare la logica del login... XML per diversi utenti? Amministratore e non amministratore ?
 
-            startActivity(Intent(this, LoginActivity::class.java))
+            auth.signInWithEmailAndPassword(email.text.toString(), password.text.toString())
+                .addOnCompleteListener(this) { task ->
+                    if (task.isSuccessful) {
+                        // Sign in success, update UI with the signed-in user's information
+                        Log.d("TAG", "signInWithEmail:success")
+                        val user = auth.currentUser
+                        updateUI(user)
+                    } else {
+                        // If sign in fails, display a message to the user.
+                        Log.w("TAG", "signInWithEmail:failure", task.exception)
+                        Toast.makeText(baseContext, "Authentication failed.", Toast.LENGTH_SHORT).show()
+                        updateUI(null)
+                    }
+
+                    // ...
+                }
+
         }
 
         signUpButton.setOnClickListener {
@@ -47,4 +66,31 @@ class MainActivity : AppCompatActivity() {
         }
 
     }
+
+    private fun updateUI(user: FirebaseUser?) {
+        if(user == null){
+            Toast.makeText(baseContext, "Authentication failed.", Toast.LENGTH_SHORT).show()
+            Log.w("debug-login", "signInWithEmail failure")
+        }
+        else{
+            startActivity(Intent(this, LoginActivity::class.java))
+        }
+
+    }
+
+    //login
+
+    public override fun onStart() {
+        super.onStart()
+        // Check if user is signed in (non-null) and update UI accordingly.
+        val currentUser = auth.currentUser
+        if(currentUser != null)
+            FirebaseAuth.getInstance().signOut();
+            //startActivity(Intent(this,LoginActivity::class.java))
+        else{
+            Toast.makeText(this, "Utente non loggato al momento", Toast.LENGTH_LONG).show()
+        }
+    }
+
+    //fine login
 }
