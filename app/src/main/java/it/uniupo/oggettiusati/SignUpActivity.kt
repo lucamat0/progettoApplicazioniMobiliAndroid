@@ -9,8 +9,9 @@ import android.util.Patterns
 import android.widget.Button
 import android.widget.EditText
 import android.widget.Toast
-import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ktx.database
+import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 import it.uniupo.oggettiusati.R
 
@@ -19,7 +20,7 @@ private lateinit var auth: FirebaseAuth
 class SignUpActivity : AppCompatActivity() {
 
     private lateinit var auth: FirebaseAuth
-    private lateinit var database: FirebaseDatabase
+    private  lateinit var database: FirebaseFirestore
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -27,7 +28,7 @@ class SignUpActivity : AppCompatActivity() {
 
         auth = FirebaseAuth.getInstance();
 
-        database = Firebase.database;
+        database = Firebase.firestore;
 
         // -- SignUp Activity --
         val nome = findViewById<EditText>(R.id.nome);
@@ -57,8 +58,6 @@ class SignUpActivity : AppCompatActivity() {
                         // quindi lo specifico con !!
                         val userId = user!!.uid
 
-                        val database = Firebase.database.reference.child("users").child(userId)
-
                         val userValues = hashMapOf(
                             "nome" to nome.text.toString(),
                             "cognome" to cognome.text.toString(),
@@ -66,13 +65,10 @@ class SignUpActivity : AppCompatActivity() {
                             "amministratore" to 0
                         )
 
-                        database.setValue(userValues)
-                            .addOnSuccessListener {
-                                Toast.makeText(baseContext, "I dati sono stati salvati con successo", Toast.LENGTH_SHORT).show()
-                            }
-                            .addOnFailureListener {
-                                Toast.makeText(baseContext, "Si è verificato un errore durante il salvataggio dei dati", Toast.LENGTH_SHORT).show()
-                            }
+                        database.collection("users").document(userId)
+                            .set(userValues)
+                            .addOnSuccessListener { Log.d("Creazione documento utente","La creazione del utente è andata a buon fine!") }
+                            .addOnFailureListener{ e -> Log.w("Creazione documento utente","Errore durante la creazione del documento associato al utente",e)}
                     }
                     else {
                         // La registrazione dell'utente non è andata a buon fine

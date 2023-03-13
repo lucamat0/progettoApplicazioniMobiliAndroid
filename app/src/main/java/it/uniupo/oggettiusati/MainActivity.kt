@@ -11,6 +11,8 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ktx.database
+import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 import it.uniupo.a05_01_auth.SignUpActivity
 
@@ -18,15 +20,20 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var auth: FirebaseAuth
 
-    // -> Utile per vedere se si tratta del amministratore o no! - Da utilizzare quando implementiamo la logica del loginButton!
-    private lateinit var database: FirebaseDatabase
+    //Equivale alla dichiarazione di variabile statiche in java
+    companion object {
+
+        public lateinit var database: FirebaseFirestore;
+
+        public lateinit var currentUser: FirebaseUser;
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        database = Firebase.database
         auth = FirebaseAuth.getInstance();
+        database = Firebase.firestore;
 
         val email = findViewById<EditText>(R.id.email)
         val password = findViewById<EditText>(R.id.password)
@@ -35,26 +42,17 @@ class MainActivity : AppCompatActivity() {
         val signUpButton = findViewById<Button>(R.id.signUp)
 
         loginButton.setOnClickListener {
-
-            //Toast.makeText(baseContext, "Logica login da implementare!", Toast.LENGTH_SHORT).show()
-
-            // Qui dobbiamo implementare la logica del login... XML per diversi utenti? Amministratore e non amministratore ?
-
             auth.signInWithEmailAndPassword(email.text.toString(), password.text.toString())
                 .addOnCompleteListener(this) { task ->
                     if (task.isSuccessful) {
                         // Sign in success, update UI with the signed-in user's information
                         Log.d("TAG", "signInWithEmail:success")
-                        val user = auth.currentUser
-                        updateUI(user)
-                    } else {
-                        // If sign in fails, display a message to the user.
-                        Log.w("TAG", "signInWithEmail:failure", task.exception)
-                        Toast.makeText(baseContext, "Authentication failed: incorrect credentials.", Toast.LENGTH_SHORT).show()
-                        updateUI(null)
-                    }
 
-                    // ...
+                        currentUser = auth.currentUser!!
+
+                        updateUI();
+                    } else
+                        updateUI();
                 }
 
         }
@@ -66,20 +64,24 @@ class MainActivity : AppCompatActivity() {
 
     }
 
-    //login
-    private fun updateUI(user: FirebaseUser?) {
-        if(user == null){
-            Toast.makeText(baseContext, "Authentication failed: utente vuoto.", Toast.LENGTH_SHORT).show()
+
+    public  fun updateUI() {
+        if(currentUser == null){
+            Toast.makeText(this, "Authentication failed: utente vuoto.", Toast.LENGTH_SHORT).show()
             Log.w("debug-login", "signInWithEmail failure")
         }
         else{
-            val currentUser = auth.currentUser
-            //if
+
+            //Se viene loggato è perchè utente esiste.
+            val userRif = database.collection("users").document(currentUser!!.uid)
+
+            // Da implementare la logica!
+
             startActivity(Intent(this, AdminLoginActivity::class.java))
         }
-
     }
 
+    //-- Provvisorio ---
     public override fun onStart() {
         super.onStart()
         // Check if user is signed in (non-null) and update UI accordingly.
@@ -92,5 +94,4 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    //fine login
 }

@@ -6,7 +6,7 @@ import com.google.firebase.firestore.FirebaseFirestore
 class Annuncio(
 
     //Informazioni del proprietario che vuole creare annuncio.
-    private var userId: Int,
+    private var userId: String,
 
     //Titolo Annuncio
     public var titolo: String,
@@ -26,13 +26,14 @@ class Annuncio(
     //Categoria del annuncio: Es.  libri/libriPerBambini
     private var categoria: String
 
+
     //Localizzazione geografica ??? Immagini ???
 ){
 
     private lateinit var annuncioId: String
 
     //Costruttore secondario, utile dopo che abbiamo letto un annuncio, andiamo a definire un suo oggetto.
-    constructor(userId: Int, titolo: String, descrizione: String, prezzo: Double, stato: Int, disponibilitaSpedire: Boolean, categoria: String, annuncioId: String) : this(userId, titolo, descrizione, prezzo, stato, disponibilitaSpedire, categoria) {
+    constructor(userId: String, titolo: String, descrizione: String, prezzo: Double, stato: Int, disponibilitaSpedire: Boolean, categoria: String, annuncioId: String) : this(userId, titolo, descrizione, prezzo, stato, disponibilitaSpedire, categoria) {
         this.annuncioId = annuncioId
     }
 

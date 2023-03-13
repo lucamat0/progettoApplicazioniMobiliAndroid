@@ -13,9 +13,6 @@ class UserLoginActivity : AppCompatActivity()  {
     private lateinit var auth: FirebaseAuth
     private  lateinit var database: FirebaseFirestore
 
-    //Indica id dell'utente loggato
-    private var userId : Int = 0
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_user_logged)
@@ -23,8 +20,7 @@ class UserLoginActivity : AppCompatActivity()  {
         auth = FirebaseAuth.getInstance();
         database = Firebase.firestore
 
-        //Da cambiare, bisogna ripescarlo!
-        userId = 0;
+        var userId = MainActivity.currentUser.uid
 
 
         // -- Test funzionamento metodi nella classe annuncio --
