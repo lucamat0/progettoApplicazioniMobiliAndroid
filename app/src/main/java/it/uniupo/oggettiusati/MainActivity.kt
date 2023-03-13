@@ -27,6 +27,7 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
+        database = Firebase.database
         auth = FirebaseAuth.getInstance();
 
         val email = findViewById<EditText>(R.id.email)
@@ -51,7 +52,7 @@ class MainActivity : AppCompatActivity() {
                     } else {
                         // If sign in fails, display a message to the user.
                         Log.w("TAG", "signInWithEmail:failure", task.exception)
-                        Toast.makeText(baseContext, "Authentication failed.", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(baseContext, "Authentication failed: incorrect credentials.", Toast.LENGTH_SHORT).show()
                         updateUI(null)
                     }
 
@@ -67,18 +68,19 @@ class MainActivity : AppCompatActivity() {
 
     }
 
+    //login
     private fun updateUI(user: FirebaseUser?) {
         if(user == null){
-            Toast.makeText(baseContext, "Authentication failed.", Toast.LENGTH_SHORT).show()
+            Toast.makeText(baseContext, "Authentication failed: utente vuoto.", Toast.LENGTH_SHORT).show()
             Log.w("debug-login", "signInWithEmail failure")
         }
         else{
+            val currentUser = auth.currentUser
+
             startActivity(Intent(this, LoginActivity::class.java))
         }
 
     }
-
-    //login
 
     public override fun onStart() {
         super.onStart()

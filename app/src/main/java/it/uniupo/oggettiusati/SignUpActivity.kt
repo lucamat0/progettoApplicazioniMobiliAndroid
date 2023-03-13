@@ -63,6 +63,7 @@ class SignUpActivity : AppCompatActivity() {
                             "nome" to nome.text.toString(),
                             "cognome" to cognome.text.toString(),
                             "dataNascita" to dataNascita.text.toString(),
+                            "amministratore" to 0
                         )
 
                         database.setValue(userValues)
