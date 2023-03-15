@@ -81,17 +81,18 @@ class MainActivity : AppCompatActivity() {
                     } else {
                         Log.w("document error","Error: document is null")
                     }
+
+                    if(isAdmin.equals("0")){
+                        startActivity(Intent(this, UserLoginActivity::class.java))
+                    } else if(isAdmin.equals("1")){
+                        startActivity(Intent(this, AdminLoginActivity::class.java))
+                    } else {
+                        Toast.makeText(this, "Errore: isadmin vale ${isAdmin}", Toast.LENGTH_LONG).show()
+                    }
+
                 }
             } else {
                 Log.w("update ui user","Error: user is null")
-            }
-
-            if(isAdmin.equals("0")){
-                startActivity(Intent(this, UserLoginActivity::class.java))
-            } else if(isAdmin.equals("1")){
-                startActivity(Intent(this, AdminLoginActivity::class.java))
-            } else {
-                Toast.makeText(this, "Errore: isadmin vale ${isAdmin}", Toast.LENGTH_LONG).show()
             }
         }
     }
