@@ -12,13 +12,9 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.OggettiUsati"
         tools:targetApi="31">
-        <activity
-            android:name=".MainActivity2"
-            android:exported="false"
-            android:label="@string/title_activity_main2"
-            android:theme="@style/Theme.OggettiUsati.NoActionBar" />
+
         <!-- Bisogna indicare la nuova Activity, il sistema operativo, Android sa che esiste e che puó avviarla quando lo chiediamo -->
-        <activity android:name="it.uniupo.a05_01_auth.SignUpActivity" />
+        <activity android:name=".SignUpActivity" />
         <activity android:name=".UserLoginActivity" />
         <activity android:name=".AdminLoginActivity" />
         <activity

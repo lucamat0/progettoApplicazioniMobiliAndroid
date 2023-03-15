@@ -70,11 +70,30 @@ class MainActivity : AppCompatActivity() {
             Log.w("debug-login", "Errore: utente vuoto")
         }
         else{
-            //val currentUser = auth.currentUser
-            //if
-            startActivity(Intent(this, AdminLoginActivity::class.java))
-        }
+            val userID = currentUser?.uid
+            var isAdmin = ""
+            if(userID != null){
 
+                val userRef = database.collection("users").document(userID)
+                userRef.get().addOnSuccessListener { document ->
+                    if(document != null){
+                        isAdmin = document.get("amministratore").toString()
+                    } else {
+                        Log.w("document error","Error: document is null")
+                    }
+                }
+            } else {
+                Log.w("update ui user","Error: user is null")
+            }
+
+            if(isAdmin.equals("0")){
+                startActivity(Intent(this, UserLoginActivity::class.java))
+            } else if(isAdmin.equals("1")){
+                startActivity(Intent(this, AdminLoginActivity::class.java))
+            } else {
+                Toast.makeText(this, "Errore: isadmin vale ${isAdmin}", Toast.LENGTH_LONG).show()
+            }
+        }
     }
 
     public override fun onStart() {

@@ -18,7 +18,7 @@ import it.uniupo.oggettiusati.R
 class SignUpActivity : AppCompatActivity() {
 
     private lateinit var auth: FirebaseAuth
-    private  lateinit var database: FirebaseFirestore
+    private lateinit var database: FirebaseFirestore
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
