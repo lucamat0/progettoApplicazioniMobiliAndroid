@@ -20,13 +20,9 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var auth: FirebaseAuth
 
-    //Equivale alla dichiarazione di variabile statiche in java
-    companion object {
+    private lateinit var database: FirebaseFirestore
 
-        public lateinit var database: FirebaseFirestore;
-
-        public lateinit var currentUser: FirebaseUser;
-    }
+    val currentUser = auth.currentUser
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -42,19 +38,24 @@ class MainActivity : AppCompatActivity() {
         val signUpButton = findViewById<Button>(R.id.signUp)
 
         loginButton.setOnClickListener {
-            auth.signInWithEmailAndPassword(email.text.toString(), password.text.toString())
-                .addOnCompleteListener(this) { task ->
-                    if (task.isSuccessful) {
-                        // Sign in success, update UI with the signed-in user's information
-                        Log.d("TAG", "signInWithEmail:success")
-
-                        currentUser = auth.currentUser!!
-
-                        updateUI();
-                    } else
-                        updateUI();
-                }
-
+            if(email.text.toString().isNotEmpty() && password.text.toString().isNotEmpty() && email.text.toString().isNotBlank() && password.text.toString().isNotBlank()){
+                auth.signInWithEmailAndPassword(email.text.toString(), password.text.toString())
+                    .addOnCompleteListener(this) { task ->
+                        if (task.isSuccessful) {
+                            // Sign in success, update UI with the signed-in user's information
+                            Log.d("TAG", "signInWithEmail:success")
+                            val user = auth.currentUser
+                            updateUI(user)
+                        } else {
+                            // If sign in fails, display a message to the user.
+                            Log.w("TAG", "signInWithEmail:failure", task.exception)
+                            Toast.makeText(baseContext, "Authentication failed: incorrect credentials.", Toast.LENGTH_SHORT).show()
+                            updateUI(null)
+                        }
+                    }
+            } else {
+                Toast.makeText(this, "Authentication failed: credenziali vuote.", Toast.LENGTH_LONG).show()
+            }
         }
 
         signUpButton.setOnClickListener {
@@ -64,24 +65,19 @@ class MainActivity : AppCompatActivity() {
 
     }
 
-
-    public  fun updateUI() {
-        if(currentUser == null){
-            Toast.makeText(this, "Authentication failed: utente vuoto.", Toast.LENGTH_SHORT).show()
+    private fun updateUI(user: FirebaseUser?) {
+        if(user == null){
+            Toast.makeText(baseContext, "Authentication failed: utente vuoto.", Toast.LENGTH_SHORT).show()
             Log.w("debug-login", "signInWithEmail failure")
         }
         else{
-
-            //Se viene loggato è perchè utente esiste.
-            val userRif = database.collection("users").document(currentUser!!.uid)
-
-            // Da implementare la logica!
-
+            //val currentUser = auth.currentUser
+            //if
             startActivity(Intent(this, AdminLoginActivity::class.java))
         }
+
     }
 
-    //-- Provvisorio ---
     public override fun onStart() {
         super.onStart()
         // Check if user is signed in (non-null) and update UI accordingly.
