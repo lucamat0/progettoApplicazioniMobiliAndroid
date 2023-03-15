@@ -65,7 +65,7 @@ class SignUpActivity : AppCompatActivity() {
 
                             database.collection("users").document(userId)
                                 .set(userValues)
-                                .addOnSuccessListener { Log.d("Creazione documento utente","La creazione del utente è andata a buon fine!") }
+                                .addOnSuccessListener { Log.d("Creazione documento utente","La creazione dell'utente è andata a buon fine!") }
                                 .addOnFailureListener{ e -> Log.w("Creazione documento utente","Errore durante la creazione del documento associato al utente",e)}
                         }
                         else {
@@ -88,5 +88,8 @@ class SignUpActivity : AppCompatActivity() {
                 //updateUI(null)
             }
         }
+
+        val buttonLogin = findViewById<Button>(R.id.login)
+        buttonLogin.setOnClickListener { startActivity(Intent(this, MainActivity::class.java)) }
     }
 }
