@@ -66,7 +66,7 @@ class SignUpActivity : AppCompatActivity() {
                             database.collection("users").document(userId)
                                 .set(userValues)
                                 .addOnSuccessListener { Log.d("Creazione documento utente","La creazione dell'utente è andata a buon fine!") }
-                                .addOnFailureListener{ e -> Log.w("Creazione documento utente","Errore durante la creazione del documento associato al utente",e)}
+                                .addOnFailureListener{ e -> Log.w("Creazione documento utente","Errore durante la creazione del documento associato all'utente",e)}
                         }
                         else {
                             // La registrazione dell'utente non è andata a buon fine
