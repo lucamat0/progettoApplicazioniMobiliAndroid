@@ -92,8 +92,6 @@ class MainActivity : AppCompatActivity() {
                     //Toast.makeText(this, "Errore: isAdmin vale ${isAdmin}", Toast.LENGTH_LONG).show()
                     Log.w("admin field error", "Errore: isAdmin vale ${isAdmin}")
                 }
-
-                startActivity(Intent(this, AdminLoginActivity::class.java))
             }
         }
     }

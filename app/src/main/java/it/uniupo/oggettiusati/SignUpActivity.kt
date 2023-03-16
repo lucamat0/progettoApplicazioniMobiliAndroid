@@ -61,14 +61,20 @@ class SignUpActivity : AppCompatActivity() {
                                 "cognome" to cognome.text.toString(),
                                 "dataNascita" to dataNascita.text.toString(),
                                 "amministratore" to 0,
-                                "sospeso" to false,
-                                "venduto" to false
+                                "sospeso" to false
                             )
 
                             database.collection("users").document(userId)
                                 .set(userValues)
-                                .addOnSuccessListener { Log.d("Creazione documento utente","La creazione dell'utente è andata a buon fine!") }
-                                .addOnFailureListener{ e -> Log.w("Creazione documento utente","Errore durante la creazione del documento associato all'utente",e)}
+                                .addOnSuccessListener { Log.d("Creazione documento utente","La creazione dell'utente è andata a buon fine!"); startActivity(Intent(this, MainActivity::class.java))}
+                                .addOnFailureListener{ e ->
+
+                                    Log.w("Creazione documento utente","Errore durante la creazione del documento associato all'utente",e);
+
+                                    //Se il documento non si é riuscito a creare bisogna eliminare utente
+                                    user!!.delete();
+
+                                }
                         }
                         else {
                             // La registrazione dell'utente non è andata a buon fine
@@ -76,18 +82,16 @@ class SignUpActivity : AppCompatActivity() {
                             Toast.makeText(baseContext, "Authentication failed: error creating user.", Toast.LENGTH_SHORT).show()
                         }
 
-                        //updateUI(user)
+
                     }
                 }
                 else {
                 // If sign in fails, display a message to the user.
                 Toast.makeText(baseContext, "Authentication failed: weak password.", Toast.LENGTH_SHORT).show()
-                //updateUI(null)
                 }
             }
             else {
                 Toast.makeText(baseContext, "Authentication failed: empty credentials.", Toast.LENGTH_SHORT).show()
-                //updateUI(null)
             }
         }
 

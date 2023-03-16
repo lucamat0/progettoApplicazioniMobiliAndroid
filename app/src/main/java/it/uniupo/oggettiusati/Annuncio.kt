@@ -1,10 +1,13 @@
 package it.uniupo.oggettiusati
 
+import android.location.Location
 import android.net.Uri
 import android.util.Log
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.ktx.firestore
+import com.google.firebase.ktx.Firebase
 import com.google.firebase.storage.FirebaseStorage
-import java.io.File
+import kotlin.random.Random
 
 class Annuncio(
 
@@ -12,13 +15,13 @@ class Annuncio(
     private var userId: String,
 
     //Titolo Annuncio
-    public var titolo: String,
+    private var titolo: String,
 
     //Descrizione Annuncio
-    public var descrizione : String,
+    private var descrizione : String,
     
     //Prezzo della vendita
-    public var prezzo: Double,
+    private var prezzo: Double,
 
     // 0 = difettoso, 1 = qualche lieve difetto, 2 = usato ma in perfette condizioni, 3 = nuovo
     private var stato: Int,
@@ -29,21 +32,24 @@ class Annuncio(
     //Categoria del annuncio: Es.  libri/libriPerBambini
     private var categoria: String,
 
-    //Posizione immagine
-    private var immagineUri: Uri
-
-    //Localizzazione geografica ??? Immagini ???
+    //Viene utilizzata, per rappresentare la posizione geografica, metodi che mi gestiscono la posizione come latitudine e longitudine
+    private var posizione: Location
 ){
 
-    private lateinit var annuncioId: String
+    //collegamento con il mio database, variabile statica.
+    companion object {
+        private val database = Firebase.firestore;
+    }
+
+    private lateinit var annuncioId: String;
 
     //Costruttore secondario, utile dopo che abbiamo letto un annuncio, andiamo a definire un suo oggetto.
-    constructor(userId: String, titolo: String, descrizione: String, prezzo: Double, stato: Int, disponibilitaSpedire: Boolean, categoria: String, annuncioId: String, immagineUri: Uri) : this(userId, titolo, descrizione, prezzo, stato, disponibilitaSpedire, categoria, immagineUri) {
+    constructor(userId: String, titolo: String, descrizione: String, prezzo: Double, stato: Int, disponibilitaSpedire: Boolean, categoria: String, annuncioId: String, posizione: Location) : this(userId, titolo, descrizione, prezzo, stato, disponibilitaSpedire, categoria, posizione) {
         this.annuncioId = annuncioId
     }
 
-    //Funzione che mi permette di scrivere sul cloud, FireBase, i dati del singolo annuncio.
-    public fun salvaAnnuncioSuFirebase(database: FirebaseFirestore){
+    //Funzione che mi permette di scrivere sul cloud, FireBase, i dati del singolo annuncio, passo anche la posizione dell'immagine che voglio caricare sul cloud.
+    public fun salvaAnnuncioSuFirebase(immagineUri: Uri){
 
             val annuncio = hashMapOf(
                 "userId" to this.userId,
@@ -52,7 +58,9 @@ class Annuncio(
                 "prezzo" to this.prezzo,
                 "stato" to this.stato,
                 "disponibilitaSpedire" to this.disponibilitaSpedire,
-                "categoria" to this.categoria
+                "categoria" to this.categoria,
+                "posizione" to this.posizione,
+                "userIdAcquirente" to null
             )
 
             database.collection("annunci")
@@ -61,7 +69,7 @@ class Annuncio(
 
                     documentReference ->  annuncioId = documentReference.id
 
-                    caricaImmagineSuFirebase();
+                    caricaImmagineSuFirebase(immagineUri);
 
                 }
                 .addOnFailureListener { e ->
@@ -69,7 +77,7 @@ class Annuncio(
                 }
         }
 
-    public fun modificaAnnuncioSuFirebase(database: FirebaseFirestore){
+    private fun modificaAnnuncioSuFirebase(){
 
         val adRif = database.collection("annunci").document(this.annuncioId)
 
@@ -82,7 +90,7 @@ class Annuncio(
             }
     }
 
-    public fun eliminaAnnuncioDaFirebase(database: FirebaseFirestore){
+    public fun eliminaAnnuncioDaFirebase(){
 
         val adRif = database.collection("annunci").document(this.annuncioId)
 
@@ -95,7 +103,7 @@ class Annuncio(
             }
     }
 
-    private fun caricaImmagineSuFirebase(){
+    private fun caricaImmagineSuFirebase(immagineUri: Uri){
 
         val storage = FirebaseStorage.getInstance()
 
@@ -103,9 +111,8 @@ class Annuncio(
 
         val cartella = storageRef.child(annuncioId)
 
-        //Data e ora di caricamento, da implementare per assegnare un id
-
-        val immagineRef = cartella.child("prova")
+        //Utilizzo il randomizzatore per generare un valore pseudocasuale, dedotto dal tempo, questo valore lo converto in una stringa. Questo valore sará associato al immagine.
+        val immagineRef = cartella.child( Random(System.currentTimeMillis()).toString())
 
         // Carica l'immagine sul bucket di archiviazione Firebase
         val uploadTask = immagineRef.putFile(immagineUri)
@@ -123,7 +130,73 @@ class Annuncio(
         }.addOnFailureListener {
             Log.e("Caricamento immagine", "Errore durante il caricamento dell'immagine", it)
         }
-
     }
 
+    //Metodo che in base se l'oggetto é venduto o no, segna o no l'utente che l'ha acquistato.
+    public fun setVenduto(userIdAcquirente: String){
+
+        val documentoRif = database.collection("annunci").document(this.annuncioId);
+
+        //se effettivamente, il documento contiene null vorrá dire che non é stato acquistato da nessun altra persona, quindi posso effettuare upgrade.
+        if (isVenduto()) {
+            documentoRif.update("userIdAcquirente", userIdAcquirente)
+                .addOnSuccessListener { Log.d("Recupero documento", "Il documento é stato aggiornato, é stato segnato acquirente.") }
+                .addOnFailureListener { e -> Log.e("Recupero documento", "Il documento non é stato aggiornato",e)}
+        }
+        else{
+            Log.d("Recupero documento", "Il documento esiste, é giá stato associato un acquirente.")
+        }
+    }
+
+    //Metodo che ritorna il valore true o false in base a se l'oggetto associato al annuncio é stato venduto oppure no.
+    public fun isVenduto(): Boolean {
+
+        //Definisce un riferimento con il documento
+        val documentoRif = database.collection("annunci").document(this.annuncioId);
+
+        var risultato = false
+
+        //recupero le proprietá del documento, dal cloud.
+        documentoRif.get()
+            .addOnSuccessListener { document ->
+                //controllo se effettivamente esiste il documento, sul db.
+                if (document != null) {
+
+                    Log.d("Recupero documento", "Il documento esiste")
+
+                    //se effettivamente, il documento contiene null vorrá dire che non é stato acquistato da nessun altra persona, quindi posso effettuare upgrade.
+                    risultato = document["userIdAcquirente"] == null;
+                }else{
+                    Log.d("Recupero documento", "Il documento non esiste");
+
+                    risultato = false;
+                }
+            }
+
+        return risultato
+    }
+
+    public fun setTitolo(newTitolo:String){
+        this.titolo = newTitolo
+
+        modificaAnnuncioSuFirebase();
+    }
+
+    public fun setDescrizione(newDescrizione:String){
+        this.descrizione = newDescrizione
+
+        modificaAnnuncioSuFirebase();
+    }
+
+    public fun setCategoria(newCategoria:String){
+        this.categoria = newCategoria
+
+        modificaAnnuncioSuFirebase();
+    }
+
+    public fun setPrezzo(newPrezzo: Double){
+        this.prezzo = newPrezzo
+
+        modificaAnnuncioSuFirebase();
+    }
 }
