@@ -17,7 +17,7 @@ class UserLoginActivity : AppCompatActivity()  {
     private  lateinit var database: FirebaseFirestore
 
     //Indica id dell'utente loggato
-    private var userId : String = "0"
+    private lateinit var userId : String
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -25,12 +25,14 @@ class UserLoginActivity : AppCompatActivity()  {
 
         auth = FirebaseAuth.getInstance();
         database = Firebase.firestore
+
+        //utilizzato per recuperare i parametri
         val extras = intent.extras
 
         //Da cambiare, bisogna ripescarlo!
         userId = extras?.getString("userId").toString();
-        var username = ""
 
+        lateinit var username : String
         val userRef = database.collection("users").document(userId)
         userRef.get().addOnSuccessListener { document ->
             if(document != null){
@@ -42,8 +44,14 @@ class UserLoginActivity : AppCompatActivity()  {
             Toast.makeText(this, "Benvenuto ${username}!", Toast.LENGTH_LONG).show()
         }
 
-        // -- Test funzionamento metodi nella classe annuncio --
+        val logoutButton = findViewById<Button>(R.id.logout)
+        logoutButton.setOnClickListener {
+            FirebaseAuth.getInstance().signOut();
+            startActivity(Intent(this, MainActivity::class.java))
+        }
 
+        // -- Test funzionamento metodi nella classe annuncio --
+/*
         val newAnnuncio = Annuncio(userId, "Mr Robot: Season 1 Blu-Ray + Digital HD", "Mr. Robot, is a techno thriller that follows Elliot, a young programmer, who works as a cyber-security engineer by day and as a vigilante hacker by night.", 16.99, 2, true, "filmETv/serieTv");
         newAnnuncio.toString();
         newAnnuncio.salvaAnnuncioSuFirebase(database);
@@ -63,14 +71,44 @@ class UserLoginActivity : AppCompatActivity()  {
         buttonElimina.setOnClickListener{
             newAnnuncio.eliminaAnnuncioDaFirebase(database);
         }
-
+*/
         // -- Fine Test funzionamento metodi nella classe annuncio --
 
-        val logoutButton = findViewById<Button>(R.id.logout)
-        logoutButton.setOnClickListener {
-            FirebaseAuth.getInstance().signOut();
-            startActivity(Intent(this, MainActivity::class.java))
-        }
+        /*
+        var userId = "asasas";
 
+        val buttonSeleziona = findViewById<Button>(R.id.pickUpImg);
+
+        buttonSeleziona.setOnClickListener{
+
+            val pickIntent = Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI)
+            startActivityForResult(pickIntent, REQUEST_IMAGE_PICK)
+        }
+        */
     }
+
+    /*
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+
+        if (requestCode == REQUEST_IMAGE_PICK && resultCode == RESULT_OK) {
+            val imageUri: Uri? = data?.data
+            //imageView.setImageURI(imageUri)
+
+            Log.d("Immagine",imageUri.toString())
+
+            val userId = "aaaaa"
+
+            val newAnnuncio = Annuncio(userId, "Mr Robot: Season 1 Blu-Ray + Digital HD", "Mr. Robot, is a techno thriller that follows Elliot, a young programmer, who works as a cyber-security engineer by day and as a vigilante hacker by night.", 16.99, 2, true, "filmETv/serieTv",  imageUri!!);
+
+            //DA CAMBIARE!!!
+            newAnnuncio.salvaAnnuncioSuFirebase(database);
+
+        }
+    }
+
+    companion object {
+        private const val REQUEST_IMAGE_PICK = 100
+    }
+         */
 }

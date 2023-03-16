@@ -60,7 +60,9 @@ class SignUpActivity : AppCompatActivity() {
                                 "nome" to nome.text.toString(),
                                 "cognome" to cognome.text.toString(),
                                 "dataNascita" to dataNascita.text.toString(),
-                                "amministratore" to 0
+                                "amministratore" to 0,
+                                "sospeso" to false,
+                                "venduto" to false
                             )
 
                             database.collection("users").document(userId)

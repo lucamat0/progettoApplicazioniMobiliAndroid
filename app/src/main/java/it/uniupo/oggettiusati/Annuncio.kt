@@ -1,7 +1,10 @@
 package it.uniupo.oggettiusati
 
+import android.net.Uri
 import android.util.Log
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.storage.FirebaseStorage
+import java.io.File
 
 class Annuncio(
 
@@ -24,8 +27,10 @@ class Annuncio(
     private var disponibilitaSpedire: Boolean,
 
     //Categoria del annuncio: Es.  libri/libriPerBambini
-    private var categoria: String
+    private var categoria: String,
 
+    //Posizione immagine
+    private var immagineUri: Uri
 
     //Localizzazione geografica ??? Immagini ???
 ){
@@ -33,7 +38,7 @@ class Annuncio(
     private lateinit var annuncioId: String
 
     //Costruttore secondario, utile dopo che abbiamo letto un annuncio, andiamo a definire un suo oggetto.
-    constructor(userId: String, titolo: String, descrizione: String, prezzo: Double, stato: Int, disponibilitaSpedire: Boolean, categoria: String, annuncioId: String) : this(userId, titolo, descrizione, prezzo, stato, disponibilitaSpedire, categoria) {
+    constructor(userId: String, titolo: String, descrizione: String, prezzo: Double, stato: Int, disponibilitaSpedire: Boolean, categoria: String, annuncioId: String, immagineUri: Uri) : this(userId, titolo, descrizione, prezzo, stato, disponibilitaSpedire, categoria, immagineUri) {
         this.annuncioId = annuncioId
     }
 
@@ -56,7 +61,8 @@ class Annuncio(
 
                     documentReference ->  annuncioId = documentReference.id
 
-                    Log.d("Creazione annuncio", "Annuncio creato con successo")
+                    caricaImmagineSuFirebase();
+
                 }
                 .addOnFailureListener { e ->
                     Log.w("Creazione annuncio", "Errore durante la creazione dell'annuncio", e)
@@ -87,6 +93,37 @@ class Annuncio(
             .addOnFailureListener { e ->
                 Log.w("Elimina annuncio", "Errore durante l'eliminazione dell'annuncio", e)
             }
+    }
+
+    private fun caricaImmagineSuFirebase(){
+
+        val storage = FirebaseStorage.getInstance()
+
+        var storageRef = storage.reference
+
+        val cartella = storageRef.child(annuncioId)
+
+        //Data e ora di caricamento, da implementare per assegnare un id
+
+        val immagineRef = cartella.child("prova")
+
+        // Carica l'immagine sul bucket di archiviazione Firebase
+        val uploadTask = immagineRef.putFile(immagineUri)
+
+        // Aggiungi un listener per controllare il progresso del caricamento
+        uploadTask.addOnProgressListener { taskSnapshot ->
+            val progress = (100.0 * taskSnapshot.bytesTransferred / taskSnapshot.totalByteCount)
+            Log.d("Caricamento immagine", "Caricamento in corso: $progress% completato")
+        }.addOnPausedListener {
+            Log.d("Caricamento immagine", "Caricamento in pausa")
+        }.addOnSuccessListener {
+            Log.d("Caricamento immagine", "Caricamento completato: ${it.metadata?.path}")
+
+            Log.d("Creazione annuncio", "Annuncio creato con successo")
+        }.addOnFailureListener {
+            Log.e("Caricamento immagine", "Errore durante il caricamento dell'immagine", it)
+        }
+
     }
 
 }

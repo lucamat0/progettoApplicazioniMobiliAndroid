@@ -9,8 +9,6 @@ import android.widget.EditText
 import android.widget.Toast
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
-import com.google.firebase.database.FirebaseDatabase
-import com.google.firebase.database.ktx.database
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
@@ -32,6 +30,7 @@ class MainActivity : AppCompatActivity() {
         val emailView = findViewById<EditText>(R.id.email)
         val passwordView = findViewById<EditText>(R.id.password)
 
+        //Tastiera che si apre sul campo email
         emailView.requestFocus()
 
         val loginButton = findViewById<Button>(R.id.login)
@@ -67,26 +66,25 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun updateUI(user: FirebaseUser?) {
-        if(user == null){
+        if (user == null) {
             Log.w("debug-login", "Errore: utente vuoto")
-        }
-        else{
+        } else {
             val userID = user.uid
-            var isAdmin = ""
 
+            lateinit var isAdmin : String
             val userRef = database.collection("users").document(userID)
             userRef.get().addOnSuccessListener { document ->
-                if(document != null){
+                if (document != null) {
                     isAdmin = document.get("amministratore").toString()
                 } else {
-                    Log.w("document error","Error: document is null")
+                    Log.w("document error", "Error: document is null")
                 }
 
-                if(isAdmin.equals("0")){
+                if (isAdmin.equals("0")) {
                     val i = Intent(this, UserLoginActivity::class.java)
                     i.putExtra("userId", userID)
                     startActivity(i)
-                } else if(isAdmin.equals("1")){
+                } else if (isAdmin.equals("1")) {
                     val i = Intent(this, AdminLoginActivity::class.java)
                     i.putExtra("userId", userID)
                     startActivity(i)
@@ -95,6 +93,7 @@ class MainActivity : AppCompatActivity() {
                     Log.w("admin field error", "Errore: isAdmin vale ${isAdmin}")
                 }
 
+                startActivity(Intent(this, AdminLoginActivity::class.java))
             }
         }
     }
