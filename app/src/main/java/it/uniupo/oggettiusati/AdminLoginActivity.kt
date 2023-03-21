@@ -25,7 +25,7 @@ class AdminLoginActivity : AppCompatActivity() {
         database = Firebase.firestore
 
         val extras = intent.extras
-        userId = extras?.getString("userId").toString();
+        userId = extras?.getString("userId").toString()
         var username = ""
 
         val userRef = database.collection("users").document(userId)
@@ -42,7 +42,7 @@ class AdminLoginActivity : AppCompatActivity() {
         val logoutButton = findViewById<Button>(R.id.logout)
 
         logoutButton.setOnClickListener {
-            FirebaseAuth.getInstance().signOut();
+            FirebaseAuth.getInstance().signOut()
             startActivity(Intent(this, MainActivity::class.java))
         }
     }

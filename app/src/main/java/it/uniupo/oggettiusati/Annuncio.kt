@@ -38,10 +38,10 @@ class Annuncio(
 
     //collegamento con il mio database, variabile statica.
     companion object {
-        private val database = Firebase.firestore;
+        private val database = Firebase.firestore
     }
 
-    private lateinit var annuncioId: String;
+    private lateinit var annuncioId: String
 
     //Costruttore secondario, utile dopo che abbiamo letto un annuncio, andiamo a definire un suo oggetto.
     constructor(userId: String, titolo: String, descrizione: String, prezzo: Double, stato: Int, disponibilitaSpedire: Boolean, categoria: String, annuncioId: String, posizione: Location) : this(userId, titolo, descrizione, prezzo, stato, disponibilitaSpedire, categoria, posizione) {
@@ -53,6 +53,18 @@ class Annuncio(
 
             val annuncio = hashMapOf(
                 "userId" to this.userId,
+                "userIdAcquirente" to null,
+                "nome" to this.titolo,
+                "categoria" to this.categoria,
+                "localizzazione" to this.posizione,
+                "descrizione" to this.descrizione,
+                "prezzo" to this.prezzo,
+                "stato" to this.stato,
+                "fotoRef" to null,
+                "infoVenditore" to null,
+                "disponibilitaSpedire" to this.disponibilitaSpedire,
+
+                /*"userId" to this.userId,
                 "titolo" to this.titolo,
                 "descrizione" to this.descrizione,
                 "prezzo" to this.prezzo,
@@ -60,7 +72,7 @@ class Annuncio(
                 "disponibilitaSpedire" to this.disponibilitaSpedire,
                 "categoria" to this.categoria,
                 "posizione" to this.posizione,
-                "userIdAcquirente" to null
+                "userIdAcquirente" to null*/
             )
 
             database.collection("annunci")
@@ -69,7 +81,7 @@ class Annuncio(
 
                     documentReference ->  annuncioId = documentReference.id
 
-                    caricaImmagineSuFirebase(immagineUri);
+                    caricaImmagineSuFirebase(immagineUri)
 
                 }
                 .addOnFailureListener { e ->
@@ -135,7 +147,7 @@ class Annuncio(
     //Metodo che in base se l'oggetto é venduto o no, segna o no l'utente che l'ha acquistato.
     public fun setVenduto(userIdAcquirente: String){
 
-        val documentoRif = database.collection("annunci").document(this.annuncioId);
+        val documentoRif = database.collection("annunci").document(this.annuncioId)
 
         //se effettivamente, il documento contiene null vorrá dire che non é stato acquistato da nessun altra persona, quindi posso effettuare upgrade.
         if (isVenduto()) {
@@ -152,7 +164,7 @@ class Annuncio(
     public fun isVenduto(): Boolean {
 
         //Definisce un riferimento con il documento
-        val documentoRif = database.collection("annunci").document(this.annuncioId);
+        val documentoRif = database.collection("annunci").document(this.annuncioId)
 
         var risultato = false
 
@@ -165,11 +177,11 @@ class Annuncio(
                     Log.d("Recupero documento", "Il documento esiste")
 
                     //se effettivamente, il documento contiene null vorrá dire che non é stato acquistato da nessun altra persona, quindi posso effettuare upgrade.
-                    risultato = document["userIdAcquirente"] == null;
+                    risultato = document["userIdAcquirente"] == null
                 }else{
-                    Log.d("Recupero documento", "Il documento non esiste");
+                    Log.d("Recupero documento", "Il documento non esiste")
 
-                    risultato = false;
+                    risultato = false
                 }
             }
 
@@ -179,24 +191,24 @@ class Annuncio(
     public fun setTitolo(newTitolo:String){
         this.titolo = newTitolo
 
-        modificaAnnuncioSuFirebase();
+        modificaAnnuncioSuFirebase()
     }
 
     public fun setDescrizione(newDescrizione:String){
         this.descrizione = newDescrizione
 
-        modificaAnnuncioSuFirebase();
+        modificaAnnuncioSuFirebase()
     }
 
     public fun setCategoria(newCategoria:String){
         this.categoria = newCategoria
 
-        modificaAnnuncioSuFirebase();
+        modificaAnnuncioSuFirebase()
     }
 
     public fun setPrezzo(newPrezzo: Double){
         this.prezzo = newPrezzo
 
-        modificaAnnuncioSuFirebase();
+        modificaAnnuncioSuFirebase()
     }
 }

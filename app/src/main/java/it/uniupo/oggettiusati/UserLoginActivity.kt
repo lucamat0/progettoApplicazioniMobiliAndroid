@@ -23,14 +23,14 @@ class UserLoginActivity : AppCompatActivity()  {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_user_logged)
 
-        auth = FirebaseAuth.getInstance();
+        auth = FirebaseAuth.getInstance()
         database = Firebase.firestore
 
         //utilizzato per recuperare i parametri
         val extras = intent.extras
 
         //Da cambiare, bisogna ripescarlo!
-        userId = extras?.getString("userId").toString();
+        userId = extras?.getString("userId").toString()
 
         lateinit var username : String
         val userRef = database.collection("users").document(userId)
@@ -46,15 +46,15 @@ class UserLoginActivity : AppCompatActivity()  {
 
         val logoutButton = findViewById<Button>(R.id.logout)
         logoutButton.setOnClickListener {
-            FirebaseAuth.getInstance().signOut();
+            FirebaseAuth.getInstance().signOut()
             startActivity(Intent(this, MainActivity::class.java))
         }
 
         // -- Test funzionamento metodi nella classe annuncio --
 /*
-        val newAnnuncio = Annuncio(userId, "Mr Robot: Season 1 Blu-Ray + Digital HD", "Mr. Robot, is a techno thriller that follows Elliot, a young programmer, who works as a cyber-security engineer by day and as a vigilante hacker by night.", 16.99, 2, true, "filmETv/serieTv");
-        newAnnuncio.toString();
-        newAnnuncio.salvaAnnuncioSuFirebase(database);
+        val newAnnuncio = Annuncio(userId, "Mr Robot: Season 1 Blu-Ray + Digital HD", "Mr. Robot, is a techno thriller that follows Elliot, a young programmer, who works as a cyber-security engineer by day and as a vigilante hacker by night.", 16.99, 2, true, "filmETv/serieTv")
+        newAnnuncio.toString()
+        newAnnuncio.salvaAnnuncioSuFirebase(database)
 
 
         val buttonModifica = findViewById<Button>(R.id.modifica)
@@ -63,21 +63,21 @@ class UserLoginActivity : AppCompatActivity()  {
 
         buttonModifica.setOnClickListener{
 
-            newAnnuncio.titolo = "Mr Robot: Season 2 Blu-Ray + Digital HD";
+            newAnnuncio.titolo = "Mr Robot: Season 2 Blu-Ray + Digital HD"
 
-            newAnnuncio.modificaAnnuncioSuFirebase(database);
+            newAnnuncio.modificaAnnuncioSuFirebase(database)
         }
 
         buttonElimina.setOnClickListener{
-            newAnnuncio.eliminaAnnuncioDaFirebase(database);
+            newAnnuncio.eliminaAnnuncioDaFirebase(database)
         }
 */
         // -- Fine Test funzionamento metodi nella classe annuncio --
 
         /*
-        var userId = "asasas";
+        var userId = "asasas"
 
-        val buttonSeleziona = findViewById<Button>(R.id.pickUpImg);
+        val buttonSeleziona = findViewById<Button>(R.id.pickUpImg)
 
         buttonSeleziona.setOnClickListener{
 
@@ -99,10 +99,10 @@ class UserLoginActivity : AppCompatActivity()  {
 
             val userId = "aaaaa"
 
-            val newAnnuncio = Annuncio(userId, "Mr Robot: Season 1 Blu-Ray + Digital HD", "Mr. Robot, is a techno thriller that follows Elliot, a young programmer, who works as a cyber-security engineer by day and as a vigilante hacker by night.", 16.99, 2, true, "filmETv/serieTv",  imageUri!!);
+            val newAnnuncio = Annuncio(userId, "Mr Robot: Season 1 Blu-Ray + Digital HD", "Mr. Robot, is a techno thriller that follows Elliot, a young programmer, who works as a cyber-security engineer by day and as a vigilante hacker by night.", 16.99, 2, true, "filmETv/serieTv",  imageUri!!)
 
             //DA CAMBIARE!!!
-            newAnnuncio.salvaAnnuncioSuFirebase(database);
+            newAnnuncio.salvaAnnuncioSuFirebase(database)
 
         }
     }

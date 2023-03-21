@@ -24,18 +24,18 @@ class SignUpActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_signup)
 
-        auth = FirebaseAuth.getInstance();
+        auth = FirebaseAuth.getInstance()
 
-        database = Firebase.firestore;
+        database = Firebase.firestore
 
         // -- SignUp Activity --
-        val nome = findViewById<EditText>(R.id.nome);
-        val cognome = findViewById<EditText>(R.id.cognome);
-        val email = findViewById<EditText>(R.id.email);
-        val password = findViewById<EditText>(R.id.password);
-        val dataNascita = findViewById<EditText>(R.id.dataDiNascita);
+        val nome = findViewById<EditText>(R.id.nome)
+        val cognome = findViewById<EditText>(R.id.cognome)
+        val email = findViewById<EditText>(R.id.email)
+        val password = findViewById<EditText>(R.id.password)
+        val dataNascita = findViewById<EditText>(R.id.dataDiNascita)
 
-        val buttonSignUp = findViewById<Button>(R.id.registrati);
+        val buttonSignUp = findViewById<Button>(R.id.registrati)
 
         buttonSignUp.setOnClickListener{
             if(email.text.toString().isNotEmpty() && password.text.toString().isNotEmpty()){
@@ -66,13 +66,16 @@ class SignUpActivity : AppCompatActivity() {
 
                             database.collection("users").document(userId)
                                 .set(userValues)
-                                .addOnSuccessListener { Log.d("Creazione documento utente","La creazione dell'utente è andata a buon fine!"); startActivity(Intent(this, MainActivity::class.java))}
+                                .addOnSuccessListener {
+                                    Log.d("Creazione documento utente","La creazione dell'utente è andata a buon fine!")
+                                    startActivity(Intent(this, MainActivity::class.java))
+                                }
                                 .addOnFailureListener{ e ->
 
-                                    Log.w("Creazione documento utente","Errore durante la creazione del documento associato all'utente",e);
+                                    Log.w("Creazione documento utente","Errore durante la creazione del documento associato all'utente",e)
 
                                     //Se il documento non si é riuscito a creare bisogna eliminare utente
-                                    user!!.delete();
+                                    user.delete()
 
                                 }
                         }
