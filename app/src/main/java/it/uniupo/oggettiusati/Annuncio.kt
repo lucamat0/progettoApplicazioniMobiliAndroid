@@ -4,9 +4,11 @@ import android.location.Location
 import android.net.Uri
 import android.util.Log
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.GeoPoint
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 import com.google.firebase.storage.FirebaseStorage
+import kotlinx.coroutines.tasks.await
 import kotlin.random.Random
 
 class Annuncio(
@@ -33,38 +35,28 @@ class Annuncio(
     private var categoria: String,
 
     //Viene utilizzata, per rappresentare la posizione geografica, metodi che mi gestiscono la posizione come latitudine e longitudine
-    private var posizione: Location
+    private var posizione: GeoPoint
 ){
 
     //collegamento con il mio database, variabile statica.
     companion object {
-        private val database = Firebase.firestore
+
+        public var database = Firebase.firestore
     }
 
     private lateinit var annuncioId: String
 
     //Costruttore secondario, utile dopo che abbiamo letto un annuncio, andiamo a definire un suo oggetto.
-    constructor(userId: String, titolo: String, descrizione: String, prezzo: Double, stato: Int, disponibilitaSpedire: Boolean, categoria: String, annuncioId: String, posizione: Location) : this(userId, titolo, descrizione, prezzo, stato, disponibilitaSpedire, categoria, posizione) {
+    constructor(userId: String, titolo: String, descrizione: String, prezzo: Double, stato: Int, disponibilitaSpedire: Boolean, categoria: String, annuncioId: String, posizione: GeoPoint) : this(userId, titolo, descrizione, prezzo, stato, disponibilitaSpedire, categoria, posizione) {
         this.annuncioId = annuncioId
     }
 
     //Funzione che mi permette di scrivere sul cloud, FireBase, i dati del singolo annuncio, passo anche la posizione dell'immagine che voglio caricare sul cloud.
-    public fun salvaAnnuncioSuFirebase(immagineUri: Uri){
+    //public fun salvaAnnuncioSuFirebase(immagineUri: Uri){
+    public suspend fun salvaAnnuncioSuFirebase(){
 
-            val annuncio = hashMapOf(
+        val annuncio = hashMapOf(
                 "userId" to this.userId,
-                "userIdAcquirente" to null,
-                "nome" to this.titolo,
-                "categoria" to this.categoria,
-                "localizzazione" to this.posizione,
-                "descrizione" to this.descrizione,
-                "prezzo" to this.prezzo,
-                "stato" to this.stato,
-                "fotoRef" to null,
-                "infoVenditore" to null,
-                "disponibilitaSpedire" to this.disponibilitaSpedire,
-
-                /*"userId" to this.userId,
                 "titolo" to this.titolo,
                 "descrizione" to this.descrizione,
                 "prezzo" to this.prezzo,
@@ -72,22 +64,16 @@ class Annuncio(
                 "disponibilitaSpedire" to this.disponibilitaSpedire,
                 "categoria" to this.categoria,
                 "posizione" to this.posizione,
-                "userIdAcquirente" to null*/
-            )
+                "userIdAcquirente" to null
+        )
 
-            database.collection("annunci")
-                .add(annuncio)
-                .addOnSuccessListener {
+        val myCollection = database.collection("annunci");
 
-                    documentReference ->  annuncioId = documentReference.id
+        val myDocument = myCollection.add(annuncio).await()
 
-                    caricaImmagineSuFirebase(immagineUri)
+        annuncioId = myDocument.id
 
-                }
-                .addOnFailureListener { e ->
-                    Log.w("Creazione annuncio", "Errore durante la creazione dell'annuncio", e)
-                }
-        }
+    }
 
     private fun modificaAnnuncioSuFirebase(){
 
@@ -102,17 +88,11 @@ class Annuncio(
             }
     }
 
-    public fun eliminaAnnuncioDaFirebase(){
+    public suspend fun eliminaAnnuncioDaFirebase(){
 
         val adRif = database.collection("annunci").document(this.annuncioId)
 
-        adRif.delete()
-            .addOnSuccessListener {
-                Log.d("Elimina annuncio", "Annuncio eliminato con successo")
-            }
-            .addOnFailureListener { e ->
-                Log.w("Elimina annuncio", "Errore durante l'eliminazione dell'annuncio", e)
-            }
+        adRif.delete().await()
     }
 
     private fun caricaImmagineSuFirebase(immagineUri: Uri){
@@ -211,4 +191,9 @@ class Annuncio(
 
         modificaAnnuncioSuFirebase()
     }
+
+    override fun toString(): String {
+        return "Annuncio(userId='$userId', titolo='$titolo', descrizione='$descrizione', prezzo=$prezzo, stato=$stato, disponibilitaSpedire=$disponibilitaSpedire, categoria='$categoria', posizione=$posizione, annuncioId='$annuncioId')"
+    }
+
 }

@@ -1,6 +1,7 @@
 package it.uniupo.oggettiusati
 
 import android.content.Intent
+import android.location.Location
 import android.os.Bundle
 import android.util.Log
 import android.widget.Button
@@ -14,19 +15,18 @@ import com.google.firebase.ktx.Firebase
 
 class AdminLoginActivity : AppCompatActivity() {
 
-    private  lateinit var database: FirebaseFirestore
-    private var userId : String = "0"
+    private lateinit var database: FirebaseFirestore
+    private lateinit var userId : String
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_admin_logged)
-
-        //admin activity
 
         database = Firebase.firestore
 
         val extras = intent.extras
         userId = extras?.getString("userId").toString()
-        var username = ""
+
+        lateinit var username : String
 
         val userRef = database.collection("users").document(userId)
         userRef.get().addOnSuccessListener { document ->
