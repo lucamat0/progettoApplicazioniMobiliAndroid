@@ -3,7 +3,6 @@ package it.uniupo.oggettiusati
 import android.location.Location
 import android.net.Uri
 import android.util.Log
-import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.GeoPoint
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
@@ -20,7 +19,7 @@ class Annuncio(
     private var titolo: String,
 
     //Descrizione Annuncio
-    private var descrizione : String,
+    private var descrizione: String,
     
     //Prezzo della vendita
     private var prezzo: Double,
@@ -35,49 +34,71 @@ class Annuncio(
     private var categoria: String,
 
     //Viene utilizzata, per rappresentare la posizione geografica, metodi che mi gestiscono la posizione come latitudine e longitudine
-    private var posizione: GeoPoint
+    //Parametro NON obbligatorio, per il costruttore secondario.
+    private var posizione: Location = Location("provider")
 ){
 
     //collegamento con il mio database, variabile statica.
     companion object {
-
         public var database = Firebase.firestore
     }
 
-    private lateinit var annuncioId: String
+    public lateinit var annuncioId: String
 
+    /*
+    constructor(userId: String, titolo: String, descrizione: String, prezzo: Double, stato: Int, disponibilitaSpedire: Boolean, categoria: String, latitude:Double, longitude: Double ) : this(userId, titolo, descrizione, prezzo, stato, disponibilitaSpedire, categoria) {
+        this.posizione.latitude = latitude
+        this.posizione.longitude = longitude
+    }
+*/
     //Costruttore secondario, utile dopo che abbiamo letto un annuncio, andiamo a definire un suo oggetto.
-    constructor(userId: String, titolo: String, descrizione: String, prezzo: Double, stato: Int, disponibilitaSpedire: Boolean, categoria: String, annuncioId: String, posizione: GeoPoint) : this(userId, titolo, descrizione, prezzo, stato, disponibilitaSpedire, categoria, posizione) {
+    constructor( titolo: String, categoria: String, descrizione: String, stato: Int, disponibilitaSpedire: Boolean, posizione: GeoPoint,prezzo: Double,  userId: String, annuncioId: String) : this(userId, titolo, descrizione, prezzo, stato, disponibilitaSpedire, categoria) {
         this.annuncioId = annuncioId
+
+        this.posizione.latitude = posizione.latitude
+        this.posizione.longitude = posizione.longitude
     }
 
     //Funzione che mi permette di scrivere sul cloud, FireBase, i dati del singolo annuncio, passo anche la posizione dell'immagine che voglio caricare sul cloud.
     //public fun salvaAnnuncioSuFirebase(immagineUri: Uri){
     public suspend fun salvaAnnuncioSuFirebase(){
 
-        val annuncio = hashMapOf(
-                "userId" to this.userId,
-                "titolo" to this.titolo,
-                "descrizione" to this.descrizione,
-                "prezzo" to this.prezzo,
-                "stato" to this.stato,
-                "disponibilitaSpedire" to this.disponibilitaSpedire,
-                "categoria" to this.categoria,
-                "posizione" to this.posizione,
+            val geo = GeoPoint(posizione.latitude,posizione.longitude)
+
+            val annuncio = hashMapOf(
+                "userId" to userId,
+                "titolo" to titolo,
+                "descrizione" to descrizione,
+                "prezzo" to prezzo,
+                "stato" to stato,
+                "disponibilitaSpedire" to disponibilitaSpedire,
+                "categoria" to categoria,
+                "posizione" to geo,
                 "userIdAcquirente" to null
-        )
+            )
 
-        val myCollection = database.collection("annunci");
+            val myCollection = Annuncio.database.collection("annunci")
 
-        val myDocument = myCollection.add(annuncio).await()
+            //Log.d("DEBUG","Prima")
 
-        annuncioId = myDocument.id
+            val myDocument = myCollection.add(annuncio).await()
+
+            //Log.d("DEBUG", "Dopo")
+
+            this.annuncioId = myDocument.id
+
+            Log.d("SALVA ANNUNCIO SU FIREBASE", annuncioId)
 
     }
 
-    private fun modificaAnnuncioSuFirebase(){
+    private suspend fun modificaAnnuncioSuFirebase(){
 
         val adRif = database.collection("annunci").document(this.annuncioId)
+
+        adRif.update("userId",userId,"titolo",titolo,"descrizione",descrizione,"prezzo",prezzo,"stato",stato,"disponibilitaSpedire",disponibilitaSpedire,"categoria",categoria).await()
+
+
+        /*
 
         adRif.update("userId",userId,"titolo",titolo,"descrizione",descrizione,"prezzo",prezzo,"stato",stato,"disponibilitaSpedire",disponibilitaSpedire,"categoria",categoria)
             .addOnSuccessListener {
@@ -86,13 +107,17 @@ class Annuncio(
             .addOnFailureListener { e ->
                 Log.w("Modifica annuncio", "Errore nella modifica dell'annuncio", e)
             }
+
+         */
     }
 
     public suspend fun eliminaAnnuncioDaFirebase(){
 
-        val adRif = database.collection("annunci").document(this.annuncioId)
+        val myCollection = database.collection("annunci")
 
-        adRif.delete().await()
+        val myDocument = myCollection.document(this.annuncioId)
+
+        myDocument.delete().await()
     }
 
     private fun caricaImmagineSuFirebase(immagineUri: Uri){
@@ -168,25 +193,25 @@ class Annuncio(
         return risultato
     }
 
-    public fun setTitolo(newTitolo:String){
+    public suspend fun setTitolo(newTitolo:String){
         this.titolo = newTitolo
 
         modificaAnnuncioSuFirebase()
     }
 
-    public fun setDescrizione(newDescrizione:String){
+    public suspend fun setDescrizione(newDescrizione:String){
         this.descrizione = newDescrizione
 
         modificaAnnuncioSuFirebase()
     }
 
-    public fun setCategoria(newCategoria:String){
+    public suspend fun setCategoria(newCategoria:String){
         this.categoria = newCategoria
 
         modificaAnnuncioSuFirebase()
     }
 
-    public fun setPrezzo(newPrezzo: Double){
+    public suspend fun setPrezzo(newPrezzo: Double){
         this.prezzo = newPrezzo
 
         modificaAnnuncioSuFirebase()

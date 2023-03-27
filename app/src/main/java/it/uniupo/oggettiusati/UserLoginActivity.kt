@@ -1,6 +1,7 @@
 package it.uniupo.oggettiusati
 
 import android.content.Intent
+import android.location.Location
 import android.os.Bundle
 import android.util.Log
 import android.widget.Button
@@ -11,8 +12,8 @@ import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.GeoPoint
 import com.google.firebase.firestore.QuerySnapshot
 import com.google.firebase.firestore.ktx.firestore
+import com.google.firebase.firestore.ktx.toObject
 import com.google.firebase.ktx.Firebase
-import kotlinx.coroutines.*
 import kotlinx.coroutines.tasks.await
 
 class UserLoginActivity : AppCompatActivity()  {
@@ -29,6 +30,8 @@ class UserLoginActivity : AppCompatActivity()  {
 
         auth = FirebaseAuth.getInstance()
         database = Firebase.firestore
+
+        //--- Tolto per prova il funzionamento dei test ---
 
         //utilizzato per recuperare i parametri
         val extras = intent.extras
@@ -47,24 +50,6 @@ class UserLoginActivity : AppCompatActivity()  {
 
             Toast.makeText(this, "Benvenuto ${username}!", Toast.LENGTH_LONG).show()
         }
-
-        //--- Test Creazione Annuncio ---
-        /*
-        val newAnnuncio = Annuncio(userId, "Mr Robot: Season 1 Blu-Ray + Digital HD", "Mr. Robot, is a techno thriller that follows Elliot, a young programmer, who works as a cyber-security engineer by day and as a vigilante hacker by night.", 16.99, 2, true, "filmETv/serieTv", GeoPoint(40.3440, 73.5938))
-        newAnnuncio.salvaAnnuncioSuFirebase()
-        */
-        //-- Fine test creazione annuncio
-
-        //--- Test recupero Annuncio ---
-
-        GlobalScope.launch (Dispatchers.IO) {
-
-            var myArrayList = recuperaAnnunciDisponibilitaSpedire(true)
-
-            Log.d("Recupero annuncio", myArrayList.toString())
-        }
-
-        //--- Fine test recupero Annuncio --
 
         val logoutButton = findViewById<Button>(R.id.logout)
         logoutButton.setOnClickListener {
@@ -110,7 +95,7 @@ class UserLoginActivity : AppCompatActivity()  {
     }
 
     //Sospendo il metodo, per aspettare che la lista dei documenti sia stata recuperata e insirita nel arrayList
-    private suspend fun recuperaTuttiAnnunci(): ArrayList<Annuncio> {
+    public suspend fun recuperaTuttiAnnunci(): ArrayList<Annuncio> {
 
         //Ritorno una referenza alla collezzione contenente i miei documenti.
         val myCollection = this.database.collection("annunci");
@@ -122,40 +107,41 @@ class UserLoginActivity : AppCompatActivity()  {
     }
 
     //Recupera gli annunci che contengono una sequernza/sottosequenza nel titolo del annuncio.
-    private suspend fun recuperaAnnunciNome(nomeAnnuncio: String): ArrayList<Annuncio> {
+    suspend fun recuperaAnnunciTitolo(nomeAnnuncio: String): ArrayList<Annuncio> {
+
         //Ritorno una referenza alla collezzione contenente i miei documenti.
         val myCollection = this.database.collection("annunci");
 
         //Recupero la collezione contenente tutti gli elementi, ossia gli annunci.
-        val myDocumenti = myCollection.whereArrayContains("titolo",nomeAnnuncio.split("")).get().await()
+        val myDocumenti = myCollection.whereEqualTo("titolo",nomeAnnuncio).get().await()
 
         return recuperaAnnunci(myDocumenti);
     }
 
     //Fissano un limite inferiore
-    private suspend fun recuperaAnnunciPrezzoInferiore(prezzoMinore: Int): ArrayList<Annuncio> {
+    public suspend fun recuperaAnnunciPrezzoInferiore(prezzoMinore: Int): ArrayList<Annuncio> {
         //Ritorno una referenza alla collezzione contenente i miei documenti.
         val myCollection = this.database.collection("annunci");
 
         //Recupero la collezione contenente tutti gli elementi, ossia gli annunci.
-        val myDocumenti = myCollection.whereGreaterThan("prezzo",prezzoMinore).get().await()
+        val myDocumenti = myCollection.whereLessThan("prezzo",prezzoMinore).get().await()
 
         return recuperaAnnunci(myDocumenti);
     }
 
     //Fissano un limite superiore
-    private suspend fun recuperaAnnunciPrezzoSuperiore(prezzoSuperiore: Int): ArrayList<Annuncio> {
+    public suspend fun recuperaAnnunciPrezzoSuperiore(prezzoSuperiore: Int): ArrayList<Annuncio> {
         //Ritorno una referenza alla collezzione contenente i miei documenti.
         val myCollection = this.database.collection("annunci");
 
         //Recupero la collezione contenente tutti gli elementi, ossia gli annunci.
-        val myDocumenti = myCollection.whereLessThan("prezzo",prezzoSuperiore).get().await()
+        val myDocumenti = myCollection.whereGreaterThan("prezzo",prezzoSuperiore).get().await()
 
         return recuperaAnnunci(myDocumenti);
     }
 
     // Fissano un range in cui l'annuncio deve essere maggiore del prezzo minore e minore del prezzo superiore.
-    private suspend fun recuperaAnnunciPrezzoRange(prezzoMinore: Int, prezzoSuperiore: Int): ArrayList<Annuncio> {
+    public suspend fun recuperaAnnunciPrezzoRange(prezzoMinore: Int, prezzoSuperiore: Int): ArrayList<Annuncio> {
 
         //Ritorno una referenza alla collezzione contenente i miei documenti.
         val myCollection = this.database.collection("annunci");
@@ -167,7 +153,7 @@ class UserLoginActivity : AppCompatActivity()  {
     }
 
     //Ritorna gli annunci che rispettano la disponibilitá di spedire.
-    private suspend fun recuperaAnnunciDisponibilitaSpedire(disponibilitaSpedire: Boolean): ArrayList<Annuncio> {
+    public suspend fun recuperaAnnunciDisponibilitaSpedire(disponibilitaSpedire: Boolean): ArrayList<Annuncio> {
         //Ritorno una referenza alla collezzione contenente i miei documenti.
         val myCollection = this.database.collection("annunci");
 
@@ -192,20 +178,19 @@ class UserLoginActivity : AppCompatActivity()  {
 
             //Creazione del oggetto Annuncio, con gli elementi che si trovano sul DB
             var a = Annuncio(
-                myDocumentoAnnuncio.get("userId") as String,
                 myDocumentoAnnuncio.get("titolo") as String,
+                myDocumentoAnnuncio.get("categoria") as String,
                 myDocumentoAnnuncio.get("descrizione") as String,
-                myDocumentoAnnuncio.get("prezzo") as Double,
                 (myDocumentoAnnuncio.getLong("stato") as Long).toInt(),
                 myDocumentoAnnuncio.get("disponibilitaSpedire") as Boolean,
-                myDocumentoAnnuncio.get("categoria") as String,
-                myDocumentoAnnuncio.getGeoPoint("posizione") as GeoPoint
+                myDocumentoAnnuncio.getGeoPoint("posizione") as GeoPoint,
+                myDocumentoAnnuncio.get("prezzo") as Double,
+                myDocumentoAnnuncio.get("userId") as String,
+                myDocumentoAnnuncio.id as String
             );
 
-            //Aggiungo l'elemento, al mio ArrayList
-            myAnnunci.add(a);
+            myAnnunci.add(a)
         }
-
         return myAnnunci
     }
 
