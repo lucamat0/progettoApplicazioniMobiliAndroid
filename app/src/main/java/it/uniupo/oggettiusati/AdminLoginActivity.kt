@@ -1,34 +1,28 @@
 package it.uniupo.oggettiusati
 
 import android.content.Intent
-import android.location.Location
 import android.os.Bundle
 import android.util.Log
 import android.widget.Button
 import android.widget.Toast
-import androidx.appcompat.app.AppCompatActivity
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.firestore.FirebaseFirestore
-import com.google.firebase.firestore.ktx.firestore
-import com.google.firebase.ktx.Firebase
+import kotlinx.coroutines.tasks.await
 
 
-class AdminLoginActivity : AppCompatActivity() {
+class AdminLoginActivity : UserLoginActivity() {
 
-    private lateinit var database: FirebaseFirestore
-    private lateinit var userId : String
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_admin_logged)
 
-        database = Firebase.firestore
-
         val extras = intent.extras
+
         userId = extras?.getString("userId").toString()
 
         lateinit var username : String
 
-        val userRef = database.collection("users").document(userId)
+        val userRef = this.database.collection("users").document(userId)
         userRef.get().addOnSuccessListener { document ->
             if(document != null){
                 username = document.get("nome").toString()
@@ -46,4 +40,50 @@ class AdminLoginActivity : AppCompatActivity() {
             startActivity(Intent(this, MainActivity::class.java))
         }
     }
+
+    //--- Deve poter eliminare utenti o sospenderli dalle attività ---
+    private suspend fun eliminaUtente(userId: String){
+
+        try {
+            val myCollection = this.database.collection("users");
+
+            val myDocument = myCollection.document(userId)
+
+            myDocument.delete().addOnCompleteListener { task ->
+                if (task.isSuccessful) {
+                    Log.d("ELIMINAZIONE UTENTE", "Documento eliminato con successo")
+
+                    //Eliminazione del utente dal Authentication???
+
+                } else {
+                    Log.e("ELIMINAZIONE UTENTE", "Errore durante l'eliminazione del documento", task.exception)
+                }
+            }.await()
+
+
+            myDocument.delete().await()
+        }catch (e: Exception){
+            Log.e("ERRORE ELIMINA UTENTE","Durante l'eliminazione del utente c'é stato un errore!", e)
+        }
+
+    }
+
+    private suspend fun sospendiUtente(userId: String){
+
+        try {
+            val myCollection = this.database.collection("users");
+
+            val myDocument = myCollection.document(userId)
+
+            myDocument.update("sospeso", true).await()
+        }catch (e: Exception){
+            Log.e("ERRORE SOSPENDI UTENTE","Durante la sospensione del utente c'é stato un errore!", e)
+        }
+    }
+
+    //--- Fine eliminazione e sospensione utente ---
+
+
+
+
 }

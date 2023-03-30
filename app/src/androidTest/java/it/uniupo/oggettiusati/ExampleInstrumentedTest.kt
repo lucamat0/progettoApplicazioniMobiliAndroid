@@ -215,6 +215,24 @@ class ExampleInstrumentedTest {
         //--- Inizio test sulla funzione che mi recupera gli elementi con un prezzo compreso tra un range:  max<X>min ---
         testRecuperaAnnunciPerRange()
         //--- Fine test sulla funzione che mi recupera gli elementi con un prezzo compreso tra un range:  max<X>min ---
+
+        //--- Inizio test sulla funzione che mi recupera gli elementi che hanno quel titolo ---
+        testRecuperaAnnunciPerTitoloFirebaseFirestore()
+        //--- FIne test sulla funzione che mi recupera gli elementi che hanno quel titolo ---
+
+        //--- Inizio test sulla funzione che mi recupera gli elementi che hanno disponibilita a essere spediti ---
+        testRecuperaAnnunciPerDisponibilitaSpedireFirebaseFirestore()
+        //--- Fine test sulla funzione che mi recupera gli elementi che hanno disponibilita a essere spediti ---
+
+        //--- Inizio test sulle funzioni che mi modificano gli annunci: titolo, descrizione, categoria e prezzo ---
+        testModificaAnnunciTitoloDescrizioneCategoriaPrezzoFirebaseFirestore()
+        //--- Fine test sulle funzioni che mi modificano gli annunci: titolo, descrizione, categoria e prezzo ---
+
+        //--- Inizio test sulla funzione che mi elimina gli annunci ---
+        testEliminaAnnunci()
+        //--- Fine test sulla funzione che mi elimina gli annunci ---
+
+        //testSubscribeRealTimeDatabase()
     }
 
     @Ignore
@@ -291,7 +309,7 @@ class ExampleInstrumentedTest {
                 //--- Fine eliminazione dati su Firestore Firebase ---
 
         } catch (e: Exception) {
-            Log.e("INSERIMENTO ANNUNCIO TEST", "Errore nei test", e)
+            Log.e("INSERIMENTO ANNUNCI TEST", "Errore nei test", e)
         }
     }
 
@@ -373,7 +391,7 @@ class ExampleInstrumentedTest {
 
 
         } catch (e: Exception) {
-            Log.e("INSERIMENTO ANNUNCIO TEST", "Errore nei test", e)
+            Log.e("RECUPERA ANNUNCI TEST PREZZO INFERIORE", "Errore nei test", e)
         }
     }
 
@@ -456,7 +474,7 @@ class ExampleInstrumentedTest {
             //--- Fine eliminazione dati su Firestore Firebase ---
 
         } catch (e: Exception) {
-            Log.e("INSERIMENTO ANNUNCIO TEST", "Errore nei test", e)
+            Log.e("RECUPERA ANNUNCI TEST PREZZO SUPERIORE", "Errore nei test", e)
         }
     }
 
@@ -539,7 +557,7 @@ class ExampleInstrumentedTest {
             //--- Fine eliminazione dati su Firestore Firebase ---
 
         } catch (e: Exception) {
-            Log.e("INSERIMENTO ANNUNCIO TEST", "Errore nei test", e)
+            Log.e("RECUPERA ANNUNCI TEST PREZZO RANGE", "Errore nei test", e)
         }
     }
 
@@ -616,14 +634,389 @@ class ExampleInstrumentedTest {
                 newAnnuncio4.eliminaAnnuncioDaFirebase()
                 //--- Fine eliminazione dati su Firestore Firebase ---
         }catch (e: Exception) {
-            Log.e("INSERIMENTO ANNUNCIO TEST", "Errore nei test", e)
+            Log.e("RECUPERA TUTTI ANNUNCI TEST", "Errore nei test", e)
         }
     }
 
+    @Ignore
+    suspend fun testRecuperaAnnunciPerTitoloFirebaseFirestore() {
+        try {
+            val geoPosition = Location("provider")
+            geoPosition.altitude = 37.4220
+            geoPosition.longitude = -122.0841
+
+            val newAnnuncio1 = Annuncio(
+                "userIdTestProva",
+                "Mr Robot: Season 1 Blu-Ray + Digital HD",
+                "Mr. Robot, is a techno thriller that follows Elliot, a young programmer, who works as a cyber-security engineer by day and as a vigilante hacker by night.",
+                16.99,
+                2,
+                true,
+                "filmETv/serieTv",
+                geoPosition
+            )
+
+            val newAnnuncio2 = Annuncio(
+                "userIdTestProva",
+                "Apple iPhone 12 Pro Max 256GB Pacific Blue Unlocked",
+                "The iPhone 12 Pro Max is Apple's flagship smartphone with a stunning 6.7-inch Super Retina XDR display, A14 Bionic chip, 5G capability, and a powerful triple-camera system.",
+                1100.00,
+                1,
+                false,
+                "elettronica/smartphone",
+                geoPosition
+            )
+
+            val newAnnuncio3 = Annuncio(
+                "userIdTestProva",
+                "Vintage Leather Messenger Bag",
+                "This vintage-inspired leather messenger bag is perfect for carrying your laptop and everyday essentials. With a spacious main compartment, multiple pockets, and an adjustable strap, it's both stylish and functional.",
+                79.99,
+                3,
+                true,
+                "informatica/accessori",
+                geoPosition
+            )
+
+            val newAnnuncio4 = Annuncio(
+                "userIdTestProva",
+                "Apple Watch Series 7 45mm GPS + Cellular",
+                "The Apple Watch Series 7 is the ultimate fitness and health companion, with a stunning always-on Retina display, blood oxygen sensor, ECG app, and 50% faster charging. Stay connected with GPS + Cellular capability and a wide range of watch faces and bands.",
+                499.00,
+                1,
+                true,
+                "wearable",
+                geoPosition
+            )
+
+            newAnnuncio1.salvaAnnuncioSuFirebase()
+            newAnnuncio2.salvaAnnuncioSuFirebase()
+            newAnnuncio3.salvaAnnuncioSuFirebase()
+            newAnnuncio4.salvaAnnuncioSuFirebase()
+
+            //--- Fine Inserimento dati su Firestore Firebase ---
+
+            activityScenarioRule.scenario.onActivity { activity ->
+                runBlocking{
+
+                    assertEquals(1,activity.recuperaAnnunciTitolo("Mr Robot: Season 1 Blu-Ray + Digital HD").size)
+                    assertEquals(1,activity.recuperaAnnunciTitolo("Apple iPhone 12 Pro Max 256GB Pacific Blue Unlocked").size)
+                    assertEquals(1,activity.recuperaAnnunciTitolo("Vintage Leather Messenger Bag").size)
+                    assertEquals(1,activity.recuperaAnnunciTitolo("Apple Watch Series 7 45mm GPS + Cellular").size)
+
+                    assertEquals(0,activity.recuperaAnnunciTitolo("Apple iPhone 11 Pro").size)
+                }
+            }
+
+            //--- Eliminazione dati su Firestore Firebase ---
+            newAnnuncio1.eliminaAnnuncioDaFirebase()
+            newAnnuncio2.eliminaAnnuncioDaFirebase()
+            newAnnuncio3.eliminaAnnuncioDaFirebase()
+            newAnnuncio4.eliminaAnnuncioDaFirebase()
+            //--- Fine eliminazione dati su Firestore Firebase ---
+        }catch (e: Exception) {
+            Log.e("RECUPERA ANNUNCI TEST PREZZO INFERIORE", "Errore nei test", e)
+        }
+    }
+
+    @Ignore
+    suspend fun testRecuperaAnnunciPerDisponibilitaSpedireFirebaseFirestore() {
+        try {
+            val geoPosition = Location("provider")
+            geoPosition.altitude = 37.4220
+            geoPosition.longitude = -122.0841
+
+            val newAnnuncio1 = Annuncio(
+                "userIdTestProva",
+                "Mr Robot: Season 1 Blu-Ray + Digital HD",
+                "Mr. Robot, is a techno thriller that follows Elliot, a young programmer, who works as a cyber-security engineer by day and as a vigilante hacker by night.",
+                16.99,
+                2,
+                true,
+                "filmETv/serieTv",
+                geoPosition
+            )
+
+            val newAnnuncio2 = Annuncio(
+                "userIdTestProva",
+                "Apple iPhone 12 Pro Max 256GB Pacific Blue Unlocked",
+                "The iPhone 12 Pro Max is Apple's flagship smartphone with a stunning 6.7-inch Super Retina XDR display, A14 Bionic chip, 5G capability, and a powerful triple-camera system.",
+                1100.00,
+                1,
+                false,
+                "elettronica/smartphone",
+                geoPosition
+            )
+
+            val newAnnuncio3 = Annuncio(
+                "userIdTestProva",
+                "Vintage Leather Messenger Bag",
+                "This vintage-inspired leather messenger bag is perfect for carrying your laptop and everyday essentials. With a spacious main compartment, multiple pockets, and an adjustable strap, it's both stylish and functional.",
+                79.99,
+                3,
+                true,
+                "informatica/accessori",
+                geoPosition
+            )
+
+            val newAnnuncio4 = Annuncio(
+                "userIdTestProva",
+                "Apple Watch Series 7 45mm GPS + Cellular",
+                "The Apple Watch Series 7 is the ultimate fitness and health companion, with a stunning always-on Retina display, blood oxygen sensor, ECG app, and 50% faster charging. Stay connected with GPS + Cellular capability and a wide range of watch faces and bands.",
+                499.00,
+                1,
+                true,
+                "wearable",
+                geoPosition
+            )
+
+            newAnnuncio1.salvaAnnuncioSuFirebase()
+            newAnnuncio2.salvaAnnuncioSuFirebase()
+            newAnnuncio3.salvaAnnuncioSuFirebase()
+            newAnnuncio4.salvaAnnuncioSuFirebase()
+
+            //--- Fine Inserimento dati su Firestore Firebase ---
+
+            activityScenarioRule.scenario.onActivity { activity ->
+                runBlocking{
+                    assertEquals(3,activity.recuperaAnnunciDisponibilitaSpedire(true).size)
+                    assertEquals(1,activity.recuperaAnnunciDisponibilitaSpedire(false).size)
+                }
+            }
+
+            //--- Eliminazione dati su Firestore Firebase ---
+            newAnnuncio1.eliminaAnnuncioDaFirebase()
+            newAnnuncio2.eliminaAnnuncioDaFirebase()
+            newAnnuncio3.eliminaAnnuncioDaFirebase()
+            newAnnuncio4.eliminaAnnuncioDaFirebase()
+            //--- Fine eliminazione dati su Firestore Firebase ---
+        }catch (e: Exception) {
+            Log.e("RECUPERA ANNUNCI TITOLO TEST", "Errore nei test", e)
+        }
+    }
+
+    @Ignore
+    suspend fun testModificaAnnunciTitoloDescrizioneCategoriaPrezzoFirebaseFirestore() {
+        try {
+            val geoPosition = Location("provider")
+            geoPosition.altitude = 37.4220
+            geoPosition.longitude = -122.0841
 
 
+            val newAnnuncio1 = Annuncio(
+                "userIdTestProva",
+                "Apple iPhone 12 Pro Max 256GB Pacific Blue Unlocked",
+                "The iPhone 12 Pro Max is Apple's flagship smartphone with a stunning 6.7-inch Super Retina XDR display, A14 Bionic chip, 5G capability, and a powerful triple-camera system.",
+                1100.00,
+                1,
+                false,
+                "elettronica/smartphone",
+                geoPosition
+            )
 
-    //--- Fine test che funzionano, se vengono eseguiti uno alla volta ---
+            newAnnuncio1.salvaAnnuncioSuFirebase()
+
+            //--- Fine Inserimento dati su Firestore Firebase ---
+
+            assertEquals("Annuncio(userId='userIdTestProva', titolo='Apple iPhone 12 Pro Max 256GB Pacific Blue Unlocked', descrizione='The iPhone 12 Pro Max is Apple's flagship smartphone with a stunning 6.7-inch Super Retina XDR display, A14 Bionic chip, 5G capability, and a powerful triple-camera system.', prezzo=1100.0, stato=1, disponibilitaSpedire=false, categoria='elettronica/smartphone', posizione=Location[provider 0.000000,-122.084100 et=0 alt=37.422], annuncioId='${newAnnuncio1.annuncioId}')",newAnnuncio1.toString())
+
+            newAnnuncio1.setTitolo("Apple Watch Series 7 45mm GPS + Cellular")
+
+            assertEquals("Annuncio(userId='userIdTestProva', titolo='Apple Watch Series 7 45mm GPS + Cellular', descrizione='The iPhone 12 Pro Max is Apple's flagship smartphone with a stunning 6.7-inch Super Retina XDR display, A14 Bionic chip, 5G capability, and a powerful triple-camera system.', prezzo=1100.0, stato=1, disponibilitaSpedire=false, categoria='elettronica/smartphone', posizione=Location[provider 0.000000,-122.084100 et=0 alt=37.422], annuncioId='${newAnnuncio1.annuncioId}')",newAnnuncio1.toString())
+
+            newAnnuncio1.setDescrizione("The Apple Watch Series 7 is the ultimate fitness and health companion, with a stunning always-on Retina display, blood oxygen sensor, ECG app, and 50% faster charging. Stay connected with GPS + Cellular capability and a wide range of watch faces and bands.")
+
+            assertEquals("Annuncio(userId='userIdTestProva', titolo='Apple Watch Series 7 45mm GPS + Cellular', descrizione='The Apple Watch Series 7 is the ultimate fitness and health companion, with a stunning always-on Retina display, blood oxygen sensor, ECG app, and 50% faster charging. Stay connected with GPS + Cellular capability and a wide range of watch faces and bands.', prezzo=1100.0, stato=1, disponibilitaSpedire=false, categoria='elettronica/smartphone', posizione=Location[provider 0.000000,-122.084100 et=0 alt=37.422], annuncioId='${newAnnuncio1.annuncioId}')",newAnnuncio1.toString())
+
+            newAnnuncio1.setCategoria("wearable")
+
+            assertEquals("Annuncio(userId='userIdTestProva', titolo='Apple Watch Series 7 45mm GPS + Cellular', descrizione='The Apple Watch Series 7 is the ultimate fitness and health companion, with a stunning always-on Retina display, blood oxygen sensor, ECG app, and 50% faster charging. Stay connected with GPS + Cellular capability and a wide range of watch faces and bands.', prezzo=1100.0, stato=1, disponibilitaSpedire=false, categoria='wearable', posizione=Location[provider 0.000000,-122.084100 et=0 alt=37.422], annuncioId='${newAnnuncio1.annuncioId}')",newAnnuncio1.toString())
+
+            newAnnuncio1.setPrezzo(499.0)
+
+            assertEquals("Annuncio(userId='userIdTestProva', titolo='Apple Watch Series 7 45mm GPS + Cellular', descrizione='The Apple Watch Series 7 is the ultimate fitness and health companion, with a stunning always-on Retina display, blood oxygen sensor, ECG app, and 50% faster charging. Stay connected with GPS + Cellular capability and a wide range of watch faces and bands.', prezzo=499.0, stato=1, disponibilitaSpedire=false, categoria='wearable', posizione=Location[provider 0.000000,-122.084100 et=0 alt=37.422], annuncioId='${newAnnuncio1.annuncioId}')",newAnnuncio1.toString())
+
+            //--- Eliminazione dati su Firestore Firebase ---
+            newAnnuncio1.eliminaAnnuncioDaFirebase()
+
+            //--- Fine eliminazione dati su Firestore Firebase ---
+        }catch (e: Exception) {
+            Log.e("MODIFICA ANNUNCI TEST", "Errore nei test", e)
+        }
+    }
+
+    @Ignore
+    suspend fun testEliminaAnnunci() {
+        try {
+            //--- Inserimento dati su Firestore Firebase ---
+            val geoPosition = Location("provider")
+            geoPosition.altitude = 37.4220
+            geoPosition.longitude = -122.0841
+
+            val primaInserimento = getNumeroElementiFirestore()
+
+            val newAnnuncio1 = Annuncio(
+                "userIdTestProva",
+                "Mr Robot: Season 1 Blu-Ray + Digital HD",
+                "Mr. Robot, is a techno thriller that follows Elliot, a young programmer, who works as a cyber-security engineer by day and as a vigilante hacker by night.",
+                16.99,
+                2,
+                true,
+                "filmETv/serieTv",
+                geoPosition
+            )
+
+            val newAnnuncio2 = Annuncio(
+                "userIdTestProva",
+                "Apple iPhone 12 Pro Max 256GB Pacific Blue Unlocked",
+                "The iPhone 12 Pro Max is Apple's flagship smartphone with a stunning 6.7-inch Super Retina XDR display, A14 Bionic chip, 5G capability, and a powerful triple-camera system.",
+                1100.00,
+                1,
+                false,
+                "elettronica/smartphone",
+                geoPosition
+            )
+
+            val newAnnuncio3 = Annuncio(
+                "userIdTestProva",
+                "Vintage Leather Messenger Bag",
+                "This vintage-inspired leather messenger bag is perfect for carrying your laptop and everyday essentials. With a spacious main compartment, multiple pockets, and an adjustable strap, it's both stylish and functional.",
+                79.99,
+                3,
+                true,
+                "informatica/accessori",
+                geoPosition
+            )
+
+            val newAnnuncio4 = Annuncio(
+                "userIdTestProva",
+                "Apple Watch Series 7 45mm GPS + Cellular",
+                "The Apple Watch Series 7 is the ultimate fitness and health companion, with a stunning always-on Retina display, blood oxygen sensor, ECG app, and 50% faster charging. Stay connected with GPS + Cellular capability and a wide range of watch faces and bands.",
+                499.00,
+                1,
+                true,
+                "wearable",
+                geoPosition
+            )
+
+            newAnnuncio1.salvaAnnuncioSuFirebase()
+            newAnnuncio2.salvaAnnuncioSuFirebase()
+            newAnnuncio3.salvaAnnuncioSuFirebase()
+            newAnnuncio4.salvaAnnuncioSuFirebase()
+            //--- Fine Inserimento dati su Firestore Firebase ---
+
+            //--- Eliminazione dati su Firestore Firebase ---
+            newAnnuncio1.eliminaAnnuncioDaFirebase()
+            newAnnuncio2.eliminaAnnuncioDaFirebase()
+            newAnnuncio3.eliminaAnnuncioDaFirebase()
+            newAnnuncio4.eliminaAnnuncioDaFirebase()
+            //--- Fine eliminazione dati su Firestore Firebase ---
+
+            assertEquals(primaInserimento,getNumeroElementiFirestore())
+
+            //--- Fine eliminazione dati su Firestore Firebase ---
+        }catch (e: Exception) {
+            Log.e("MODIFICA ANNUNCI TEST", "Errore nei test", e)
+        }
+    }
+
+    // --- Inizio funzione che testa il mantenimento delle informazioni aggiornate nel HashMap considerando DB ---
+    // --> Non funziona ma HashMap è correttamente aggiornata, anche il DB <--
+    /*
+    @Ignore
+    suspend fun testSubscribeRealTimeDatabase(){
+
+        try{
+            //--- Inserimento dati su Firestore Firebase ---
+            val geoPosition = Location("provider")
+            geoPosition.altitude = 37.4220
+            geoPosition.longitude = -122.0841
+
+            val newAnnuncio1 = Annuncio(
+                "userIdTestProva",
+                "Mr Robot: Season 1 Blu-Ray + Digital HD",
+                "Mr. Robot, is a techno thriller that follows Elliot, a young programmer, who works as a cyber-security engineer by day and as a vigilante hacker by night.",
+                16.99,
+                2,
+                true,
+                "filmETv/serieTv",
+                geoPosition
+            )
+
+            val newAnnuncio2 = Annuncio(
+                "userIdTestProva",
+                "Apple iPhone 12 Pro Max 256GB Pacific Blue Unlocked",
+                "The iPhone 12 Pro Max is Apple's flagship smartphone with a stunning 6.7-inch Super Retina XDR display, A14 Bionic chip, 5G capability, and a powerful triple-camera system.",
+                1100.00,
+                1,
+                false,
+                "elettronica/smartphone",
+                geoPosition
+            )
+
+            val newAnnuncio3 = Annuncio(
+                "userIdTestProva",
+                "Vintage Leather Messenger Bag",
+                "This vintage-inspired leather messenger bag is perfect for carrying your laptop and everyday essentials. With a spacious main compartment, multiple pockets, and an adjustable strap, it's both stylish and functional.",
+                79.99,
+                3,
+                true,
+                "informatica/accessori",
+                geoPosition
+            )
+
+            val newAnnuncio4 = Annuncio(
+                "userIdTestProva",
+                "Apple Watch Series 7 45mm GPS + Cellular",
+                "The Apple Watch Series 7 is the ultimate fitness and health companion, with a stunning always-on Retina display, blood oxygen sensor, ECG app, and 50% faster charging. Stay connected with GPS + Cellular capability and a wide range of watch faces and bands.",
+                499.00,
+                1,
+                true,
+                "wearable",
+                geoPosition
+            )
+
+            newAnnuncio1.salvaAnnuncioSuFirebase()
+            //newAnnuncio2.salvaAnnuncioSuFirebase()
+            //newAnnuncio3.salvaAnnuncioSuFirebase()
+            //newAnnuncio4.salvaAnnuncioSuFirebase()
+
+            //--- Fine Inserimento dati su Firestore Firebase ---
+            activityScenarioRule.scenario.onActivity { activity ->
+
+                    //Facciamo riferimento al documento che abbiamo appena creato
+                    val documentoRif = Annuncio.database.collection("annunci").document(newAnnuncio1.annuncioId)
+
+                    Log.d("Prima update",newAnnuncio1.annuncioId)
+
+                    runBlocking {
+                        //simula una modifica effettuata da un altro client
+                        documentoRif.update(
+                            "titolo",
+                            "Mr. Robot 2",
+                            "descrizione",
+                            "Second season of the critically acclaimed TV series about a cybersecurity engineer turned hacker."
+                        ).await()
+
+                        delay(1000)
+                    }
+                    assertEquals("Annuncio(userId='userIdTestProva', titolo='Mr. Robot 2', descrizione='Second season of the critically acclaimed TV series about a cybersecurity engineer turned hacker.', prezzo=16.99, stato=2, disponibilitaSpedire=true, categoria='filmETv/serieTv', posizione=Location[provider 0.000000,-122.084100 et=0], annuncioId='${newAnnuncio1.annuncioId}')",activity.myAnnunci[newAnnuncio1.annuncioId].toString())
+            }
+
+            //--- Eliminazione dati su Firestore Firebase ---
+            newAnnuncio1.eliminaAnnuncioDaFirebase()
+            //newAnnuncio2.eliminaAnnuncioDaFirebase()
+            //newAnnuncio3.eliminaAnnuncioDaFirebase()
+            //newAnnuncio4.eliminaAnnuncioDaFirebase()
+            //--- Fine eliminazione dati su Firestore Firebase ---
+
+        } catch (e: Exception) {
+            Log.e("RECUPERA ANNUNCI TEST REAL TIME", "Errore nei test", e)
+        }
+    }
+    */
+    // --- Fine funzione che testa il mantenimento delle informazioni aggiornate nel HashMap considerando DB ---
+
 
     //--- Metodo di supporto, che mi serve per recupera il numero di documenti nella collezione annunci che sono salvati su FireStore ---
     @Ignore
@@ -636,315 +1029,4 @@ class ExampleInstrumentedTest {
         return myDocuments.size()
     }
     //--- Fine metodo di supporto ---
-
-    /*
-    @Test
-    fun testModificaAnnunciFirebaseFirestore() {
-        // Ottieni la reference all'activity
-        activityScenarioRule.scenario.onActivity { activity ->
-
-            GlobalScope.launch (Dispatchers.IO) {
-                try {
-                    val userId = "userIdTestProva"
-
-                    val geoPosition = Location("provider")
-                    geoPosition.altitude = 37.4220
-                    geoPosition.longitude = -122.0841
-
-                    val newAnnuncio = Annuncio(
-                        userId,
-                        "Mr Robot: Season 1 Blu-Ray + Digital HD",
-                        "Mr. Robot, is a techno thriller that follows Elliot, a young programmer, who works as a cyber-security engineer by day and as a vigilante hacker by night.",
-                        16.99,
-                        2,
-                        true,
-                        "filmETv/serieTv",
-                        geoPosition
-                    )
-
-                    newAnnuncio.salvaAnnuncioSuFirebase()
-
-                    //Log.d("MODIFICA ANNUNCIO TEST","Prima della modifica: $newAnnuncio")
-
-                    assertEquals(1 , activity.recuperaAnnunciTitolo("Mr Robot: Season 1 Blu-Ray + Digital HD").size)
-                    assertEquals(0 , activity.recuperaAnnunciTitolo("Mr Robot: Season 2 Blu-Ray + Digital HD").size)
-
-                    assertEquals("Annuncio(userId='userIdTestProva', titolo='Mr Robot: Season 1 Blu-Ray + Digital HD', descrizione='Mr. Robot, is a techno thriller that follows Elliot, a young programmer, who works as a cyber-security engineer by day and as a vigilante hacker by night.', prezzo=16.99, stato=2, disponibilitaSpedire=true, categoria='filmETv/serieTv', posizione=Location[provider 0.000000,-122.084100 et=0 alt=37.422], annuncioId='${newAnnuncio.annuncioId}')",newAnnuncio.toString())
-
-                    newAnnuncio.setTitolo("Mr Robot: Season 2 Blu-Ray + Digital HD")
-
-                    //Log.d("MODIFICA ANNUNCIO TEST","Dopo la modifica: $newAnnuncio")
-
-                    assertEquals("Annuncio(userId='userIdTestProva', titolo='Mr Robot: Season 2 Blu-Ray + Digital HD', descrizione='Mr. Robot, is a techno thriller that follows Elliot, a young programmer, who works as a cyber-security engineer by day and as a vigilante hacker by night.', prezzo=16.99, stato=2, disponibilitaSpedire=true, categoria='filmETv/serieTv', posizione=Location[provider 0.000000,-122.084100 et=0 alt=37.422], annuncioId='${newAnnuncio.annuncioId}')",newAnnuncio.toString())
-
-                    assertEquals(0 , activity.recuperaAnnunciTitolo("Mr Robot: Season 1 Blu-Ray + Digital HD").size)
-                    assertEquals(1 , activity.recuperaAnnunciTitolo("Mr Robot: Season 2 Blu-Ray + Digital HD").size)
-
-                    newAnnuncio.eliminaAnnuncioDaFirebase()
-
-                }catch (e: Exception){
-                    Log.e("MODIFICA ANNUNCIO TEST","Errore nei test",e)
-                }
-            }
-        }
-    }
-
-
-*/
-
-    /*
-    @Test
-    fun testRecuperaAnnunciPerPrezzoInferiore() {
-        try {
-            GlobalScope.launch(Dispatchers.IO) {
-
-                val primaInserimento = getNumeroElementiFirestore()
-
-                //--- Inserimento dati su Firestore Firebase ---
-
-                val geoPosition = Location("provider")
-                geoPosition.altitude = 37.4220
-                geoPosition.longitude = -122.0841
-
-                val newAnnuncio1 = Annuncio(
-                    "userIdTestProva",
-                    "Mr Robot: Season 1 Blu-Ray + Digital HD",
-                    "Mr. Robot, is a techno thriller that follows Elliot, a young programmer, who works as a cyber-security engineer by day and as a vigilante hacker by night.",
-                    16.99,
-                    2,
-                    true,
-                    "filmETv/serieTv",
-                    geoPosition
-                )
-
-                val newAnnuncio2 = Annuncio(
-                    "userIdTestProva",
-                    "Apple iPhone 12 Pro Max 256GB Pacific Blue Unlocked",
-                    "The iPhone 12 Pro Max is Apple's flagship smartphone with a stunning 6.7-inch Super Retina XDR display, A14 Bionic chip, 5G capability, and a powerful triple-camera system.",
-                    1100.00,
-                    1,
-                    false,
-                    "elettronica/smartphone",
-                    geoPosition
-                )
-
-                val newAnnuncio3 = Annuncio(
-                    "userIdTestProva",
-                    "Vintage Leather Messenger Bag",
-                    "This vintage-inspired leather messenger bag is perfect for carrying your laptop and everyday essentials. With a spacious main compartment, multiple pockets, and an adjustable strap, it's both stylish and functional.",
-                    79.99,
-                    3,
-                    true,
-                    "informatica/accessori",
-                    geoPosition
-                )
-
-                val newAnnuncio4 = Annuncio(
-                    "userIdTestProva",
-                    "Apple Watch Series 7 45mm GPS + Cellular",
-                    "The Apple Watch Series 7 is the ultimate fitness and health companion, with a stunning always-on Retina display, blood oxygen sensor, ECG app, and 50% faster charging. Stay connected with GPS + Cellular capability and a wide range of watch faces and bands.",
-                    499.00,
-                    1,
-                    true,
-                    "wearable",
-                    geoPosition
-                )
-
-                newAnnuncio1.salvaAnnuncioSuFirebase()
-                newAnnuncio2.salvaAnnuncioSuFirebase()
-                newAnnuncio3.salvaAnnuncioSuFirebase()
-                newAnnuncio4.salvaAnnuncioSuFirebase()
-            activityScenarioRule.scenario.onActivity { activity ->
-                GlobalScope.launch(Dispatchers.IO) {
-
-
-
-                    //--- Fine Inserimento dati su Firestore Firebase ---
-
-
-
-                    //--- Eliminazione dati su Firestore Firebase ---
-                    newAnnuncio1.eliminaAnnuncioDaFirebase()
-                    newAnnuncio2.eliminaAnnuncioDaFirebase()
-                    newAnnuncio3.eliminaAnnuncioDaFirebase()
-                    newAnnuncio4.eliminaAnnuncioDaFirebase()
-                    //--- Fine eliminazione dati su Firestore Firebase ---
-
-                }
-            }
-        }catch (e: Exception) {
-            Log.e("INSERIMENTO ANNUNCIO TEST", "Errore nei test", e)
-        }
-    }
-*/
-
-/*
-    @Test
-    fun testRecuperaTuttiAnnunciFirebaseFirestore() {
-        try {
-            activityScenarioRule.scenario.onActivity { activity ->
-                GlobalScope.launch(Dispatchers.IO) {
-
-                    val primaInserimento = getNumeroElementiFirestore()
-
-                    //--- Inserimento dati su Firestore Firebase ---
-
-                    val geoPosition = Location("provider")
-                    geoPosition.altitude = 37.4220
-                    geoPosition.longitude = -122.0841
-
-                    val newAnnuncio1 = Annuncio(
-                        "userIdTestProva",
-                        "Mr Robot: Season 1 Blu-Ray + Digital HD",
-                        "Mr. Robot, is a techno thriller that follows Elliot, a young programmer, who works as a cyber-security engineer by day and as a vigilante hacker by night.",
-                        16.99,
-                        2,
-                        true,
-                        "filmETv/serieTv",
-                        geoPosition
-                    )
-
-                    val newAnnuncio2 = Annuncio(
-                        "userIdTestProva",
-                        "Apple iPhone 12 Pro Max 256GB Pacific Blue Unlocked",
-                        "The iPhone 12 Pro Max is Apple's flagship smartphone with a stunning 6.7-inch Super Retina XDR display, A14 Bionic chip, 5G capability, and a powerful triple-camera system.",
-                        1100.00,
-                        1,
-                        false,
-                        "elettronica/smartphone",
-                        geoPosition
-                    )
-
-                    val newAnnuncio3 = Annuncio(
-                        "userIdTestProva",
-                        "Vintage Leather Messenger Bag",
-                        "This vintage-inspired leather messenger bag is perfect for carrying your laptop and everyday essentials. With a spacious main compartment, multiple pockets, and an adjustable strap, it's both stylish and functional.",
-                        79.99,
-                        3,
-                        true,
-                        "informatica/accessori",
-                        geoPosition
-                    )
-
-                    val newAnnuncio4 = Annuncio(
-                        "userIdTestProva",
-                        "Apple Watch Series 7 45mm GPS + Cellular",
-                        "The Apple Watch Series 7 is the ultimate fitness and health companion, with a stunning always-on Retina display, blood oxygen sensor, ECG app, and 50% faster charging. Stay connected with GPS + Cellular capability and a wide range of watch faces and bands.",
-                        499.00,
-                        1,
-                        true,
-                        "wearable",
-                        geoPosition
-                    )
-
-                    newAnnuncio1.salvaAnnuncioSuFirebase()
-                    newAnnuncio2.salvaAnnuncioSuFirebase()
-                    newAnnuncio3.salvaAnnuncioSuFirebase()
-                    newAnnuncio4.salvaAnnuncioSuFirebase()
-
-                    //--- Fine Inserimento dati su Firestore Firebase ---
-
-                    assertEquals(getNumeroElementiFirestore(), activity.recuperaTuttiAnnunci().size)
-
-                    //--- Eliminazione dati su Firestore Firebase ---
-                    newAnnuncio1.eliminaAnnuncioDaFirebase()
-                    newAnnuncio2.eliminaAnnuncioDaFirebase()
-                    newAnnuncio3.eliminaAnnuncioDaFirebase()
-                    newAnnuncio4.eliminaAnnuncioDaFirebase()
-                    //--- Fine eliminazione dati su Firestore Firebase ---
-
-                }
-            }
-        }catch (e: Exception) {
-            Log.e("INSERIMENTO ANNUNCIO TEST", "Errore nei test", e)
-        }
-    }
-
-
-
-    @Test
-    fun testRecuperaTuttiAnnunciFirebaseFirestore() {
-        try {
-            GlobalScope.launch(Dispatchers.IO) {
-
-                val primaInserimento = getNumeroElementiFirestore()
-
-                //--- Inserimento dati su Firestore Firebase ---
-
-                val geoPosition = Location("provider")
-                geoPosition.altitude = 37.4220
-                geoPosition.longitude = -122.0841
-
-                val newAnnuncio1 = Annuncio(
-                    "userIdTestProva",
-                    "Mr Robot: Season 1 Blu-Ray + Digital HD",
-                    "Mr. Robot, is a techno thriller that follows Elliot, a young programmer, who works as a cyber-security engineer by day and as a vigilante hacker by night.",
-                    16.99,
-                    2,
-                    true,
-                    "filmETv/serieTv",
-                    geoPosition
-                )
-
-                val newAnnuncio2 = Annuncio(
-                    "userIdTestProva",
-                    "Apple iPhone 12 Pro Max 256GB Pacific Blue Unlocked",
-                    "The iPhone 12 Pro Max is Apple's flagship smartphone with a stunning 6.7-inch Super Retina XDR display, A14 Bionic chip, 5G capability, and a powerful triple-camera system.",
-                    1100.00,
-                    1,
-                    false,
-                    "elettronica/smartphone",
-                    geoPosition
-                )
-
-                val newAnnuncio3 = Annuncio(
-                    "userIdTestProva",
-                    "Vintage Leather Messenger Bag",
-                    "This vintage-inspired leather messenger bag is perfect for carrying your laptop and everyday essentials. With a spacious main compartment, multiple pockets, and an adjustable strap, it's both stylish and functional.",
-                    79.99,
-                    3,
-                    true,
-                    "informatica/accessori",
-                    geoPosition
-                )
-
-                val newAnnuncio4 = Annuncio(
-                    "userIdTestProva",
-                    "Apple Watch Series 7 45mm GPS + Cellular",
-                    "The Apple Watch Series 7 is the ultimate fitness and health companion, with a stunning always-on Retina display, blood oxygen sensor, ECG app, and 50% faster charging. Stay connected with GPS + Cellular capability and a wide range of watch faces and bands.",
-                    499.00,
-                    1,
-                    true,
-                    "wearable",
-                    geoPosition
-                )
-
-                newAnnuncio1.salvaAnnuncioSuFirebase()
-                newAnnuncio2.salvaAnnuncioSuFirebase()
-                newAnnuncio3.salvaAnnuncioSuFirebase()
-                newAnnuncio4.salvaAnnuncioSuFirebase()
-
-                //--- Fine Inserimento dati su Firestore Firebase ---
-
-                val numeroAnnunci = getNumeroElementiFirestore()
-
-                activityScenarioRule.scenario.onActivity { activity ->
-                    GlobalScope.launch(Dispatchers.IO) {
-                        assertEquals(numeroAnnunci, activity.recuperaTuttiAnnunci().size)
-                    }
-                }
-
-                //--- Eliminazione dati su Firestore Firebase ---
-                newAnnuncio1.eliminaAnnuncioDaFirebase()
-                newAnnuncio2.eliminaAnnuncioDaFirebase()
-                newAnnuncio3.eliminaAnnuncioDaFirebase()
-                newAnnuncio4.eliminaAnnuncioDaFirebase()
-                //--- Fine eliminazione dati su Firestore Firebase ---
-            }
-        }catch (e: Exception) {
-            Log.e("INSERIMENTO ANNUNCIO TEST", "Errore nei test", e)
-        }
-    }
-
- */
 }

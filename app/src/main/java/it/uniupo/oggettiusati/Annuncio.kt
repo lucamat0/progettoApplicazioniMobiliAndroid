@@ -8,6 +8,7 @@ import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 import com.google.firebase.storage.FirebaseStorage
 import kotlinx.coroutines.tasks.await
+import java.lang.Math.*
 import kotlin.random.Random
 
 class Annuncio(
@@ -45,15 +46,11 @@ class Annuncio(
 
     public lateinit var annuncioId: String
 
-    /*
-    constructor(userId: String, titolo: String, descrizione: String, prezzo: Double, stato: Int, disponibilitaSpedire: Boolean, categoria: String, latitude:Double, longitude: Double ) : this(userId, titolo, descrizione, prezzo, stato, disponibilitaSpedire, categoria) {
-        this.posizione.latitude = latitude
-        this.posizione.longitude = longitude
-    }
-*/
-    //Costruttore secondario, utile dopo che abbiamo letto un annuncio, andiamo a definire un suo oggetto.
-    constructor( titolo: String, categoria: String, descrizione: String, stato: Int, disponibilitaSpedire: Boolean, posizione: GeoPoint,prezzo: Double,  userId: String, annuncioId: String) : this(userId, titolo, descrizione, prezzo, stato, disponibilitaSpedire, categoria) {
+    private var userIdAcquirente: String? = null
+
+    constructor(userId: String, titolo: String, descrizione: String, prezzo: Double, stato: Int, disponibilitaSpedire: Boolean, posizione: GeoPoint, categoria: String, userIdAcquirente: String?, annuncioId: String) : this(userId, titolo, descrizione, prezzo, stato, disponibilitaSpedire, categoria) {
         this.annuncioId = annuncioId
+        this.userIdAcquirente = userIdAcquirente
 
         this.posizione.latitude = posizione.latitude
         this.posizione.longitude = posizione.longitude
@@ -74,7 +71,7 @@ class Annuncio(
                 "disponibilitaSpedire" to disponibilitaSpedire,
                 "categoria" to categoria,
                 "posizione" to geo,
-                "userIdAcquirente" to null
+                "userIdAcquirente" to userIdAcquirente
             )
 
             val myCollection = Annuncio.database.collection("annunci")
@@ -96,19 +93,6 @@ class Annuncio(
         val adRif = database.collection("annunci").document(this.annuncioId)
 
         adRif.update("userId",userId,"titolo",titolo,"descrizione",descrizione,"prezzo",prezzo,"stato",stato,"disponibilitaSpedire",disponibilitaSpedire,"categoria",categoria).await()
-
-
-        /*
-
-        adRif.update("userId",userId,"titolo",titolo,"descrizione",descrizione,"prezzo",prezzo,"stato",stato,"disponibilitaSpedire",disponibilitaSpedire,"categoria",categoria)
-            .addOnSuccessListener {
-                Log.d("Modifica annuncio", "Annuncio modificato con successo")
-            }
-            .addOnFailureListener { e ->
-                Log.w("Modifica annuncio", "Errore nella modifica dell'annuncio", e)
-            }
-
-         */
     }
 
     public suspend fun eliminaAnnuncioDaFirebase(){
@@ -149,48 +133,13 @@ class Annuncio(
         }
     }
 
-    //Metodo che in base se l'oggetto é venduto o no, segna o no l'utente che l'ha acquistato.
-    public fun setVenduto(userIdAcquirente: String){
+    public suspend fun setVenduto(userIdAcquirente: String){
+        if(this.userIdAcquirente == null){
+            this.userIdAcquirente = userIdAcquirente
 
-        val documentoRif = database.collection("annunci").document(this.annuncioId)
-
-        //se effettivamente, il documento contiene null vorrá dire che non é stato acquistato da nessun altra persona, quindi posso effettuare upgrade.
-        if (isVenduto()) {
-            documentoRif.update("userIdAcquirente", userIdAcquirente)
-                .addOnSuccessListener { Log.d("Recupero documento", "Il documento é stato aggiornato, é stato segnato acquirente.") }
-                .addOnFailureListener { e -> Log.e("Recupero documento", "Il documento non é stato aggiornato",e)}
+            salvaAnnuncioSuFirebase()
         }
-        else{
-            Log.d("Recupero documento", "Il documento esiste, é giá stato associato un acquirente.")
-        }
-    }
 
-    //Metodo che ritorna il valore true o false in base a se l'oggetto associato al annuncio é stato venduto oppure no.
-    public fun isVenduto(): Boolean {
-
-        //Definisce un riferimento con il documento
-        val documentoRif = database.collection("annunci").document(this.annuncioId)
-
-        var risultato = false
-
-        //recupero le proprietá del documento, dal cloud.
-        documentoRif.get()
-            .addOnSuccessListener { document ->
-                //controllo se effettivamente esiste il documento, sul db.
-                if (document != null) {
-
-                    Log.d("Recupero documento", "Il documento esiste")
-
-                    //se effettivamente, il documento contiene null vorrá dire che non é stato acquistato da nessun altra persona, quindi posso effettuare upgrade.
-                    risultato = document["userIdAcquirente"] == null
-                }else{
-                    Log.d("Recupero documento", "Il documento non esiste")
-
-                    risultato = false
-                }
-            }
-
-        return risultato
     }
 
     public suspend fun setTitolo(newTitolo:String){
@@ -215,6 +164,31 @@ class Annuncio(
         this.prezzo = newPrezzo
 
         modificaAnnuncioSuFirebase()
+    }
+
+    //Metodo che mi permette di tradurre la distanza in Km, date due coordinate composte da longitudine e latitudine
+    private fun distanzaInKm(posizioneUtente: Location): Double {
+
+        val lat1 = this.posizione.latitude
+        val lon1 = this.posizione.longitude
+
+        val lat2 = posizioneUtente.latitude
+        val lon2 = posizioneUtente.longitude
+
+        val theta = lon1 - lon2
+
+        var dist = sin(Math.toRadians(lat1)) * sin(Math.toRadians(lat2)) + cos(Math.toRadians(lat1)) * cos(Math.toRadians(lat2)) * cos(Math.toRadians(theta))
+        dist = acos(dist)
+        dist = Math.toDegrees(dist)
+        dist *= 60 * 1.1515
+        dist *= 1.609344
+
+        return dist
+    }
+
+    //Mi ritorna true se l'annuncio, ha una distanza inferiore a quella massima.
+    public fun distanzaMinore(posizioneUtente: Location, distanzaMax: Int): Boolean{
+        return  distanzaInKm(posizioneUtente) <= distanzaMax
     }
 
     override fun toString(): String {
