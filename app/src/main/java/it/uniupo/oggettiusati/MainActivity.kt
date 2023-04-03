@@ -111,6 +111,7 @@ class MainActivity : AppCompatActivity() {
                     val i = Intent(this, UserLoginActivity::class.java)
                     i.putExtra("userId", userID)
                     startActivity(i)
+                    finish()
                 } else if (isAdmin.equals("1")) {
                     val i = Intent(this, AdminLoginActivity::class.java)
                     i.putExtra("userId", userID)
@@ -127,10 +128,10 @@ class MainActivity : AppCompatActivity() {
         super.onStart()
         // Check if user is signed in (non-null) and update UI accordingly.
         val user = auth.currentUser
-        if(user != null)
+        if(user != null) {
             FirebaseAuth.getInstance().signOut() //provvisiorio per testare il login
             //startActivity(Intent(this,LoginActivity::class.java))
-        else{
+        }else{
             Toast.makeText(this, "Utente non loggato al momento", Toast.LENGTH_LONG).show()
         }
     }

@@ -60,8 +60,6 @@ class Annuncio(
                 "descrizione" to this.descrizione,
                 "prezzo" to this.prezzo,
                 "stato" to this.stato,
-                "fotoRef" to null,
-                "infoVenditore" to null,
                 "disponibilitaSpedire" to this.disponibilitaSpedire,
 
                 /*"userId" to this.userId,

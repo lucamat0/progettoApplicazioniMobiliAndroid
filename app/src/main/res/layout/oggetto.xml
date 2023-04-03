@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Nome Oggetto"/>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Categoria Oggetto"/>
+
+<!--    <fragment xmlns:android="http://schemas.android.com/apk/res/android"-->
+<!--        xmlns:map="http://schemas.android.com/apk/res-auto"-->
+<!--        android:name="com.google.android.gms.maps.SupportMapFragment"-->
+<!--        android:id="@+id/map"-->
+<!--        android:layout_width="match_parent"-->
+<!--        android:layout_height="match_parent"/>-->
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Posizione Oggetto"/>
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Descrizione molto lunga dell'oggetto"/>
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Prezzo"/>
+
+    <Spinner
+        android:id="@+id/stato"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:entries="@array/statoOggetto"
+        android:layout_gravity="center"
+        />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Slideshow foto"/>
+    <ImageView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:src="@drawable/ic_launcher_background"/>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Info venditore: test@gmail.com, 362 789 4378"/>
+
+    <Switch
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:checked="false"
+        android:paddingVertical="10dp"
+        android:contentDescription="spedizione"
+        android:layout_gravity="center"
+        android:enabled="true"
+        android:text="Spedizione: "/>
+
+</LinearLayout>
