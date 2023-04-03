@@ -17,16 +17,12 @@ import it.uniupo.oggettiusati.R
 
 class SignUpActivity : AppCompatActivity() {
 
-    private lateinit var auth: FirebaseAuth
-    private lateinit var database: FirebaseFirestore
+    public val auth = FirebaseAuth.getInstance()
+    public val database = Firebase.firestore
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_signup)
-
-        auth = FirebaseAuth.getInstance()
-
-        database = Firebase.firestore
 
         // -- SignUp Activity --
         val nome = findViewById<EditText>(R.id.nome)
