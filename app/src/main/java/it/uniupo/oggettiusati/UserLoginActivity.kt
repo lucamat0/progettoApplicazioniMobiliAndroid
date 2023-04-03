@@ -370,4 +370,3 @@ open class UserLoginActivity : AppCompatActivity() {
         private const val REQUEST_IMAGE_PICK = 100
     }
          */
-}
