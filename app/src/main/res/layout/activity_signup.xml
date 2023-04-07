@@ -24,6 +24,12 @@
         android:layout_height="wrap_content"/>
 
     <EditText
+        android:id="@+id/numeroDiTelefono"
+        android:hint="Numero di telefono"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"/>
+
+    <EditText
         android:id="@+id/password"
         android:hint="Password"
         android:inputType="textPassword"

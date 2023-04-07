@@ -2,7 +2,7 @@ package it.uniupo.oggettiusati
 
 import android.location.Location
 import android.util.Log
-import androidx.test.ext.junit.rules.ActivityScenarioRule
+import androidx.test.core.app.ActivityScenario
 import androidx.test.platform.app.InstrumentationRegistry
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import kotlinx.coroutines.*
@@ -27,10 +27,6 @@ class ExampleInstrumentedTest {
         assertEquals("it.uniupo.oggettiusati", appContext.packageName)
     }
 
-    //Ci permette di accedere al Activity: UserLoginActivity
-    @get:Rule
-    val activityScenarioRule = ActivityScenarioRule(UserLoginActivity::class.java)
-
     //--- Inizio test con la @Before e @After che non funzionano (il test @Before non é detto che inizi per primo e il @After non é detto che parti per ultimo) ---
     /*
     lateinit var newAnnuncio1: Annuncio
@@ -43,7 +39,7 @@ class ExampleInstrumentedTest {
                 GlobalScope.launch (Dispatchers.IO) {
 
                 val geoPosition = Location("provider")
-                geoPosition.altitude = 37.4220
+                geoPosition.latitude = 37.4220
                 geoPosition.longitude = -122.0841
 
                 val newAnnuncio = Annuncio(
@@ -135,7 +131,7 @@ class ExampleInstrumentedTest {
 
     @Test fun testRecuperaAnnunciPerTitoloFirebaseFirestore() {
         // Ottieni la reference all'activity
-        activityScenarioRule.scenario.onActivity { activity ->
+        activityScenarioUserLoginActivity.scenario.onActivity { activity ->
             GlobalScope.launch (Dispatchers.IO) {
 
                 assertEquals(1,activity.recuperaAnnunciTitolo("Mr Robot: Season 1 Blu-Ray + Digital HD").size)
@@ -151,7 +147,7 @@ class ExampleInstrumentedTest {
     @Test
     fun testRecuperaTuttiAnnunciFirebaseFirestore() {
         // Ottieni la reference all'activity
-        activityScenarioRule.scenario.onActivity { activity ->
+        activityScenarioUserLoginActivity.scenario.onActivity { activity ->
             GlobalScope.launch (Dispatchers.IO) {
                 assertEquals(getNumeroElementiFirestore(), activity.recuperaTuttiAnnunci().size)
             }
@@ -161,7 +157,7 @@ class ExampleInstrumentedTest {
     @Test
     fun testRecuperaAnnunciPerPrezzoInferiore() {
         // Ottieni la reference all'activity
-        activityScenarioRule.scenario.onActivity { activity ->
+        activityScenarioUserLoginActivity.scenario.onActivity { activity ->
             GlobalScope.launch (Dispatchers.IO) {
 
                 assertEquals(4,activity.recuperaAnnunciPrezzoInferiore(1200).size)
@@ -191,52 +187,263 @@ class ExampleInstrumentedTest {
     }
     */
 
-    //--- Inizio test che non funzionano, neanche se vengono eseguiti uno alla volta (Non avviene eliminazione degli annunci) ---
 
-    @Test
-    fun avviaTestSuFirebaseFirestore() = runBlocking{
+    @Test fun testisAcquistabileProdotto() {
 
-        //--- Inizio test sulla funzione che inserisci elementi nel DB ---
-        testSalvaAnnunciFirebaseFirestore()
-        //--- Finte test sulla funzione che inserisce elementi nel DB ---
+        val scenarioSignUpActivity = ActivityScenario.launch(SignUpActivity::class.java)
 
-        //--- Inizio test sulla funzione che mi permette di recuperare tutti gli annunci che si trovano nel DB ---
-        testRecuperaTuttiAnnunciFirebaseFirestore()
-        //--- Fine test sulla funzione che mi permette di recuperare tutti gli annunci che si trovano nel DB ---
+        scenarioSignUpActivity.onActivity { activity ->
+            runBlocking {
+                activity.salvaUtenteSuFirebaseFirestore(
+                    "alan.turing",
+                    "Alan",
+                    "Turing",
+                    "23/06/1912",
+                    "3358924674"
+                )
+            }
+        }
 
-        //--- Inizio test sulla funzione che mi recupera gli elementi con prezzo inferiore a X ---
-        testRecuperaAnnunciPerPrezzoInferiore()
-        //--- Fine test sulla funzione che mi recupera gli elementi con prezzo inferiore a X ---
+        val scenarioUserLoginActivity = ActivityScenario.launch(UserLoginActivity::class.java)
 
-        //--- Inizio test sulla funzione che mi recupera gli elementi con un prezzo superiore a X ---
-        testRecuperaAnnunciPerPrezzoSuperiore()
-        //--- Fine test sulla funzione che mi recupera gli elementi con un prezzo superiore a X ---
+        scenarioUserLoginActivity.onActivity { activity ->
+            runBlocking {
+                //Effettuo una ricarica di 100€
+                val idTransazioneAlan = activity.salvaTransazioneSuFirestoreFirebase("alan.turing", 100.00, true)
 
-        //--- Inizio test sulla funzione che mi recupera gli elementi con un prezzo compreso tra un range:  max<X>min ---
-        testRecuperaAnnunciPerRange()
-        //--- Fine test sulla funzione che mi recupera gli elementi con un prezzo compreso tra un range:  max<X>min ---
+                assertEquals(true, activity.isAcquistabile("alan.turing", 15.0))
+                assertEquals(true, activity.isAcquistabile("alan.turing", 100.0))
+                assertEquals(false, activity.isAcquistabile("alan.turing", 110.0))
+                assertEquals(false, activity.isAcquistabile("alan.turing", 100.1))
 
-        //--- Inizio test sulla funzione che mi recupera gli elementi che hanno quel titolo ---
-        testRecuperaAnnunciPerTitoloFirebaseFirestore()
-        //--- FIne test sulla funzione che mi recupera gli elementi che hanno quel titolo ---
+                val myCollection = Annuncio.database.collection("utente")
 
-        //--- Inizio test sulla funzione che mi recupera gli elementi che hanno disponibilita a essere spediti ---
-        testRecuperaAnnunciPerDisponibilitaSpedireFirebaseFirestore()
-        //--- Fine test sulla funzione che mi recupera gli elementi che hanno disponibilita a essere spediti ---
+                val myCollectionTransazioneAlan =
+                    myCollection.document("alan.turing").collection("transazione")
 
-        //--- Inizio test sulle funzioni che mi modificano gli annunci: titolo, descrizione, categoria e prezzo ---
-        testModificaAnnunciTitoloDescrizioneCategoriaPrezzoFirebaseFirestore()
-        //--- Fine test sulle funzioni che mi modificano gli annunci: titolo, descrizione, categoria e prezzo ---
+                myCollectionTransazioneAlan.document(idTransazioneAlan).delete().await()
 
-        //--- Inizio test sulla funzione che mi elimina gli annunci ---
-        testEliminaAnnunci()
-        //--- Fine test sulla funzione che mi elimina gli annunci ---
+                myCollection.document("alan.turing").delete().await()
+            }
+        }
 
-        //testSubscribeRealTimeDatabase()
+
     }
 
-    @Ignore
-    suspend fun testSalvaAnnunciFirebaseFirestore() {
+    //--- Inizio test, sulla funzione che mi inserisce le transazioni (ricariche/acquisti) su Firebase Firestore ---
+    @Test fun testsalvaTransazioneSuFirestoreFirebase() {
+
+        val scenarioSignUpActivity = ActivityScenario.launch(SignUpActivity::class.java)
+
+        scenarioSignUpActivity.onActivity { activity ->
+            runBlocking {
+                activity.salvaUtenteSuFirebaseFirestore(
+                    "alan.turing",
+                    "Alan",
+                    "Turing",
+                    "23/06/1912",
+                    "3358924674"
+                )
+            }
+        }
+
+        val scenarioUserLoginActivity = ActivityScenario.launch(UserLoginActivity::class.java)
+
+        scenarioUserLoginActivity.onActivity { activity ->
+            runBlocking {
+
+                val idTransazioniAlan = ArrayList<String>()
+
+                //Effettuo una ricarica di 100€
+                idTransazioniAlan.add(activity.salvaTransazioneSuFirestoreFirebase("alan.turing", 100.00, true))
+
+                val myCollection = Annuncio.database.collection("utente")
+
+                val myCollectionTransazioneAlan =
+                    myCollection.document("alan.turing").collection("transazione")
+
+                //Il delta, terzo parametro, mi permette di specificare un errore, che posso accettare per considerare il test valido,
+                //Se: valore calcolato - valore atteso < 0.1 il test viene considerato superato, sennó viene sollevata un eccezione
+                assertEquals(100.0, activity.saldoAccount(myCollectionTransazioneAlan), 0.1)
+
+                idTransazioniAlan.add(activity.salvaTransazioneSuFirestoreFirebase("alan.turing", 50.0, false))
+
+                assertEquals(50.0, activity.saldoAccount(myCollectionTransazioneAlan), 0.1)
+
+                //--- Elimina le transazioni utilizzate per i test ---
+                for(myTransazione in idTransazioniAlan)
+                    myCollectionTransazioneAlan.document(myTransazione).delete().await()
+
+                //--- Elimina il documento, creato, associato al utente ---
+                myCollection.document("alan.turing").delete().await()
+            }
+        }
+    }
+
+    //--- Inizio test sulla funzione che mi ritorna gli utenti, all'interno di una HashMap, con il punteggio, delle recensioni, più alto ---
+    @Test fun testClassificaUtentiRecensitiConVotoPiuAlto() {
+
+        val scenarioSignUpActivity = ActivityScenario.launch(SignUpActivity::class.java)
+
+        scenarioSignUpActivity.onActivity { activity ->
+            runBlocking {
+                activity.salvaUtenteSuFirebaseFirestore(
+                    "ada.lovelace",
+                    "Ada",
+                    "Lovelace",
+                    "10/12/1815",
+                    "0212345671"
+                )
+
+                activity.salvaUtenteSuFirebaseFirestore(
+                    "alan.turing",
+                    "Alan",
+                    "Turing",
+                    "23/06/1912",
+                    "3358924674"
+                )
+
+                activity.salvaUtenteSuFirebaseFirestore(
+                    "tim.bernerslee",
+                    "Tim",
+                    "Berners-Lee",
+                    "08/06/1955",
+                    "3358924574"
+                )
+
+                //Log.d("TEST CLASSIFICA UTENTI RECENSITI","Prima")
+            }
+        }
+
+        val myCollection = Annuncio.database.collection("utente")
+
+        val myCollectionRecensioneAda = myCollection.document("ada.lovelace").collection("recensione")
+        val myCollectionRecensioneAlan = myCollection.document("alan.turing").collection("recensione")
+
+        val scenarioAdminLoginActivity = ActivityScenario.launch(AdminLoginActivity::class.java)
+
+        scenarioAdminLoginActivity.onActivity { activity ->
+                runBlocking {
+
+                    //Log.d("TEST CLASSIFICA UTENTI RECENSITI", activity.inserisciRecensioneSuFirebaseFirestore("Ottimo prodotto", "Ho acquistato questo prodotto e sono rimasto molto soddisfatto. La qualità è eccellente e il prezzo è competitivo. Inoltre, la spedizione è stata rapida e il servizio clienti è stato molto disponibile. Consiglio vivamente questo prodotto!", 5, "ada.lovelace")!!.toString())
+
+                    val idRecensioniAlan = ArrayList<String>()
+                    idRecensioniAlan.add(activity.inserisciRecensioneSuFirebaseFirestore("Innovativo", "Questo prodotto è un vero e proprio gioiello di tecnologia. Molto innovativo e funzionale. Il prezzo è elevato, ma ne vale la pena. La spedizione è stata rapida e il servizio clienti è stato impeccabile.", 5, "alan.turing")!!)
+                    idRecensioniAlan.add(activity.inserisciRecensioneSuFirebaseFirestore("Non all'altezza delle aspettative", "Mi aspettavo di più da questo prodotto, soprattutto considerando il prezzo elevato. La qualità non è eccezionale e alcuni componenti sembrano fragili. La spedizione è stata abbastanza veloce.", 2, "alan.turing")!!)
+                    idRecensioniAlan.add(activity.inserisciRecensioneSuFirebaseFirestore("Buon rapporto qualità-prezzo", "Il prezzo di questo prodotto è conveniente e la qualità è buona. La spedizione è stata veloce e il venditore si è dimostrato disponibile nel rispondere alle mie domande. Consiglio questo prodotto.", 4, "alan.turing")!!)
+                    idRecensioniAlan.add(activity.inserisciRecensioneSuFirebaseFirestore("Non soddisfacente", "Purtroppo questo prodotto non ha soddisfatto le mie aspettative. La qualità non è eccezionale e alcuni componenti sembrano fragili. La spedizione è stata abbastanza veloce, ma il servizio clienti non è stato molto disponibile.", 2, "alan.turing")!!)
+
+                    val idRecensioniAda = ArrayList<String>()
+                    idRecensioniAda.add(activity.inserisciRecensioneSuFirebaseFirestore("Ottimo prodotto", "Ho acquistato questo prodotto e sono rimasto molto soddisfatto. La qualità è eccellente e il prezzo è competitivo. Inoltre, la spedizione è stata rapida e il servizio clienti è stato molto disponibile. Consiglio vivamente questo prodotto!", 5, "ada.lovelace")!!)
+                    idRecensioniAda.add(activity.inserisciRecensioneSuFirebaseFirestore("Imballo non adeguato", "Il prodotto è arrivato danneggiato a causa di un'imballo insufficiente. Il venditore si è dimostrato disponibile nel risolvere il problema, ma avrei preferito ricevere il prodotto in perfette condizioni fin dall'inizio.", 2, "ada.lovelace")!!)
+                    idRecensioniAda.add(activity.inserisciRecensioneSuFirebaseFirestore("Prodotto discreto", "Il prodotto ha un prezzo conveniente, ma la qualità non è eccezionale. Adatto per un utilizzo occasionale, ma non lo consiglio per un uso intenso. La spedizione è stata abbastanza rapida.", 3, "ada.lovelace")!!)
+                    idRecensioniAda.add(activity.inserisciRecensioneSuFirebaseFirestore("Non consigliato", "Ho avuto diversi problemi con questo prodotto e il venditore non si è dimostrato disponibile nel risolverli. Sconsiglio l'acquisto di questo prodotto.", 1, "ada.lovelace")!!)
+
+
+                    val myHashMediaRecensioni = activity.classificaUtentiRecensitiConVotoPiuAlto()
+
+                    //Log.d("TEST CLASSIFICA UTENTI RECENSITI", myHashMediaRecensioni["ada.lovelace"].toString() )
+
+                    assertEquals(2.75,myHashMediaRecensioni["ada.lovelace"]!!,0.1)
+                    assertEquals(3.25,myHashMediaRecensioni["alan.turing"]!!,0.1)
+                    assertEquals(0.0,myHashMediaRecensioni["tim.bernerslee"]!!,0.1)
+
+                    assertEquals("{alan.turing=3.25, ada.lovelace=2.75, tim.bernerslee=0.0}", myHashMediaRecensioni.toString())
+
+                    //Log.d("TEST CLASSIFICA UTENTI RECENSITI", idRecensione1Ada)
+
+                    for(idRecensioneAda in idRecensioniAda)
+                        myCollectionRecensioneAda.document(idRecensioneAda).delete().await()
+
+                    for(idRecensioneAlan in idRecensioniAlan)
+                        myCollectionRecensioneAlan.document(idRecensioneAlan).delete().await()
+
+                    //Log.d("TEST CLASSIFICA UTENTI RECENSITI","Prima 1")
+                    myCollection.document("alan.turing").delete().await()
+                    myCollection.document("ada.lovelace").delete().await()
+                    myCollection.document("tim.bernerslee").delete().await()
+                }
+            }
+
+        //Log.d("TEST CLASSIFICA UTENTI RECENSITI","Prima 2")
+    }
+
+    //--- Inizio test sulla funzione che mi inserisci un documento per ogni utente ---
+    @Test fun testInserisciUtenteFirebaseFirestore(): Unit = runBlocking {
+
+        val myCollection = Annuncio.database.collection("utente")
+
+        val primaInserimento = myCollection.get().await().size()
+
+        val scenarioSignUpActivity = ActivityScenario.launch(SignUpActivity::class.java)
+
+        scenarioSignUpActivity.onActivity { activity ->
+            runBlocking {
+                activity.salvaUtenteSuFirebaseFirestore(
+                    "utenteDiProva",
+                    "Giuseppe",
+                    "Marconi",
+                    "10/02/1980",
+                    "3358924674"
+                );
+
+                assertEquals(primaInserimento+1, myCollection.get().await().size())
+            }
+        }
+
+        //Dopo il test, elimino il documento associato al utente.
+
+        myCollection.document("utenteDiProva").delete().await()
+    }
+
+    //--- Inizio test sulla funzione che mi inserisce una recensione a un utente: creato, recensito e eliminato ---
+    @Test fun testInserisciRecensioneUtenteFirebaseFirestore(): Unit = runBlocking {
+
+        val scenarioSignUpActivity = ActivityScenario.launch(SignUpActivity::class.java)
+
+        scenarioSignUpActivity.onActivity { activity ->
+            runBlocking {
+                activity.salvaUtenteSuFirebaseFirestore(
+                    "utenteDiProva",
+                    "Giuseppe",
+                    "Marconi",
+                    "10/02/1980",
+                    "3358924674"
+                );
+            }
+        }
+
+        val myCollectionUtente = Annuncio.database.collection("utente").document("utenteDiProva")
+
+        val myCollectionRecensione = myCollectionUtente.collection("recensione")
+
+        val numeroDocsRecensioni = myCollectionRecensione.get().await().size()
+
+        val scenarioUserLoginActivity = ActivityScenario.launch(UserLoginActivity::class.java)
+
+        scenarioUserLoginActivity.onActivity { activity ->
+            runBlocking {
+
+               val idRecensione = activity.inserisciRecensioneSuFirebaseFirestore("Fantastico prodotto! Consigliatissimo!", "Ho acquistato questo prodotto e sono rimasto estremamente soddisfatto. La qualità è eccellente e corrisponde perfettamente alla descrizione fornita dal venditore. Inoltre, il prezzo è competitivo rispetto ad altri prodotti simili sul mercato. La spedizione è stata rapida e il servizio clienti è stato disponibile e cortese nel rispondere alle mie domande. Consiglio vivamente questo prodotto a chiunque sia alla ricerca di un'ottima soluzione per le proprie esigenze.",5,"utenteDiProva")
+
+                assertEquals(numeroDocsRecensioni+1,Annuncio.database.collection("utente").document("utenteDiProva").collection("recensione").get().await().size())
+
+                val idRecensioneVotoNonValido = activity.inserisciRecensioneSuFirebaseFirestore("Fantastico prodotto! Consigliatissimo!", "Ho acquistato questo prodotto e sono rimasto estremamente soddisfatto. La qualità è eccellente e corrisponde perfettamente alla descrizione fornita dal venditore. Inoltre, il prezzo è competitivo rispetto ad altri prodotti simili sul mercato. La spedizione è stata rapida e il servizio clienti è stato disponibile e cortese nel rispondere alle mie domande. Consiglio vivamente questo prodotto a chiunque sia alla ricerca di un'ottima soluzione per le proprie esigenze.",6,"utenteDiProva")
+
+                assertEquals(null, idRecensioneVotoNonValido)
+
+                if(idRecensione != null)
+                    //Elimino il documento, che ho appena inserito
+                    myCollectionRecensione.document(idRecensione).delete().await()
+            }
+        }
+
+        //Elimino l'utente che ho definito per il test
+        myCollectionUtente.delete().await()
+    }
+
+    //--- Inizio test sulla funzione che inserisci elementi nel DB ---
+    @Test fun testSalvaAnnunciFirebaseFirestore(): Unit = runBlocking {
         try {
                 val primaInserimento = getNumeroElementiFirestore()
 
@@ -313,8 +520,8 @@ class ExampleInstrumentedTest {
         }
     }
 
-    @Ignore
-    suspend fun testRecuperaAnnunciPerPrezzoInferiore() {
+    //--- Inizio test sulla funzione che mi recupera gli elementi con prezzo inferiore a X ---
+    @Test fun testRecuperaAnnunciPerPrezzoInferiore(): Unit = runBlocking{
         try {
             //--- Inserimento dati su Firestore Firebase ---
             val geoPosition = Location("provider")
@@ -370,8 +577,10 @@ class ExampleInstrumentedTest {
             newAnnuncio3.salvaAnnuncioSuFirebase()
             newAnnuncio4.salvaAnnuncioSuFirebase()
 
+            val scenarioUserLoginActivity = ActivityScenario.launch(UserLoginActivity::class.java)
+
             //--- Fine Inserimento dati su Firestore Firebase ---
-            activityScenarioRule.scenario.onActivity { activity ->
+            scenarioUserLoginActivity.onActivity { activity ->
                 runBlocking {
                     assertEquals(4, activity.recuperaAnnunciPrezzoInferiore(1200).size)
                     assertEquals(1, activity.recuperaAnnunciPrezzoInferiore(20).size)
@@ -395,8 +604,8 @@ class ExampleInstrumentedTest {
         }
     }
 
-    @Ignore
-    suspend fun testRecuperaAnnunciPerPrezzoSuperiore() {
+    //--- Inizio test sulla funzione che mi recupera gli elementi con un prezzo superiore a X ---
+    @Test fun testRecuperaAnnunciPerPrezzoSuperiore(): Unit = runBlocking{
         try {
             //--- Inserimento dati su Firestore Firebase ---
 
@@ -455,7 +664,9 @@ class ExampleInstrumentedTest {
 
             //--- Fine Inserimento dati su Firestore Firebase ---
 
-            activityScenarioRule.scenario.onActivity { activity ->
+            val scenarioUserLoginActivity = ActivityScenario.launch(UserLoginActivity::class.java)
+
+            scenarioUserLoginActivity.onActivity { activity ->
                 runBlocking {
                     assertEquals(0, activity.recuperaAnnunciPrezzoSuperiore(1200).size)
                     assertEquals(3, activity.recuperaAnnunciPrezzoSuperiore(20).size)
@@ -478,8 +689,8 @@ class ExampleInstrumentedTest {
         }
     }
 
-    @Ignore
-    suspend fun testRecuperaAnnunciPerRange() {
+    //--- Inizio test sulla funzione che mi recupera gli elementi con un prezzo compreso tra un range:  max<X>min ---
+    @Test fun testRecuperaAnnunciPerRange(): Unit = runBlocking{
         try {
             //--- Inserimento dati su Firestore Firebase ---
 
@@ -537,8 +748,9 @@ class ExampleInstrumentedTest {
             newAnnuncio4.salvaAnnuncioSuFirebase()
 
             //--- Fine Inserimento dati su Firestore Firebase ---
+            val scenarioUserLoginActivity = ActivityScenario.launch(UserLoginActivity::class.java)
 
-            activityScenarioRule.scenario.onActivity { activity ->
+            scenarioUserLoginActivity.onActivity { activity ->
                 runBlocking {
                     assertEquals(1, activity.recuperaAnnunciPrezzoRange(450,1000).size)
                     assertEquals(2, activity.recuperaAnnunciPrezzoRange(15,100).size)
@@ -561,8 +773,8 @@ class ExampleInstrumentedTest {
         }
     }
 
-    @Ignore
-    suspend fun testRecuperaTuttiAnnunciFirebaseFirestore() {
+    //--- Inizio test sulla funzione che mi permette di recuperare tutti gli annunci che si trovano nel DB ---
+    @Test fun testRecuperaTuttiAnnunciFirebaseFirestore(): Unit = runBlocking {
         try {
                 val geoPosition = Location("provider")
                 geoPosition.altitude = 37.4220
@@ -621,7 +833,9 @@ class ExampleInstrumentedTest {
 
                 val numeroAnnunci = getNumeroElementiFirestore()
 
-                activityScenarioRule.scenario.onActivity { activity ->
+                val scenarioUserLoginActivity = ActivityScenario.launch(UserLoginActivity::class.java)
+
+                scenarioUserLoginActivity.onActivity { activity ->
                     runBlocking{
                         assertEquals(numeroAnnunci, activity.recuperaTuttiAnnunci().size)
                     }
@@ -638,8 +852,8 @@ class ExampleInstrumentedTest {
         }
     }
 
-    @Ignore
-    suspend fun testRecuperaAnnunciPerTitoloFirebaseFirestore() {
+    //--- Inizio test sulla funzione che mi recupera gli elementi che hanno quel titolo ---
+    @Test fun testRecuperaAnnunciPerTitoloFirebaseFirestore(): Unit= runBlocking{
         try {
             val geoPosition = Location("provider")
             geoPosition.altitude = 37.4220
@@ -696,7 +910,9 @@ class ExampleInstrumentedTest {
 
             //--- Fine Inserimento dati su Firestore Firebase ---
 
-            activityScenarioRule.scenario.onActivity { activity ->
+            val scenarioUserLoginActivity = ActivityScenario.launch(UserLoginActivity::class.java)
+
+            scenarioUserLoginActivity.onActivity { activity ->
                 runBlocking{
 
                     assertEquals(1,activity.recuperaAnnunciTitolo("Mr Robot: Season 1 Blu-Ray + Digital HD").size)
@@ -719,8 +935,8 @@ class ExampleInstrumentedTest {
         }
     }
 
-    @Ignore
-    suspend fun testRecuperaAnnunciPerDisponibilitaSpedireFirebaseFirestore() {
+    //--- Inizio test sulla funzione che mi recupera gli elementi che hanno disponibilita a essere spediti ---
+    @Test fun testRecuperaAnnunciPerDisponibilitaSpedireFirebaseFirestore(): Unit = runBlocking{
         try {
             val geoPosition = Location("provider")
             geoPosition.altitude = 37.4220
@@ -777,7 +993,9 @@ class ExampleInstrumentedTest {
 
             //--- Fine Inserimento dati su Firestore Firebase ---
 
-            activityScenarioRule.scenario.onActivity { activity ->
+            val scenarioUserLoginActivity = ActivityScenario.launch(UserLoginActivity::class.java)
+
+            scenarioUserLoginActivity.onActivity { activity ->
                 runBlocking{
                     assertEquals(3,activity.recuperaAnnunciDisponibilitaSpedire(true).size)
                     assertEquals(1,activity.recuperaAnnunciDisponibilitaSpedire(false).size)
@@ -795,8 +1013,8 @@ class ExampleInstrumentedTest {
         }
     }
 
-    @Ignore
-    suspend fun testModificaAnnunciTitoloDescrizioneCategoriaPrezzoFirebaseFirestore() {
+    //--- Inizio test sulle funzioni che mi modificano gli annunci: titolo, descrizione, categoria e prezzo ---
+    @Test fun testModificaAnnunciTitoloDescrizioneCategoriaPrezzoFirebaseFirestore(): Unit = runBlocking {
         try {
             val geoPosition = Location("provider")
             geoPosition.altitude = 37.4220
@@ -845,8 +1063,8 @@ class ExampleInstrumentedTest {
         }
     }
 
-    @Ignore
-    suspend fun testEliminaAnnunci() {
+    //--- Inizio test sulla funzione che mi elimina gli annunci ---
+    @Test fun testEliminaAnnunci(): Unit = runBlocking{
         try {
             //--- Inserimento dati su Firestore Firebase ---
             val geoPosition = Location("provider")
@@ -919,6 +1137,7 @@ class ExampleInstrumentedTest {
             Log.e("MODIFICA ANNUNCI TEST", "Errore nei test", e)
         }
     }
+
 
     // --- Inizio funzione che testa il mantenimento delle informazioni aggiornate nel HashMap considerando DB ---
     // --> Non funziona ma HashMap è correttamente aggiornata, anche il DB <--
@@ -1022,7 +1241,7 @@ class ExampleInstrumentedTest {
     @Ignore
     suspend fun getNumeroElementiFirestore(): Int {
 
-        val myCollection = Annuncio.database.collection("annunci")
+        val myCollection = Annuncio.database.collection(Annuncio.nomeCollection)
 
         val myDocuments = myCollection.get().await()
 

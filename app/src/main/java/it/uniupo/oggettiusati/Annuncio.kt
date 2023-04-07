@@ -42,6 +42,7 @@ class Annuncio(
     //collegamento con il mio database, variabile statica.
     companion object {
         public var database = Firebase.firestore
+        public val nomeCollection = "annuncio"
     }
 
     public lateinit var annuncioId: String
@@ -74,7 +75,7 @@ class Annuncio(
                 "userIdAcquirente" to userIdAcquirente
             )
 
-            val myCollection = Annuncio.database.collection("annunci")
+            val myCollection = Annuncio.database.collection("annuncio")
 
             //Log.d("DEBUG","Prima")
 
@@ -90,14 +91,14 @@ class Annuncio(
 
     private suspend fun modificaAnnuncioSuFirebase(){
 
-        val adRif = database.collection("annunci").document(this.annuncioId)
+        val adRif = database.collection("annuncio").document(this.annuncioId)
 
         adRif.update("userId",userId,"titolo",titolo,"descrizione",descrizione,"prezzo",prezzo,"stato",stato,"disponibilitaSpedire",disponibilitaSpedire,"categoria",categoria).await()
     }
 
     public suspend fun eliminaAnnuncioDaFirebase(){
 
-        val myCollection = database.collection("annunci")
+        val myCollection = database.collection("annuncio")
 
         val myDocument = myCollection.document(this.annuncioId)
 
@@ -164,6 +165,10 @@ class Annuncio(
         this.prezzo = newPrezzo
 
         modificaAnnuncioSuFirebase()
+    }
+
+    public fun isVenduto(): Boolean{
+        return userIdAcquirente != null
     }
 
     //Metodo che mi permette di tradurre la distanza in Km, date due coordinate composte da longitudine e latitudine

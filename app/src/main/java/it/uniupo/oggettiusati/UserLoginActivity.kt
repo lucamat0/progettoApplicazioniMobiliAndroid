@@ -8,7 +8,7 @@ import android.widget.Button
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.CollectionReference
 import com.google.firebase.firestore.GeoPoint
 import com.google.firebase.firestore.Query
 import com.google.firebase.firestore.QuerySnapshot
@@ -16,6 +16,8 @@ import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.tasks.await
+import java.util.*
+import kotlin.collections.HashMap
 
 
 open class UserLoginActivity : AppCompatActivity() {
@@ -77,7 +79,7 @@ open class UserLoginActivity : AppCompatActivity() {
     public suspend fun recuperaTuttiAnnunci(): HashMap<String, Annuncio> {
 
         //Ritorno una referenza alla collezzione contenente i miei documenti.
-        val myCollection = this.database.collection("annunci");
+        val myCollection = this.database.collection(Annuncio.nomeCollection);
 
         query = myCollection
 
@@ -91,7 +93,7 @@ open class UserLoginActivity : AppCompatActivity() {
     suspend fun recuperaAnnunciTitolo(nomeAnnuncio: String): HashMap<String, Annuncio> {
 
         //Ritorno una referenza alla collezzione contenente i miei documenti.
-        val myCollection = this.database.collection("annunci");
+        val myCollection = this.database.collection(Annuncio.nomeCollection);
 
         query = myCollection.whereEqualTo("titolo", nomeAnnuncio)
 
@@ -104,7 +106,7 @@ open class UserLoginActivity : AppCompatActivity() {
     //Fissano un limite inferiore
     public suspend fun recuperaAnnunciPrezzoInferiore(prezzoMinore: Int): HashMap<String, Annuncio> {
         //Ritorno una referenza alla collezzione contenente i miei documenti.
-        val myCollection = this.database.collection("annunci");
+        val myCollection = this.database.collection(Annuncio.nomeCollection);
 
         query = myCollection.whereLessThan("prezzo", prezzoMinore)
 
@@ -117,7 +119,7 @@ open class UserLoginActivity : AppCompatActivity() {
     //Fissano un limite superiore
     public suspend fun recuperaAnnunciPrezzoSuperiore(prezzoSuperiore: Int): HashMap<String, Annuncio> {
         //Ritorno una referenza alla collezzione contenente i miei documenti.
-        val myCollection = this.database.collection("annunci");
+        val myCollection = this.database.collection(Annuncio.nomeCollection);
 
         query = myCollection.whereGreaterThan("prezzo", prezzoSuperiore)
 
@@ -128,10 +130,13 @@ open class UserLoginActivity : AppCompatActivity() {
     }
 
     // Fissano un range in cui l'annuncio deve essere maggiore del prezzo minore e minore del prezzo superiore.
-    public suspend fun recuperaAnnunciPrezzoRange(prezzoMinore: Int, prezzoSuperiore: Int): HashMap<String, Annuncio> {
+    public suspend fun recuperaAnnunciPrezzoRange(
+        prezzoMinore: Int,
+        prezzoSuperiore: Int
+    ): HashMap<String, Annuncio> {
 
         //Ritorno una referenza alla collezzione contenente i miei documenti.
-        val myCollection = this.database.collection("annunci");
+        val myCollection = this.database.collection(Annuncio.nomeCollection);
 
         query = myCollection.whereGreaterThan("prezzo", prezzoMinore)
             .whereLessThan("prezzo", prezzoSuperiore)
@@ -146,7 +151,7 @@ open class UserLoginActivity : AppCompatActivity() {
     //Ritorna gli annunci che rispettano la disponibilitá di spedire.
     public suspend fun recuperaAnnunciDisponibilitaSpedire(disponibilitaSpedire: Boolean): HashMap<String, Annuncio> {
         //Ritorno una referenza alla collezzione contenente i miei documenti.
-        val myCollection = this.database.collection("annunci");
+        val myCollection = this.database.collection(Annuncio.nomeCollection);
 
         query = myCollection.whereEqualTo("disponibilitaSpedire", disponibilitaSpedire)
 
@@ -157,16 +162,17 @@ open class UserLoginActivity : AppCompatActivity() {
     }
 
     //--- Da testare ---
-    public suspend fun recuperaAnnunciLocalizzazione(posizioneUtente: Location, distanzaMax: Int): HashMap<String, Annuncio> {
-
-        val myCollection = this.database.collection("annunci");
+    public suspend fun recuperaAnnunciLocalizzazione(
+        posizioneUtente: Location,
+        distanzaMax: Int
+    ): HashMap<String, Annuncio> {
 
         var myHashMap = recuperaTuttiAnnunci()
 
-        var myAnnunci = HashMap<String,Annuncio>()
+        var myAnnunci = HashMap<String, Annuncio>()
 
-        for((key, value) in myHashMap){
-            if(value.distanzaMinore(posizioneUtente,distanzaMax))
+        for ((key, value) in myHashMap) {
+            if (value.distanzaMinore(posizioneUtente, distanzaMax))
                 myAnnunci[key] = value
         }
 
@@ -174,7 +180,7 @@ open class UserLoginActivity : AppCompatActivity() {
     }
     //--- ----
 
-    suspend fun subscribeRealTimeDatabase() {
+    private suspend fun subscribeRealTimeDatabase() {
 
         query.addSnapshotListener { snapshot, e ->
             if (e != null) {
@@ -183,7 +189,8 @@ open class UserLoginActivity : AppCompatActivity() {
             }
             for (myDocumentoAnnuncio in snapshot!!.documentChanges) {
 
-                val userIdAcquirente: String? = myDocumentoAnnuncio.document.get("userIdAcquirente") as String?
+                val userIdAcquirente: String? =
+                    myDocumentoAnnuncio.document.get("userIdAcquirente") as String?
 
                 var a = Annuncio(
                     myDocumentoAnnuncio.document.get("userId") as String,
@@ -209,39 +216,118 @@ open class UserLoginActivity : AppCompatActivity() {
         //Log.d("CONTENUTO ARRAYLIST",myAnnunci.toString())
     }
 
+    //In base alla query che viene passata, questa funzione mi filtra gli annunci e mi ritorna un arrayList di annunci.
+    private fun recuperaAnnunci(myDocumenti: QuerySnapshot): HashMap<String, Annuncio> {
 
+        //Inizializzo HashMap vuota, la chiave sarà il suo Id, l'elemento associato alla chiave sarà oggetto Annuncio.
+        var myAnnunci = HashMap<String, Annuncio>()
 
+        for (myDocumentoAnnuncio in myDocumenti.documents) {
 
-        //In base alla query che viene passata, questa funzione mi filtra gli annunci e mi ritorna un arrayList di annunci.
-        private fun recuperaAnnunci(myDocumenti: QuerySnapshot): HashMap<String, Annuncio> {
+            val userIdAcquirente: String? = myDocumentoAnnuncio.get("userIdAcquirente") as String?
 
-            //Inizializzo HashMap vuota, la chiave sarà il suo Id, l'elemento associato alla chiave sarà oggetto Annuncio.
-            var myAnnunci = HashMap<String, Annuncio>()
+            //Creazione del oggetto Annuncio, con gli elementi che si trovano sul DB
+            var a = Annuncio(
+                myDocumentoAnnuncio.get("userId") as String,
+                myDocumentoAnnuncio.get("titolo") as String,
+                myDocumentoAnnuncio.get("descrizione") as String,
+                myDocumentoAnnuncio.get("prezzo") as Double,
+                (myDocumentoAnnuncio.getLong("stato") as Long).toInt(),
+                myDocumentoAnnuncio.getBoolean("disponibilitaSpedire") as Boolean,
+                myDocumentoAnnuncio.getGeoPoint("posizione") as GeoPoint,
+                myDocumentoAnnuncio.get("categoria") as String,
+                userIdAcquirente,
+                myDocumentoAnnuncio.id as String
+            );
 
-            for (myDocumentoAnnuncio in myDocumenti.documents) {
+            myAnnunci[myDocumentoAnnuncio.id] = a
+        }
+        return myAnnunci
+    }
 
-                val userIdAcquirente: String? = myDocumentoAnnuncio.get("userIdAcquirente") as String?
+    //Questo metodo, avrá un voto nella recensione valido, per una maggiore usabilitá si aggiunge comunque il controllo del voto, compreso tra 1 e 5/
+    public suspend fun inserisciRecensioneSuFirebaseFirestore(
+        titoloRecensione: String,
+        descrizioneRecensione: String,
+        votoAlUtente: Int,
+        idUtenteRecensito: String
+    ): String? {
 
-                //Creazione del oggetto Annuncio, con gli elementi che si trovano sul DB
-                var a = Annuncio(
-                    myDocumentoAnnuncio.get("userId") as String,
-                    myDocumentoAnnuncio.get("titolo") as String,
-                    myDocumentoAnnuncio.get("descrizione") as String,
-                    myDocumentoAnnuncio.get("prezzo") as Double,
-                    (myDocumentoAnnuncio.getLong("stato") as Long).toInt(),
-                    myDocumentoAnnuncio.get("disponibilitaSpedire") as Boolean,
-                    myDocumentoAnnuncio.getGeoPoint("posizione") as GeoPoint,
-                    myDocumentoAnnuncio.get("categoria") as String,
-                    userIdAcquirente,
-                    myDocumentoAnnuncio.id as String
-                );
+        //se il voto del utente si trova tra 1 e 5 allora inserisci la recensione...
+        if(votoAlUtente in 1..5) {
 
-                myAnnunci[myDocumentoAnnuncio.id] = a
-            }
-            return myAnnunci
+            val myCollectionUtente = this.database.collection("utente");
+
+            val myDocumento = myCollectionUtente.document(idUtenteRecensito)
+
+            val myCollectionRecensione = myDocumento.collection("recensione")
+
+            val myRecensione = hashMapOf(
+                "titoloRecensione" to titoloRecensione,
+                "descrizioneRecensione" to descrizioneRecensione,
+                "votoAlUtente" to votoAlUtente,
+                "idUtenteEspresso" to this.userId
+            )
+
+            return myCollectionRecensione.add(myRecensione).await().id.toString()
+        }
+        //se il voto, assegnato dal utente, non é valido...
+        else
+            return null
+    }
+
+    public suspend fun salvaTransazioneSuFirestoreFirebase(idUtente: String, importo: Double, tipoTransazione: Boolean): String{
+
+        val myCollection = this.database.collection("utente")
+
+        val myDocumentUtente = myCollection.document(idUtente)
+
+        val myCollectionTransazioneUtente = myDocumentUtente.collection("transazione")
+
+        //Genero un timestamp
+        val dataOraAttuale = Date().time
+
+        val myTransazione = hashMapOf(
+            "importo" to importo,
+            "dataOraAttuale" to dataOraAttuale,
+            //tipoTransazione = true -> ricarica, tipoTransazione = false -> acquisto
+            "tipo" to tipoTransazione
+        )
+
+        return myCollectionTransazioneUtente.add(myTransazione).await().id.toString()
+    }
+
+    public suspend fun isAcquistabile(idUtente: String, prezzoAcquisto: Double) : Boolean{
+
+        val myCollection = this.database.collection("utente")
+
+        val myCollectionTransazioni = myCollection.document(idUtente).collection("transazione")
+
+        return saldoAccount(myCollectionTransazioni) >= prezzoAcquisto
+    }
+
+    public suspend fun saldoAccount(myCollectionTransazioni: CollectionReference): Double {
+
+        var query = myCollectionTransazioni.get().await()
+
+        var saldoAccount = 0.0
+        for(myTransazione in query.documents){
+
+            val tipo = myTransazione.get("tipo") as Boolean
+
+            Log.d("SALDO ACCOUNT", myTransazione.id + "tipo: "+ tipo.toString())
+
+            //true -> ricarica
+            if(tipo!!)
+                saldoAccount += myTransazione.getDouble("importo")!!
+            else
+                saldoAccount -= myTransazione.getDouble("importo")!!
         }
 
+        return saldoAccount
     }
+
+}
 
     /*
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
