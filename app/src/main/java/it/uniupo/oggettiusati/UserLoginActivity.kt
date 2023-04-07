@@ -1,12 +1,23 @@
 package it.uniupo.oggettiusati
 
+import android.app.SearchManager
 import android.content.Intent
 import android.location.Location
 import android.os.Bundle
 import android.util.Log
+import android.view.View
 import android.widget.Button
+import android.widget.EditText
+import android.widget.ImageButton
+import android.widget.LinearLayout
+import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.isVisible
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
+import com.google.android.material.slider.RangeSlider
+import com.google.android.material.slider.Slider
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.CollectionReference
 import com.google.firebase.firestore.GeoPoint
@@ -18,6 +29,9 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.tasks.await
 import java.util.*
 import kotlin.collections.HashMap
+import java.text.NumberFormat
+import java.util.*
+import kotlin.collections.ArrayList
 
 
 open class UserLoginActivity : AppCompatActivity() {
@@ -52,7 +66,7 @@ open class UserLoginActivity : AppCompatActivity() {
         //utilizzato per recuperare i parametri
         val extras = intent.extras
 
-        //Da cambiare, bisogna ripescarlo!
+        //recuperato
         userId = extras?.getString("userId").toString()
 
         lateinit var username: String
@@ -67,11 +81,89 @@ open class UserLoginActivity : AppCompatActivity() {
             Toast.makeText(this, "Benvenuto ${username}!", Toast.LENGTH_LONG).show()
         }
 
+        //RecyclerView
+
+        //getting the recyclerView by its id
+        val recyclerVu = findViewById<RecyclerView>(R.id.recyclerview)
+
+        //this creates a vertical layout Manager
+        recyclerVu.layoutManager = LinearLayoutManager(this)
+
+        //ArrayList of class ItemsViewModel
+        val data = ArrayList<ItemsViewModel>()
+
+        //This loop will create 20 Views containing
+        //the image with the count of view
+        for (i in 1..20){
+            data.add(ItemsViewModel(R.drawable.ic_launcher_background, "Nome Oggetto anche Lungo $i"))
+        }
+
+        //this will pass the ArrayList to our Adapter
+        val adapter = CustomAdapter(data)
+
+        //setting the Adapter with the recyclerView
+        recyclerVu.adapter = adapter
+
+        //logica bottone logout
         val logoutButton = findViewById<Button>(R.id.logout)
         logoutButton.setOnClickListener {
             FirebaseAuth.getInstance().signOut()
             startActivity(Intent(this, MainActivity::class.java))
         }
+
+
+        val distanceSlider = findViewById<Slider>(R.id.distanceSlider)
+//        distanceSlider.setLabelFormatter {  }
+
+//        val slider = Slider(this)
+//        slider.setLabelFormatter(object : LabelFormatter() {
+//            fun getFormattedValue(value: Float): String? {
+//                return "MY STRING"
+//            }
+//        })
+
+        distanceSlider.setLabelFormatter { value -> "$value km"; }
+
+        distanceSlider.addOnSliderTouchListener(object :Slider.OnSliderTouchListener{
+            override fun onStartTrackingTouch(slider: Slider) {
+                //...
+            }
+
+            override fun onStopTrackingTouch(slider: Slider) {
+                val distanceEditText = findViewById<TextView>(R.id.maxDistance)
+                val updTxt = "Distanza max: ${distanceSlider.value}km"
+                distanceEditText.text = updTxt
+            }
+        })
+
+
+        val priceSlider = findViewById<RangeSlider>(R.id.priceSlider)
+        priceSlider.setLabelFormatter { value -> "${value.toInt()} €"; }
+
+//        rangeSlider.setLabelFormatter { value: Float ->
+//            val format = NumberFormat.getCurrencyInstance()
+//            format.maximumFractionDigits = 0
+//            format.currency = Currency.getInstance("EUR")
+//            format.format(value.toDouble())
+//        }
+
+        priceSlider.addOnChangeListener { slider, value, fromUser ->
+            val priceEditText = findViewById<TextView>(R.id.priceRange)
+            val updTxt = "Fascia di prezzo: ${priceSlider.values[0]}€ - ${priceSlider.values[1]}€"
+            priceEditText.text = updTxt
+        }
+
+        val filterButton = findViewById<ImageButton>(R.id.filters)
+
+        filterButton.setOnClickListener {
+            val filterLay = findViewById<LinearLayout>(R.id.filterElements)
+            if(!filterLay.isVisible){
+                filterLay.visibility = View.VISIBLE
+            }else{
+                filterLay.visibility = View.GONE
+            }
+        }
+
 
     }
 
