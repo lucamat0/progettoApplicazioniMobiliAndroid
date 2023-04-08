@@ -58,7 +58,7 @@ class MainActivity : AppCompatActivity() {
                             val userRef : DocumentReference
                             var utenteSospeso = true
                             if(userID != null) {
-                                userRef = database.collection("users").document(userID)
+                                userRef = database.collection("utente").document(userID)
                                 userRef.get().addOnSuccessListener { document ->
                                     if (document != null) {
                                         if(document.get("amministratore").toString().equals("1")) {
@@ -103,7 +103,7 @@ class MainActivity : AppCompatActivity() {
             val userID = user.uid
 
             lateinit var isAdmin : String
-            val userRef = database.collection("users").document(userID)
+            val userRef = database.collection("utente").document(userID)
             userRef.get().addOnSuccessListener { document ->
                 if (document != null) {
                     isAdmin = document.get("amministratore").toString()

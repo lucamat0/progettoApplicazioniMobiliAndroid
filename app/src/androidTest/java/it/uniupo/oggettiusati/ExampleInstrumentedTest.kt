@@ -187,6 +187,347 @@ class ExampleInstrumentedTest {
     }
     */
 
+    @Test fun testRecuperaAnnunciCarrelloFirebaseFirestore(): Unit = runBlocking{
+        val scenarioSignUpActivity = ActivityScenario.launch(SignUpActivity::class.java)
+
+        scenarioSignUpActivity.onActivity { activity ->
+            runBlocking {
+                activity.salvaUtenteSuFirebaseFirestore(
+                    "alan.turing",
+                    "Alan",
+                    "Turing",
+                    "23/06/1912",
+                    "3358924674"
+                )
+
+                activity.salvaUtenteSuFirebaseFirestore(
+                    "ada.lovelace",
+                    "Ada",
+                    "Lovelace",
+                    "10/12/1815",
+                    "0212345671"
+                )
+            }
+        }
+
+        val geoPosition = Location("provider")
+        geoPosition.altitude = 37.4220
+        geoPosition.longitude = -122.0841
+
+        val newAnnuncio1 = Annuncio(
+            "alan.turing",
+            "Mr Robot: Season 1 Blu-Ray + Digital HD",
+            "Mr. Robot, is a techno thriller that follows Elliot, a young programmer, who works as a cyber-security engineer by day and as a vigilante hacker by night.",
+            16.99,
+            2,
+            true,
+            "filmETv/serieTv",
+            geoPosition
+        )
+
+        val newAnnuncio2 = Annuncio(
+            "alan.turing",
+            "Apple iPhone 12 Pro Max 256GB Pacific Blue Unlocked",
+            "The iPhone 12 Pro Max is Apple's flagship smartphone with a stunning 6.7-inch Super Retina XDR display, A14 Bionic chip, 5G capability, and a powerful triple-camera system.",
+            1100.00,
+            1,
+            false,
+            "elettronica/smartphone",
+            geoPosition
+        )
+
+        newAnnuncio1.salvaAnnuncioSuFirebase()
+        newAnnuncio2.salvaAnnuncioSuFirebase()
+
+        val scenarioUserLoginActivity = ActivityScenario.launch(UserLoginActivity::class.java)
+
+        scenarioUserLoginActivity.onActivity { activity ->
+            runBlocking {
+
+                val myElementoNelCarrello2 = activity.inserisciAnnuncioCarrelloFirebaseFirestore("ada.lovelace", newAnnuncio2.annuncioId)
+                val myElementoNelCarrello1 = activity.inserisciAnnuncioCarrelloFirebaseFirestore("ada.lovelace", newAnnuncio1.annuncioId)
+
+                val myHashMapAda = activity.recuperaAnnunciCarrelloFirebaseFirestore("ada.lovelace")
+
+                assertEquals("Annuncio(userId='alan.turing', titolo='Mr Robot: Season 1 Blu-Ray + Digital HD', descrizione='Mr. Robot, is a techno thriller that follows Elliot, a young programmer, who works as a cyber-security engineer by day and as a vigilante hacker by night.', prezzo=16.99, stato=2, disponibilitaSpedire=true, categoria='filmETv/serieTv', posizione=Location[provider 0.000000,-122.084100 et=0], annuncioId='${newAnnuncio1.annuncioId}')",myHashMapAda[newAnnuncio1.annuncioId].toString())
+                assertEquals("Annuncio(userId='alan.turing', titolo='Apple iPhone 12 Pro Max 256GB Pacific Blue Unlocked', descrizione='The iPhone 12 Pro Max is Apple's flagship smartphone with a stunning 6.7-inch Super Retina XDR display, A14 Bionic chip, 5G capability, and a powerful triple-camera system.', prezzo=1100.0, stato=1, disponibilitaSpedire=false, categoria='elettronica/smartphone', posizione=Location[provider 0.000000,-122.084100 et=0], annuncioId='${newAnnuncio2.annuncioId}')",myHashMapAda[newAnnuncio2.annuncioId].toString())
+
+                assertEquals(0,activity.recuperaAnnunciCarrelloFirebaseFirestore("alan.turing").size)
+
+                activity.eliminaAnnuncioCarrelloFirebaseFirestore("ada.lovelace", myElementoNelCarrello1)
+                activity.eliminaAnnuncioCarrelloFirebaseFirestore("ada.lovelace", myElementoNelCarrello2)
+
+                val myCollection = Annuncio.database.collection("utente")
+
+                myCollection.document("ada.lovelace").delete().await()
+                myCollection.document("alan.turing").delete().await()
+            }
+        }
+
+        val myCollection = Annuncio.database.collection(Annuncio.nomeCollection)
+
+        myCollection.document(newAnnuncio1.annuncioId).delete().await()
+        myCollection.document(newAnnuncio2.annuncioId).delete().await()
+    }
+
+    @Test fun testRecuperaAnnunciPreferitoFirebaseFirestore(): Unit = runBlocking{
+        val scenarioSignUpActivity = ActivityScenario.launch(SignUpActivity::class.java)
+
+        scenarioSignUpActivity.onActivity { activity ->
+            runBlocking {
+                activity.salvaUtenteSuFirebaseFirestore(
+                    "alan.turing",
+                    "Alan",
+                    "Turing",
+                    "23/06/1912",
+                    "3358924674"
+                )
+
+                activity.salvaUtenteSuFirebaseFirestore(
+                    "ada.lovelace",
+                    "Ada",
+                    "Lovelace",
+                    "10/12/1815",
+                    "0212345671"
+                )
+            }
+        }
+
+        val geoPosition = Location("provider")
+        geoPosition.altitude = 37.4220
+        geoPosition.longitude = -122.0841
+
+        val newAnnuncio1 = Annuncio(
+            "alan.turing",
+            "Mr Robot: Season 1 Blu-Ray + Digital HD",
+            "Mr. Robot, is a techno thriller that follows Elliot, a young programmer, who works as a cyber-security engineer by day and as a vigilante hacker by night.",
+            16.99,
+            2,
+            true,
+            "filmETv/serieTv",
+            geoPosition
+        )
+
+        val newAnnuncio2 = Annuncio(
+            "alan.turing",
+            "Apple iPhone 12 Pro Max 256GB Pacific Blue Unlocked",
+            "The iPhone 12 Pro Max is Apple's flagship smartphone with a stunning 6.7-inch Super Retina XDR display, A14 Bionic chip, 5G capability, and a powerful triple-camera system.",
+            1100.00,
+            1,
+            false,
+            "elettronica/smartphone",
+            geoPosition
+        )
+
+        newAnnuncio1.salvaAnnuncioSuFirebase()
+        newAnnuncio2.salvaAnnuncioSuFirebase()
+
+        val scenarioUserLoginActivity = ActivityScenario.launch(UserLoginActivity::class.java)
+
+        scenarioUserLoginActivity.onActivity { activity ->
+            runBlocking {
+
+
+                val myElementoPreferito1 = activity.inserisciAnnuncioPreferitoFirebaseFirestore("ada.lovelace", newAnnuncio2.annuncioId)
+                val myElementoPreferito2 = activity.inserisciAnnuncioPreferitoFirebaseFirestore("ada.lovelace", newAnnuncio1.annuncioId)
+
+                val myHashMapAda = activity.recuperaAnnunciPreferitoFirebaseFirestore("ada.lovelace")
+
+                assertEquals("Annuncio(userId='alan.turing', titolo='Mr Robot: Season 1 Blu-Ray + Digital HD', descrizione='Mr. Robot, is a techno thriller that follows Elliot, a young programmer, who works as a cyber-security engineer by day and as a vigilante hacker by night.', prezzo=16.99, stato=2, disponibilitaSpedire=true, categoria='filmETv/serieTv', posizione=Location[provider 0.000000,-122.084100 et=0], annuncioId='${newAnnuncio1.annuncioId}')",myHashMapAda[newAnnuncio1.annuncioId].toString())
+                assertEquals("Annuncio(userId='alan.turing', titolo='Apple iPhone 12 Pro Max 256GB Pacific Blue Unlocked', descrizione='The iPhone 12 Pro Max is Apple's flagship smartphone with a stunning 6.7-inch Super Retina XDR display, A14 Bionic chip, 5G capability, and a powerful triple-camera system.', prezzo=1100.0, stato=1, disponibilitaSpedire=false, categoria='elettronica/smartphone', posizione=Location[provider 0.000000,-122.084100 et=0], annuncioId='${newAnnuncio2.annuncioId}')",myHashMapAda[newAnnuncio2.annuncioId].toString())
+
+                assertEquals(0,activity.recuperaAnnunciPreferitoFirebaseFirestore("alan.turing").size)
+
+                activity.eliminaAnnuncioPreferitoFirebaseFirestore("ada.lovelace", myElementoPreferito1)
+                activity.eliminaAnnuncioPreferitoFirebaseFirestore("ada.lovelace", myElementoPreferito2)
+
+                val myCollection = Annuncio.database.collection("utente")
+
+                myCollection.document("ada.lovelace").delete().await()
+                myCollection.document("alan.turing").delete().await()
+            }
+        }
+
+        val myCollection = Annuncio.database.collection(Annuncio.nomeCollection)
+
+        myCollection.document(newAnnuncio1.annuncioId).delete().await()
+        myCollection.document(newAnnuncio2.annuncioId).delete().await()
+    }
+
+    @Test fun testinserisciEliminaAnnuncioPreferitoFirebaseFirestore(): Unit = runBlocking {
+
+        val scenarioSignUpActivity = ActivityScenario.launch(SignUpActivity::class.java)
+
+        scenarioSignUpActivity.onActivity { activity ->
+            runBlocking {
+                activity.salvaUtenteSuFirebaseFirestore(
+                    "alan.turing",
+                    "Alan",
+                    "Turing",
+                    "23/06/1912",
+                    "3358924674"
+                )
+
+                activity.salvaUtenteSuFirebaseFirestore(
+                    "ada.lovelace",
+                    "Ada",
+                    "Lovelace",
+                    "10/12/1815",
+                    "0212345671"
+                )
+            }
+        }
+
+        val geoPosition = Location("provider")
+        geoPosition.altitude = 37.4220
+        geoPosition.longitude = -122.0841
+
+        val newAnnuncio1 = Annuncio(
+            "alan.turing",
+            "Mr Robot: Season 1 Blu-Ray + Digital HD",
+            "Mr. Robot, is a techno thriller that follows Elliot, a young programmer, who works as a cyber-security engineer by day and as a vigilante hacker by night.",
+            16.99,
+            2,
+            true,
+            "filmETv/serieTv",
+            geoPosition
+        )
+
+        val newAnnuncio2 = Annuncio(
+            "alan.turing",
+            "Apple iPhone 12 Pro Max 256GB Pacific Blue Unlocked",
+            "The iPhone 12 Pro Max is Apple's flagship smartphone with a stunning 6.7-inch Super Retina XDR display, A14 Bionic chip, 5G capability, and a powerful triple-camera system.",
+            1100.00,
+            1,
+            false,
+            "elettronica/smartphone",
+            geoPosition
+        )
+
+        newAnnuncio1.salvaAnnuncioSuFirebase()
+        newAnnuncio2.salvaAnnuncioSuFirebase()
+
+        val scenarioUserLoginActivity = ActivityScenario.launch(UserLoginActivity::class.java)
+
+        scenarioUserLoginActivity.onActivity { activity ->
+            runBlocking {
+
+                val myCollection = Annuncio.database.collection("utente")
+
+                val myDocument = myCollection.document("ada.lovelace")
+
+                val myPreferiti = myDocument.collection("preferito")
+
+                assertEquals(0, myPreferiti.get().await().size())
+
+                val myElementoPreferito1 = activity.inserisciAnnuncioPreferitoFirebaseFirestore("ada.lovelace", newAnnuncio1.annuncioId)
+                val myElementoPreferito2 = activity.inserisciAnnuncioPreferitoFirebaseFirestore("ada.lovelace", newAnnuncio2.annuncioId)
+
+                assertEquals(2, myPreferiti.get().await().size())
+
+                activity.eliminaAnnuncioPreferitoFirebaseFirestore("ada.lovelace", myElementoPreferito1)
+                activity.eliminaAnnuncioPreferitoFirebaseFirestore("ada.lovelace", myElementoPreferito2)
+
+                assertEquals(0, myPreferiti.get().await().size())
+
+                myCollection.document("ada.lovelace").delete().await()
+                myCollection.document("alan.turing").delete().await()
+            }
+        }
+
+        val myCollection = Annuncio.database.collection(Annuncio.nomeCollection)
+
+        myCollection.document(newAnnuncio1.annuncioId).delete().await()
+        myCollection.document(newAnnuncio2.annuncioId).delete().await()
+    }
+
+    @Test fun testinserisciEliminaAnnuncioCarrelloFirebaseFirestore(): Unit = runBlocking {
+
+        val scenarioSignUpActivity = ActivityScenario.launch(SignUpActivity::class.java)
+
+        scenarioSignUpActivity.onActivity { activity ->
+            runBlocking {
+                activity.salvaUtenteSuFirebaseFirestore(
+                    "alan.turing",
+                    "Alan",
+                    "Turing",
+                    "23/06/1912",
+                    "3358924674"
+                )
+
+                activity.salvaUtenteSuFirebaseFirestore(
+                    "ada.lovelace",
+                    "Ada",
+                    "Lovelace",
+                    "10/12/1815",
+                    "0212345671"
+                )
+            }
+        }
+
+        val geoPosition = Location("provider")
+        geoPosition.altitude = 37.4220
+        geoPosition.longitude = -122.0841
+
+        val newAnnuncio1 = Annuncio(
+            "alan.turing",
+            "Mr Robot: Season 1 Blu-Ray + Digital HD",
+            "Mr. Robot, is a techno thriller that follows Elliot, a young programmer, who works as a cyber-security engineer by day and as a vigilante hacker by night.",
+            16.99,
+            2,
+            true,
+            "filmETv/serieTv",
+            geoPosition
+        )
+
+        val newAnnuncio2 = Annuncio(
+            "alan.turing",
+            "Apple iPhone 12 Pro Max 256GB Pacific Blue Unlocked",
+            "The iPhone 12 Pro Max is Apple's flagship smartphone with a stunning 6.7-inch Super Retina XDR display, A14 Bionic chip, 5G capability, and a powerful triple-camera system.",
+            1100.00,
+            1,
+            false,
+            "elettronica/smartphone",
+            geoPosition
+        )
+
+        newAnnuncio1.salvaAnnuncioSuFirebase()
+        newAnnuncio2.salvaAnnuncioSuFirebase()
+
+        val scenarioUserLoginActivity = ActivityScenario.launch(UserLoginActivity::class.java)
+
+        scenarioUserLoginActivity.onActivity { activity ->
+            runBlocking {
+
+                val myCollection = Annuncio.database.collection("utente")
+
+                val myDocument = myCollection.document("ada.lovelace")
+
+                val myCarrello = myDocument.collection("carrello")
+
+                assertEquals(0, myCarrello.get().await().size())
+
+                val myElementoNelCarrello1 = activity.inserisciAnnuncioCarrelloFirebaseFirestore("ada.lovelace", newAnnuncio1.annuncioId)
+                val myElementoNelCarrello2 = activity.inserisciAnnuncioCarrelloFirebaseFirestore("ada.lovelace", newAnnuncio2.annuncioId)
+
+                assertEquals(2, myCarrello.get().await().size())
+
+                activity.eliminaAnnuncioCarrelloFirebaseFirestore("ada.lovelace", myElementoNelCarrello1)
+                activity.eliminaAnnuncioCarrelloFirebaseFirestore("ada.lovelace", myElementoNelCarrello2)
+
+                assertEquals(0, myCarrello.get().await().size())
+
+                myCollection.document("ada.lovelace").delete().await()
+                myCollection.document("alan.turing").delete().await()
+            }
+        }
+
+        val myCollection = Annuncio.database.collection(Annuncio.nomeCollection)
+
+        myCollection.document(newAnnuncio1.annuncioId).delete().await()
+        myCollection.document(newAnnuncio2.annuncioId).delete().await()
+    }
+
 
     @Test fun testisAcquistabileProdotto() {
 
@@ -385,7 +726,7 @@ class ExampleInstrumentedTest {
                     "Marconi",
                     "10/02/1980",
                     "3358924674"
-                );
+                )
 
                 assertEquals(primaInserimento+1, myCollection.get().await().size())
             }
@@ -409,7 +750,7 @@ class ExampleInstrumentedTest {
                     "Marconi",
                     "10/02/1980",
                     "3358924674"
-                );
+                )
             }
         }
 

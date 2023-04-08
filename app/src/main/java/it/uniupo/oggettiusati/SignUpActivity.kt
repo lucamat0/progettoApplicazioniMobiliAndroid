@@ -126,7 +126,7 @@ class SignUpActivity : AppCompatActivity() {
                 "nome" to nome,
                 "cognome" to cognome,
                 "dataNascita" to dataNascita,
-                "numeroDiTelefono" to Integer.parseInt(numeroDiTelefono),
+                "numeroDiTelefono" to numeroDiTelefono,
                 "amministratore" to 0,
                 "sospeso" to false
             )

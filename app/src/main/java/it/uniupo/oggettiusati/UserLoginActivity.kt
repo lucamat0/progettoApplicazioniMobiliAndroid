@@ -1,13 +1,11 @@
 package it.uniupo.oggettiusati
 
-import android.app.SearchManager
 import android.content.Intent
 import android.location.Location
 import android.os.Bundle
 import android.util.Log
 import android.view.View
 import android.widget.Button
-import android.widget.EditText
 import android.widget.ImageButton
 import android.widget.LinearLayout
 import android.widget.TextView
@@ -19,18 +17,13 @@ import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.slider.RangeSlider
 import com.google.android.material.slider.Slider
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.firestore.CollectionReference
-import com.google.firebase.firestore.GeoPoint
-import com.google.firebase.firestore.Query
-import com.google.firebase.firestore.QuerySnapshot
+import com.google.firebase.firestore.*
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.tasks.await
 import java.util.*
 import kotlin.collections.HashMap
-import java.text.NumberFormat
-import java.util.*
 import kotlin.collections.ArrayList
 
 
@@ -47,8 +40,9 @@ open class UserLoginActivity : AppCompatActivity() {
     //--- Inizio informazioni per il mantenimento delle informazioni, filtrate, aggiornate ---
 
     private lateinit var query: Query
-
-    private var myAnnunci = HashMap<String, Annuncio>()
+    companion object {
+        private var myAnnunci = HashMap<String, Annuncio>()
+    }
 
     //--- Fine informazioni per il mantenimento delle informazioni, filtrate, aggiornate ---
 
@@ -315,25 +309,9 @@ open class UserLoginActivity : AppCompatActivity() {
         var myAnnunci = HashMap<String, Annuncio>()
 
         for (myDocumentoAnnuncio in myDocumenti.documents) {
-
-            val userIdAcquirente: String? = myDocumentoAnnuncio.get("userIdAcquirente") as String?
-
-            //Creazione del oggetto Annuncio, con gli elementi che si trovano sul DB
-            var a = Annuncio(
-                myDocumentoAnnuncio.get("userId") as String,
-                myDocumentoAnnuncio.get("titolo") as String,
-                myDocumentoAnnuncio.get("descrizione") as String,
-                myDocumentoAnnuncio.get("prezzo") as Double,
-                (myDocumentoAnnuncio.getLong("stato") as Long).toInt(),
-                myDocumentoAnnuncio.getBoolean("disponibilitaSpedire") as Boolean,
-                myDocumentoAnnuncio.getGeoPoint("posizione") as GeoPoint,
-                myDocumentoAnnuncio.get("categoria") as String,
-                userIdAcquirente,
-                myDocumentoAnnuncio.id as String
-            );
-
-            myAnnunci[myDocumentoAnnuncio.id] = a
+            myAnnunci[myDocumentoAnnuncio.id] = documentoAnnuncioToObject(myDocumentoAnnuncio)
         }
+
         return myAnnunci
     }
 
@@ -419,6 +397,126 @@ open class UserLoginActivity : AppCompatActivity() {
         return saldoAccount
     }
 
+    public suspend fun inserisciAnnuncioPreferitoFirebaseFirestore(userId : String, annuncioId: String): String {
+
+        val myCollection = this.database.collection("utente")
+
+        val myDocumento = myCollection.document(userId)
+
+        val myCollectionCarrello = myDocumento.collection("preferito")
+
+        val dataOraAttuale = Date().time
+
+        val myElementoCarrello = hashMapOf(
+            "annuncioId" to annuncioId,
+            "dataOraAttuale" to dataOraAttuale
+        )
+
+        return myCollectionCarrello.add(myElementoCarrello).await().id.toString()
+    }
+
+    public suspend fun eliminaAnnuncioPreferitoFirebaseFirestore(userId : String, elementoCarrelloId: String){
+
+        val myCollection = this.database.collection("utente")
+
+        val myDocumento = myCollection.document(userId)
+
+        val myCollectionCarrello = myDocumento.collection("preferito")
+
+        val myDocumentCarrello = myCollectionCarrello.document(elementoCarrelloId)
+
+        myDocumentCarrello.delete().await()
+    }
+
+    public suspend fun inserisciAnnuncioCarrelloFirebaseFirestore(userId : String, annuncioId: String): String {
+
+        val myCollection = this.database.collection("utente")
+
+        val myDocumento = myCollection.document(userId)
+
+        val myCollectionCarrello = myDocumento.collection("carrello")
+
+        val dataOraAttuale = Date().time
+
+        val myElementoCarrello = hashMapOf(
+            "annuncioId" to annuncioId,
+            "dataOraAttuale" to dataOraAttuale
+        )
+
+        return myCollectionCarrello.add(myElementoCarrello).await().id.toString()
+    }
+
+    public suspend fun eliminaAnnuncioCarrelloFirebaseFirestore(userId : String, elementoCarrelloId: String){
+
+        val myCollection = this.database.collection("utente")
+
+        val myDocumento = myCollection.document(userId)
+
+        val myCollectionCarrello = myDocumento.collection("carrello")
+
+        val myDocumentCarrello = myCollectionCarrello.document(elementoCarrelloId)
+
+        myDocumentCarrello.delete().await()
+    }
+
+    public suspend fun recuperaAnnunciCarrelloFirebaseFirestore(userId : String): HashMap<String, Annuncio>{
+
+        val myCollection = this.database.collection("utente")
+
+        val myDocument = myCollection.document(userId)
+
+        val myElementiCarrello = myDocument.collection("carrello").get().await()
+
+        val myCollectionAnnuncio = this.database.collection(Annuncio.nomeCollection)
+        val myHashMap = HashMap<String, Annuncio>()
+        for(myElemento in myElementiCarrello.documents){
+
+            val myDocumentAnnuncio = myCollectionAnnuncio.document((myElemento.get("annuncioId") as String)).get().await()
+
+            val myAnnuncio = documentoAnnuncioToObject(myDocumentAnnuncio)
+
+            myHashMap[myAnnuncio.annuncioId] = myAnnuncio
+        }
+        return myHashMap
+    }
+
+    public suspend fun recuperaAnnunciPreferitoFirebaseFirestore(userId : String): HashMap<String, Annuncio>{
+
+        val myCollection = this.database.collection("utente")
+
+        val myDocument = myCollection.document(userId)
+
+        val myElementiPreferito = myDocument.collection("preferito").get().await()
+
+        val myCollectionAnnuncio = this.database.collection(Annuncio.nomeCollection)
+        val myHashMap = HashMap<String, Annuncio>()
+        for(myElemento in myElementiPreferito.documents){
+
+            val myDocumentAnnuncio = myCollectionAnnuncio.document((myElemento.get("annuncioId") as String)).get().await()
+
+            val myAnnuncio = documentoAnnuncioToObject(myDocumentAnnuncio)
+
+            myHashMap[myAnnuncio.annuncioId] = myAnnuncio
+        }
+        return myHashMap
+    }
+
+    public fun documentoAnnuncioToObject(myDocumentoAnnuncio: DocumentSnapshot): Annuncio {
+
+        val userIdAcquirente: String? = myDocumentoAnnuncio.get("userIdAcquirente") as String?
+
+        return Annuncio(
+            myDocumentoAnnuncio.get("userId") as String,
+            myDocumentoAnnuncio.get("titolo") as String,
+            myDocumentoAnnuncio.get("descrizione") as String,
+            myDocumentoAnnuncio.get("prezzo") as Double,
+            (myDocumentoAnnuncio.getLong("stato") as Long).toInt(),
+            myDocumentoAnnuncio.getBoolean("disponibilitaSpedire") as Boolean,
+            myDocumentoAnnuncio.getGeoPoint("posizione") as GeoPoint,
+            myDocumentoAnnuncio.get("categoria") as String,
+            userIdAcquirente,
+            myDocumentoAnnuncio.id as String)
+    }
 }
 
     /*

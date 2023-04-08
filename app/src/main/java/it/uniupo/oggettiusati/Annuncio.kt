@@ -75,7 +75,7 @@ class Annuncio(
                 "userIdAcquirente" to userIdAcquirente
             )
 
-            val myCollection = Annuncio.database.collection("annuncio")
+            val myCollection = Annuncio.database.collection(Annuncio.nomeCollection)
 
             //Log.d("DEBUG","Prima")
 
@@ -87,18 +87,19 @@ class Annuncio(
 
             Log.d("SALVA ANNUNCIO SU FIREBASE", annuncioId)
 
+            //caricaImmagineSuFirebase(immagineUri)
     }
 
     private suspend fun modificaAnnuncioSuFirebase(){
 
-        val adRif = database.collection("annuncio").document(this.annuncioId)
+        val adRif = database.collection(Annuncio.nomeCollection).document(this.annuncioId)
 
         adRif.update("userId",userId,"titolo",titolo,"descrizione",descrizione,"prezzo",prezzo,"stato",stato,"disponibilitaSpedire",disponibilitaSpedire,"categoria",categoria).await()
     }
 
     public suspend fun eliminaAnnuncioDaFirebase(){
 
-        val myCollection = database.collection("annuncio")
+        val myCollection = database.collection(Annuncio.nomeCollection)
 
         val myDocument = myCollection.document(this.annuncioId)
 
