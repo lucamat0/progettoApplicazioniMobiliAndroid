@@ -49,9 +49,30 @@ class Annuncio(
 
     private var userIdAcquirente: String? = null
 
-    constructor(userId: String, titolo: String, descrizione: String, prezzo: Double, stato: Int, disponibilitaSpedire: Boolean, posizione: GeoPoint, categoria: String, userIdAcquirente: String?, annuncioId: String) : this(userId, titolo, descrizione, prezzo, stato, disponibilitaSpedire, categoria) {
+    private var timeStampInizioVendita: Long? = null
+
+    private var timeStampFineVendita: Long? = null
+
+    constructor(
+        userId: String, titolo: String, descrizione: String, prezzo: Double, stato: Int, disponibilitaSpedire: Boolean,
+        categoria: String, posizione: GeoPoint, timeStampInizioVendita: Long, timeStampFineVendita: Long?, userIdAcquirente: String?, annuncioId: String) : this(userId, titolo, descrizione, prezzo, stato, disponibilitaSpedire, categoria) {
         this.annuncioId = annuncioId
+
         this.userIdAcquirente = userIdAcquirente
+        this.timeStampInizioVendita = timeStampInizioVendita
+        this.timeStampFineVendita = timeStampFineVendita
+
+        this.posizione.latitude = posizione.latitude
+        this.posizione.longitude = posizione.longitude
+    }
+
+    constructor(
+        userId: String, titolo: String, descrizione: String, prezzo: Double, stato: Int, disponibilitaSpedire: Boolean,
+        categoria: String, posizione: Location, timeStampInizioVendita: Long, timeStampFineVendita: Long?, userIdAcquirente: String?) : this(userId, titolo, descrizione, prezzo, stato, disponibilitaSpedire, categoria) {
+
+        this.userIdAcquirente = userIdAcquirente
+        this.timeStampInizioVendita = timeStampInizioVendita
+        this.timeStampFineVendita = timeStampFineVendita
 
         this.posizione.latitude = posizione.latitude
         this.posizione.longitude = posizione.longitude
@@ -63,6 +84,8 @@ class Annuncio(
 
             val geo = GeoPoint(posizione.latitude,posizione.longitude)
 
+            this.timeStampInizioVendita = System.currentTimeMillis()
+
             val annuncio = hashMapOf(
                 "userId" to userId,
                 "titolo" to titolo,
@@ -72,6 +95,8 @@ class Annuncio(
                 "disponibilitaSpedire" to disponibilitaSpedire,
                 "categoria" to categoria,
                 "posizione" to geo,
+                "timeStampInizioVendita" to timeStampInizioVendita,
+                "timeStampFineVendita" to timeStampFineVendita,
                 "userIdAcquirente" to userIdAcquirente
             )
 
@@ -141,7 +166,6 @@ class Annuncio(
 
             salvaAnnuncioSuFirebase()
         }
-
     }
 
     public suspend fun setTitolo(newTitolo:String){
@@ -166,6 +190,14 @@ class Annuncio(
         this.prezzo = newPrezzo
 
         modificaAnnuncioSuFirebase()
+    }
+
+    public fun getPrezzo(): Double {
+        return prezzo
+    }
+
+    public fun getTimeStampInizioVendita(): Long? {
+        return timeStampInizioVendita
     }
 
     public fun isVenduto(): Boolean{

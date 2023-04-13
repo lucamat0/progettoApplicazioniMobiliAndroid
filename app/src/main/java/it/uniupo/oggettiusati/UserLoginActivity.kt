@@ -34,37 +34,47 @@ open class UserLoginActivity : AppCompatActivity() {
     public val database = Firebase.firestore
     //--- Fine informazioni per il collegamento con firebase firestore ---
 
-    //Indica id dell'utente loggato
-    lateinit var userId: String
+    //--- HashMap che mi memorizza gli annunci preferiti, del utente loggato e invia una notifica quando varia uno di questi. ---
+    public var myAnnunciPreferiti = HashMap<String, Annuncio>()
 
-    //--- Inizio informazioni per il mantenimento delle informazioni, filtrate, aggiornate ---
+    //--- Variabili utili per filtrare gli annunci ---
 
-    private lateinit var query: Query
-    companion object {
-        private var myAnnunci = HashMap<String, Annuncio>()
-    }
+    //HashMap che mi memorizza gli annunci che devo mostrare, a seconda della pagina in cui mi trovo mi vengono mostrati i 10 elementi
+    public var myAnnunci = HashMap<String, Annuncio>()
 
-    //--- Fine informazioni per il mantenimento delle informazioni, filtrate, aggiornate ---
+    //Vado a specificare la collection, su cui lavoro.
+    val myCollection = this.database.collection(Annuncio.nomeCollection);
+
+    private var queryRisultato: Query = myCollection
+
+    private var titoloAnnuncio: String? = null
+    private var disponibilitaSpedire: Boolean? = null
+    private var prezzoSuperiore: Integer? = null
+    private var prezzoMinore: Integer? = null
+
+    private var ultimoAnnuncioId: String? = null
+
+    //--- Variabile utile per salvare utente, id ---
+    var userId: String = "userIdProva"
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_user_logged)
 
+        //userId = auth.currentUser!!.uid
+
         runBlocking {
-            myAnnunci = recuperaTuttiAnnunci()
+
+            val query = subscribeRealTimeDatabasePreferiti(userId)
 
             //--- Metodo utilizzato per il mantenimento delle informazioni aggiornate ---
-            subscribeRealTimeDatabase()
+            if(query != null)
+                subscribeRealTimeDatabase(query)
+
         }
 
-        //utilizzato per recuperare i parametri
-        val extras = intent.extras
-
-        //recuperato
-        userId = extras?.getString("userId").toString()
-
         lateinit var username: String
-        val userRef = database.collection("users").document(userId)
+        val userRef = database.collection("utente").document(userId)
         userRef.get().addOnSuccessListener { document ->
             if (document != null) {
                 username = document.get("nome").toString()
@@ -74,8 +84,6 @@ open class UserLoginActivity : AppCompatActivity() {
 
             Toast.makeText(this, "Benvenuto ${username}!", Toast.LENGTH_LONG).show()
         }
-
-        //RecyclerView
 
         //getting the recyclerView by its id
         val recyclerVu = findViewById<RecyclerView>(R.id.recyclerview)
@@ -161,13 +169,64 @@ open class UserLoginActivity : AppCompatActivity() {
 
     }
 
+    public fun definisciQuery(): Query{
+
+        this.queryRisultato = myCollection
+
+        if(titoloAnnuncio != null)
+            this.queryRisultato = this.queryRisultato.whereEqualTo("titolo", titoloAnnuncio)
+        //siamo nel caso in cui deve essere compreso
+        if(prezzoSuperiore != null && prezzoMinore != null)
+            this.queryRisultato = this.queryRisultato.orderBy("prezzo").whereGreaterThan("prezzo", prezzoMinore!!).whereLessThan("prezzo", prezzoSuperiore!!)
+        else{
+            if(prezzoSuperiore != null)
+                this.queryRisultato = this.queryRisultato.orderBy("prezzo").whereGreaterThan("prezzo", prezzoSuperiore!!)
+            if(prezzoMinore != null)
+                this.queryRisultato = this.queryRisultato.orderBy("prezzo").whereLessThan("prezzo", prezzoMinore!!)
+        }
+        if(disponibilitaSpedire != null)
+            this.queryRisultato = this.queryRisultato.whereEqualTo("disponibilitaSpedire", disponibilitaSpedire)
+
+        return this.queryRisultato
+    }
+
+    //Ogni pagina, mostra 10 annunci alla volta, questo metodo mi ritorna 10 annunci alla volta, in base ai parametri specificati dal utente
+    public suspend fun recuperaAnnunciPerMostrarliNellaHome(numeroPagina: Int): HashMap<String, Annuncio>? {
+
+        if(numeroPagina==1){
+
+            definisciQuery()
+
+            val myDocumenti = queryRisultato.orderBy(FieldPath.documentId()).limit(10).get().await()
+
+            myAnnunci = recuperaAnnunci(myDocumenti)
+
+            return myAnnunci
+        }
+        else if(numeroPagina>1 && myAnnunci.isNotEmpty()){
+
+            val myDocumenti = queryRisultato.orderBy(FieldPath.documentId()).startAfter(ultimoAnnuncioId).limit(10).get().await()
+
+            myAnnunci = recuperaAnnunci(myDocumenti)
+
+            return myAnnunci
+        }
+        else
+            return null
+    }
+
     //Sospendo il metodo, per aspettare che la lista dei documenti sia stata recuperata e insirita nel arrayList
     public suspend fun recuperaTuttiAnnunci(): HashMap<String, Annuncio> {
+
+        this.titoloAnnuncio = null
+        this.disponibilitaSpedire = null
+        this.prezzoSuperiore = null
+        this.prezzoMinore = null
 
         //Ritorno una referenza alla collezzione contenente i miei documenti.
         val myCollection = this.database.collection(Annuncio.nomeCollection);
 
-        query = myCollection
+        val query = myCollection
 
         //Recupero la collezione contenente tutti gli elementi, ossia gli annunci.
         val myDocumenti = query.get().await()
@@ -176,12 +235,14 @@ open class UserLoginActivity : AppCompatActivity() {
     }
 
     //Recupera gli annunci che contengono una sequernza/sottosequenza nel titolo del annuncio.
-    suspend fun recuperaAnnunciTitolo(nomeAnnuncio: String): HashMap<String, Annuncio> {
+    public suspend fun recuperaAnnunciTitolo(nomeAnnuncio: String): HashMap<String, Annuncio> {
+
+        this.titoloAnnuncio = nomeAnnuncio
 
         //Ritorno una referenza alla collezzione contenente i miei documenti.
         val myCollection = this.database.collection(Annuncio.nomeCollection);
 
-        query = myCollection.whereEqualTo("titolo", nomeAnnuncio)
+        val query = myCollection.whereEqualTo("titolo", nomeAnnuncio)
 
         //Recupero la collezione contenente tutti gli elementi, ossia gli annunci.
         val myDocumenti = query.get().await()
@@ -191,10 +252,14 @@ open class UserLoginActivity : AppCompatActivity() {
 
     //Fissano un limite inferiore
     public suspend fun recuperaAnnunciPrezzoInferiore(prezzoMinore: Int): HashMap<String, Annuncio> {
+
+        this.prezzoMinore = Integer(prezzoMinore)
+        this.prezzoSuperiore = null
+
         //Ritorno una referenza alla collezzione contenente i miei documenti.
         val myCollection = this.database.collection(Annuncio.nomeCollection);
 
-        query = myCollection.whereLessThan("prezzo", prezzoMinore)
+        val query = myCollection.whereLessThan("prezzo", prezzoMinore)
 
         //Recupero la collezione contenente tutti gli elementi, ossia gli annunci.
         val myDocumenti = query.get().await()
@@ -204,10 +269,14 @@ open class UserLoginActivity : AppCompatActivity() {
 
     //Fissano un limite superiore
     public suspend fun recuperaAnnunciPrezzoSuperiore(prezzoSuperiore: Int): HashMap<String, Annuncio> {
+
+        this.prezzoMinore = null
+        this.prezzoSuperiore = Integer(prezzoSuperiore)
+
         //Ritorno una referenza alla collezzione contenente i miei documenti.
         val myCollection = this.database.collection(Annuncio.nomeCollection);
 
-        query = myCollection.whereGreaterThan("prezzo", prezzoSuperiore)
+        val query = myCollection.whereGreaterThan("prezzo", prezzoSuperiore)
 
         //Recupero la collezione contenente tutti gli elementi, ossia gli annunci.
         val myDocumenti = query.get().await()
@@ -215,16 +284,20 @@ open class UserLoginActivity : AppCompatActivity() {
         return recuperaAnnunci(myDocumenti);
     }
 
-    // Fissano un range in cui l'annuncio deve essere maggiore del prezzo minore e minore del prezzo superiore.
+    // Fissano un range in cui l'annuncio deve essere compreso tra il prezzo minore e quello maggiore.
     public suspend fun recuperaAnnunciPrezzoRange(
         prezzoMinore: Int,
         prezzoSuperiore: Int
     ): HashMap<String, Annuncio> {
 
+        this.prezzoMinore = Integer(prezzoMinore)
+        this.prezzoSuperiore = Integer(prezzoSuperiore)
+
+
         //Ritorno una referenza alla collezzione contenente i miei documenti.
         val myCollection = this.database.collection(Annuncio.nomeCollection);
 
-        query = myCollection.whereGreaterThan("prezzo", prezzoMinore)
+        val query = myCollection.whereGreaterThan("prezzo", prezzoMinore)
             .whereLessThan("prezzo", prezzoSuperiore)
 
         //Recupero la collezione contenente tutti gli elementi, ossia gli annunci.
@@ -233,13 +306,15 @@ open class UserLoginActivity : AppCompatActivity() {
         return recuperaAnnunci(myDocumenti);
     }
 
-
     //Ritorna gli annunci che rispettano la disponibilitá di spedire.
     public suspend fun recuperaAnnunciDisponibilitaSpedire(disponibilitaSpedire: Boolean): HashMap<String, Annuncio> {
+
+        this.disponibilitaSpedire = disponibilitaSpedire
+
         //Ritorno una referenza alla collezzione contenente i miei documenti.
         val myCollection = this.database.collection(Annuncio.nomeCollection);
 
-        query = myCollection.whereEqualTo("disponibilitaSpedire", disponibilitaSpedire)
+        val query = myCollection.whereEqualTo("disponibilitaSpedire", disponibilitaSpedire)
 
         //Recupero la collezione contenente tutti gli elementi, ossia gli annunci.
         var myDocumenti = query.get().await()
@@ -247,7 +322,7 @@ open class UserLoginActivity : AppCompatActivity() {
         return recuperaAnnunci(myDocumenti);
     }
 
-    //--- Da testare ---
+    //--- Da fare!!! ---
     public suspend fun recuperaAnnunciLocalizzazione(
         posizioneUtente: Location,
         distanzaMax: Int
@@ -264,9 +339,39 @@ open class UserLoginActivity : AppCompatActivity() {
 
         return myAnnunci
     }
-    //--- ----
 
-    private suspend fun subscribeRealTimeDatabase() {
+    // --- Da fare ---
+
+
+    //--- ----
+    public suspend fun subscribeRealTimeDatabasePreferiti(userId: String): Query? {
+
+        val myCollection = this.database.collection("utente")
+
+        val myDocumentUtente = myCollection.document(userId)
+
+        val myCollectionPreferito = myDocumentUtente.collection("preferito").get().await()
+
+        if(myCollectionPreferito.documents.size>0) {
+
+            val myListaId = mutableListOf<String>()
+
+            for (myPreferito in myCollectionPreferito.documents) {
+                myListaId.add(myPreferito.get("annuncioId") as String)
+            }
+
+            val myCollectionAnnuncio = this.database.collection(Annuncio.nomeCollection)
+
+            //--- Inizio informazioni per il mantenimento delle informazioni, filtrate, aggiornate ---
+            val query = myCollectionAnnuncio.whereIn(FieldPath.documentId(), myListaId)
+
+            return query
+        }
+        else
+            return null
+    }
+
+    public suspend fun subscribeRealTimeDatabase(query: Query) {
 
         query.addSnapshotListener { snapshot, e ->
             if (e != null) {
@@ -275,27 +380,15 @@ open class UserLoginActivity : AppCompatActivity() {
             }
             for (myDocumentoAnnuncio in snapshot!!.documentChanges) {
 
-                val userIdAcquirente: String? =
-                    myDocumentoAnnuncio.document.get("userIdAcquirente") as String?
-
-                var a = Annuncio(
-                    myDocumentoAnnuncio.document.get("userId") as String,
-                    myDocumentoAnnuncio.document.get("titolo") as String,
-                    myDocumentoAnnuncio.document.get("descrizione") as String,
-                    myDocumentoAnnuncio.document.get("prezzo") as Double,
-                    (myDocumentoAnnuncio.document.getLong("stato") as Long).toInt(),
-                    myDocumentoAnnuncio.document.get("disponibilitaSpedire") as Boolean,
-                    myDocumentoAnnuncio.document.getGeoPoint("posizione") as GeoPoint,
-                    myDocumentoAnnuncio.document.get("categoria") as String,
-                    userIdAcquirente,
-                    myDocumentoAnnuncio.document.id as String
-                );
+                var a = documentoAnnuncioToObject(myDocumentoAnnuncio.document)
 
                 //Log.d("CAMBIO DOCUMENTO", "Il documento ${a.toString()} è cambiato!")
 
-                myAnnunci[myDocumentoAnnuncio.document.id] = a
+                Toast.makeText(this, "Il documento ${a.annuncioId} è cambiato!", Toast.LENGTH_LONG).show()
 
-                //Log.d("CONTENUTO ARRAYLIST",myAnnunci.toString())
+                myAnnunciPreferiti[a.annuncioId] = a
+
+                //Log.d("CONTENUTO ARRAYLIST",myAnnunciPreferiti.toString())
             }
         }
 
@@ -310,6 +403,8 @@ open class UserLoginActivity : AppCompatActivity() {
 
         for (myDocumentoAnnuncio in myDocumenti.documents) {
             myAnnunci[myDocumentoAnnuncio.id] = documentoAnnuncioToObject(myDocumentoAnnuncio)
+
+            ultimoAnnuncioId = myDocumentoAnnuncio.id
         }
 
         return myAnnunci
@@ -367,6 +462,14 @@ open class UserLoginActivity : AppCompatActivity() {
         return myCollectionTransazioneUtente.add(myTransazione).await().id.toString()
     }
 
+    public suspend fun acquistaAnnuncio(idUtente: String,myAnnuncio: Annuncio){
+
+        if(isAcquistabile(idUtente,myAnnuncio.getPrezzo())){
+            salvaTransazioneSuFirestoreFirebase(idUtente,myAnnuncio.getPrezzo(),false)
+            myAnnuncio.setVenduto(idUtente)
+        }
+    }
+
     public suspend fun isAcquistabile(idUtente: String, prezzoAcquisto: Double) : Boolean{
 
         val myCollection = this.database.collection("utente")
@@ -376,7 +479,7 @@ open class UserLoginActivity : AppCompatActivity() {
         return saldoAccount(myCollectionTransazioni) >= prezzoAcquisto
     }
 
-    public suspend fun saldoAccount(myCollectionTransazioni: CollectionReference): Double {
+    suspend fun saldoAccount(myCollectionTransazioni: CollectionReference): Double {
 
         var query = myCollectionTransazioni.get().await()
 
@@ -505,6 +608,8 @@ open class UserLoginActivity : AppCompatActivity() {
 
         val userIdAcquirente: String? = myDocumentoAnnuncio.get("userIdAcquirente") as String?
 
+        val timeStampFineVendita: Long? = myDocumentoAnnuncio.getLong("timeStampFineVendita") as Long?
+
         return Annuncio(
             myDocumentoAnnuncio.get("userId") as String,
             myDocumentoAnnuncio.get("titolo") as String,
@@ -512,8 +617,10 @@ open class UserLoginActivity : AppCompatActivity() {
             myDocumentoAnnuncio.get("prezzo") as Double,
             (myDocumentoAnnuncio.getLong("stato") as Long).toInt(),
             myDocumentoAnnuncio.getBoolean("disponibilitaSpedire") as Boolean,
-            myDocumentoAnnuncio.getGeoPoint("posizione") as GeoPoint,
             myDocumentoAnnuncio.get("categoria") as String,
+            myDocumentoAnnuncio.getGeoPoint("posizione") as GeoPoint,
+            myDocumentoAnnuncio.getLong("timeStampInizioVendita") as Long,
+            timeStampFineVendita,
             userIdAcquirente,
             myDocumentoAnnuncio.id as String)
     }

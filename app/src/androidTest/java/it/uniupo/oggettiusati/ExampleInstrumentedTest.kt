@@ -11,6 +11,8 @@ import org.junit.*
 
 import org.junit.Assert.*
 import org.junit.runner.RunWith
+import java.util.*
+import kotlin.collections.ArrayList
 
 /**
  * Instrumented test, which will execute on an Android device.
@@ -186,7 +188,41 @@ class ExampleInstrumentedTest {
         }
     }
     */
+/*
+    @Test fun riempi(): Unit = runBlocking{
 
+        val geoPosition = Location("provider")
+        geoPosition.altitude = 37.4220
+        geoPosition.longitude = -122.0841
+
+        val newAnnuncio1 = Annuncio(
+            "alan.turing",
+            "Mr Robot: Season 1 Blu-Ray + Digital HD",
+            "Mr. Robot, is a techno thriller that follows Elliot, a young programmer, who works as a cyber-security engineer by day and as a vigilante hacker by night.",
+            16.99,
+            2,
+            true,
+            "filmETv/serieTv",
+            geoPosition
+        )
+
+        newAnnuncio1.salvaAnnuncioSuFirebase()
+
+        val scenarioUserLoginActivity = ActivityScenario.launch(UserLoginActivity::class.java)
+
+        scenarioUserLoginActivity.onActivity { activity ->
+            runBlocking {
+
+                //activity.userId = "rbwh8rCBGmV6lv4Kum3eLcTeJFl1"
+
+                val myElementoPreferito1 = activity.inserisciAnnuncioPreferitoFirebaseFirestore(
+                    "rbwh8rCBGmV6lv4Kum3eLcTeJFl1",
+                    "DxXnVuNyWXKmT3gcAYq4"
+                )
+            }
+        }
+    }
+*/
     @Test fun testRecuperaAnnunciCarrelloFirebaseFirestore(): Unit = runBlocking{
         val scenarioSignUpActivity = ActivityScenario.launch(SignUpActivity::class.java)
 
@@ -528,7 +564,6 @@ class ExampleInstrumentedTest {
         myCollection.document(newAnnuncio2.annuncioId).delete().await()
     }
 
-
     @Test fun testisAcquistabileProdotto() {
 
         val scenarioSignUpActivity = ActivityScenario.launch(SignUpActivity::class.java)
@@ -785,7 +820,6 @@ class ExampleInstrumentedTest {
 
     //--- Inizio test sulla funzione che inserisci elementi nel DB ---
     @Test fun testSalvaAnnunciFirebaseFirestore(): Unit = runBlocking {
-        try {
                 val primaInserimento = getNumeroElementiFirestore()
 
                 //--- Inserimento dati su Firestore Firebase ---
@@ -855,15 +889,218 @@ class ExampleInstrumentedTest {
                 newAnnuncio3.eliminaAnnuncioDaFirebase()
                 newAnnuncio4.eliminaAnnuncioDaFirebase()
                 //--- Fine eliminazione dati su Firestore Firebase ---
-
-        } catch (e: Exception) {
-            Log.e("INSERIMENTO ANNUNCI TEST", "Errore nei test", e)
-        }
     }
+
+    @Test fun testRecuperaAnnunciPerMostrarliNellaHome(): Unit = runBlocking {
+
+        //--- Inserimento dati su Firestore Firebase ---
+        val geoPosition = Location("provider")
+        geoPosition.altitude = 37.4220
+        geoPosition.longitude = -122.0841
+
+        val newAnnuncio1 = Annuncio(
+            "userIdTestProva",
+            "Mr Robot: Season 1 Blu-Ray + Digital HD",
+            "Mr. Robot, is a techno thriller that follows Elliot, a young programmer, who works as a cyber-security engineer by day and as a vigilante hacker by night.",
+            16.99,
+            2,
+            true,
+            "filmETv/serieTv",
+            geoPosition
+        )
+
+        val newAnnuncio2 = Annuncio(
+            "userIdTestProva",
+            "Apple iPhone 12 Pro Max 256GB Pacific Blue Unlocked",
+            "The iPhone 12 Pro Max is Apple's flagship smartphone with a stunning 6.7-inch Super Retina XDR display, A14 Bionic chip, 5G capability, and a powerful triple-camera system.",
+            1100.00,
+            1,
+            false,
+            "elettronica/smartphone",
+            geoPosition
+        )
+
+        val newAnnuncio3 = Annuncio(
+            "userIdTestProva",
+            "Vintage Leather Messenger Bag",
+            "This vintage-inspired leather messenger bag is perfect for carrying your laptop and everyday essentials. With a spacious main compartment, multiple pockets, and an adjustable strap, it's both stylish and functional.",
+            79.99,
+            3,
+            true,
+            "informatica/accessori",
+            geoPosition
+        )
+
+        val newAnnuncio4 = Annuncio(
+            "userIdTestProva",
+            "Apple Watch Series 7 45mm GPS + Cellular",
+            "The Apple Watch Series 7 is the ultimate fitness and health companion, with a stunning always-on Retina display, blood oxygen sensor, ECG app, and 50% faster charging. Stay connected with GPS + Cellular capability and a wide range of watch faces and bands.",
+            499.00,
+            1,
+            true,
+            "wearable",
+            geoPosition
+        )
+
+        val newAnnuncio5 = Annuncio(
+            "userIdTestProva",
+            "Samsung Galaxy S22 Ultra",
+            "The Samsung Galaxy S22 Ultra is the ultimate smartphone, with a stunning 6.8-inch dynamic AMOLED display, 5G connectivity, and a powerful Snapdragon 898 processor. Capture stunning photos and videos with the quad-camera setup and enjoy all-day battery life.",
+            1199.00,
+            1,
+            true,
+            "electronics",
+            geoPosition
+        )
+
+        val newAnnuncio6 = Annuncio(
+            "userIdTestProva",
+            "Canon EOS R5 Mirrorless Camera",
+            "The Canon EOS R5 is a professional-grade mirrorless camera with a 45 megapixel full-frame sensor, 8K video capabilities, and in-body image stabilization. Capture stunning photos and videos in any lighting conditions with fast autofocus and advanced shooting modes.",
+            3899.00,
+            1,
+            true,
+            "electronics",
+            geoPosition
+        )
+
+        val newAnnuncio7 = Annuncio(
+            "userIdTestProva",
+            "Peloton Bike+",
+            "The Peloton Bike+ is the ultimate indoor cycling experience, with a 24-inch touchscreen display, live and on-demand classes, and a library of thousands of workouts. Get personalized coaching and metrics to help you reach your fitness goals.",
+            2495.00,
+            1,
+            true,
+            "fitness",
+            geoPosition
+        )
+
+        val newAnnuncio8 = Annuncio(
+            "userIdTestProva",
+            "Sony WH-1000XM4 Wireless Noise Cancelling Headphones",
+            "The Sony WH-1000XM4 headphones are the ultimate wireless listening experience, with industry-leading noise cancellation, Bluetooth connectivity, and up to 30 hours of battery life. Get immersive sound and customizable touch controls for a personalized listening experience.",
+            349.99,
+            1,
+            true,
+            "electronics",
+            geoPosition
+        )
+
+        val newAnnuncio9 = Annuncio(
+            "userIdTestProva",
+            "Peloton Tread+",
+            "The Peloton Tread+ is the ultimate home treadmill, with a 32-inch touchscreen display, live and on-demand classes, and a library of thousands of workouts. Get personalized coaching and metrics to help you reach your fitness goals.",
+            4295.00,
+            1,
+            true,
+            "fitness",
+            geoPosition
+        )
+
+        val newAnnuncio10 = Annuncio(
+            "userIdTestProva",
+            "Nintendo Switch OLED Model",
+            "The Nintendo Switch OLED Model is the ultimate gaming console, with a vibrant 7-inch OLED screen, enhanced audio, and up to 9 hours of battery life. Play your favorite games at home or on-the-go with detachable Joy-Con controllers.",
+            349.99,
+            1,
+            true,
+            "gaming",
+            geoPosition
+        )
+
+        val newAnnuncio11 = Annuncio(
+            "userIdTestProva",
+            "Peloton Bike Bootcamp",
+            "The Peloton Bike Bootcamp is the ultimate fitness experience, combining indoor cycling and strength training in one workout. Get personalized coaching and metrics to help you reach your fitness goals with live and on-demand classes.",
+            2495.00,
+            1,
+            true,
+            "fitness",
+            geoPosition
+        )
+
+        newAnnuncio1.salvaAnnuncioSuFirebase()
+        newAnnuncio2.salvaAnnuncioSuFirebase()
+        newAnnuncio3.salvaAnnuncioSuFirebase()
+        newAnnuncio4.salvaAnnuncioSuFirebase()
+        newAnnuncio5.salvaAnnuncioSuFirebase()
+        newAnnuncio6.salvaAnnuncioSuFirebase()
+        newAnnuncio7.salvaAnnuncioSuFirebase()
+        newAnnuncio8.salvaAnnuncioSuFirebase()
+        newAnnuncio9.salvaAnnuncioSuFirebase()
+        newAnnuncio10.salvaAnnuncioSuFirebase()
+        newAnnuncio11.salvaAnnuncioSuFirebase()
+
+        val scenarioUserLoginActivity = ActivityScenario.launch(UserLoginActivity::class.java)
+
+        //--- Fine Inserimento dati su Firestore Firebase ---
+        scenarioUserLoginActivity.onActivity { activity ->
+            runBlocking {
+
+                //Nel caso in cui, inserissi un numero di pagina non valida mi ritorna null.
+                assertNull(activity.recuperaAnnunciPerMostrarliNellaHome(0))
+
+                //Nel caso in cui, non andassi a invocare nessun metodo che mi filtra, mi recupera tutti gli annunci presenti. (MAX 10)
+                assertEquals(10,activity.recuperaAnnunciPerMostrarliNellaHome(1)!!.size)
+
+                activity.recuperaAnnunciPrezzoInferiore(80)
+
+                assertEquals(2,activity.recuperaAnnunciPerMostrarliNellaHome(1)!!.size)
+
+                activity.recuperaAnnunciTitolo("Vintage Leather Messenger Bag")
+
+                assertEquals(1, activity.recuperaAnnunciPerMostrarliNellaHome(1)!!.size)
+
+                activity.recuperaTuttiAnnunci()
+
+                assertEquals(10, activity.recuperaAnnunciPerMostrarliNellaHome(1)!!.size)
+
+                assertEquals(1, activity.recuperaAnnunciPerMostrarliNellaHome(2)!!.size)
+
+                activity.recuperaAnnunciDisponibilitaSpedire(true)
+
+                assertEquals(10, activity.recuperaAnnunciPerMostrarliNellaHome(1)!!.size)
+
+                activity.recuperaAnnunciPrezzoRange(18,1200)
+
+                //Spedire + range.
+                assertEquals(5, activity.recuperaAnnunciPerMostrarliNellaHome(1)!!.size)
+
+                //prezzo superiore + spedire
+                activity.recuperaAnnunciPrezzoSuperiore(1200)
+
+                assertEquals(4, activity.recuperaAnnunciPerMostrarliNellaHome(1)!!.size)
+
+                //prezzo superiore + spedire
+                activity.recuperaAnnunciPrezzoInferiore(20)
+
+                assertEquals(1, activity.recuperaAnnunciPerMostrarliNellaHome(1)!!.size)
+
+                activity.recuperaTuttiAnnunci()
+
+                //---
+            }
+        }
+
+        //--- Eliminazione dati su Firestore Firebase ---
+        newAnnuncio1.eliminaAnnuncioDaFirebase()
+        newAnnuncio2.eliminaAnnuncioDaFirebase()
+        newAnnuncio3.eliminaAnnuncioDaFirebase()
+        newAnnuncio4.eliminaAnnuncioDaFirebase()
+        newAnnuncio5.eliminaAnnuncioDaFirebase()
+        newAnnuncio6.eliminaAnnuncioDaFirebase()
+        newAnnuncio7.eliminaAnnuncioDaFirebase()
+        newAnnuncio8.eliminaAnnuncioDaFirebase()
+        newAnnuncio9.eliminaAnnuncioDaFirebase()
+        newAnnuncio10.eliminaAnnuncioDaFirebase()
+        newAnnuncio11.eliminaAnnuncioDaFirebase()
+        //--- Fine eliminazione dati su Firestore Firebase ---
+    }
+
 
     //--- Inizio test sulla funzione che mi recupera gli elementi con prezzo inferiore a X ---
     @Test fun testRecuperaAnnunciPerPrezzoInferiore(): Unit = runBlocking{
-        try {
+
             //--- Inserimento dati su Firestore Firebase ---
             val geoPosition = Location("provider")
             geoPosition.altitude = 37.4220
@@ -923,12 +1160,30 @@ class ExampleInstrumentedTest {
             //--- Fine Inserimento dati su Firestore Firebase ---
             scenarioUserLoginActivity.onActivity { activity ->
                 runBlocking {
+
+                    //Log.d("TEST", activity.recuperaAnnunciPerMostrarliNellaHome(1)!!.toString())
+
+                    //assertEquals(, )
+
                     assertEquals(4, activity.recuperaAnnunciPrezzoInferiore(1200).size)
                     assertEquals(1, activity.recuperaAnnunciPrezzoInferiore(20).size)
                     assertEquals(3, activity.recuperaAnnunciPrezzoInferiore(500).size)
                     assertEquals(2, activity.recuperaAnnunciPrezzoInferiore(80).size)
                     assertEquals(2, activity.recuperaAnnunciPrezzoInferiore(499).size)
                     assertEquals(0, activity.recuperaAnnunciPrezzoInferiore(15).size)
+
+                    /*
+                    //---
+                    assertEquals(2, activity.recuperaAnnunciPrezzoInferiore(80).size)
+                    assertEquals(1, activity.recuperaAnnunciTitolo("Vintage Leather Messenger Bag").size)
+
+                    assertEquals(1, activity.recuperaAnnunciPerMostrarliNellaHome(1)!!.size)
+
+                    assertEquals(4,activity.recuperaTuttiAnnunci().size)
+
+                     */
+                    //---
+
                 }
             }
 
@@ -938,16 +1193,10 @@ class ExampleInstrumentedTest {
             newAnnuncio3.eliminaAnnuncioDaFirebase()
             newAnnuncio4.eliminaAnnuncioDaFirebase()
             //--- Fine eliminazione dati su Firestore Firebase ---
-
-
-        } catch (e: Exception) {
-            Log.e("RECUPERA ANNUNCI TEST PREZZO INFERIORE", "Errore nei test", e)
-        }
     }
 
     //--- Inizio test sulla funzione che mi recupera gli elementi con un prezzo superiore a X ---
     @Test fun testRecuperaAnnunciPerPrezzoSuperiore(): Unit = runBlocking{
-        try {
             //--- Inserimento dati su Firestore Firebase ---
 
             val geoPosition = Location("provider")
@@ -1024,16 +1273,11 @@ class ExampleInstrumentedTest {
             newAnnuncio3.eliminaAnnuncioDaFirebase()
             newAnnuncio4.eliminaAnnuncioDaFirebase()
             //--- Fine eliminazione dati su Firestore Firebase ---
-
-        } catch (e: Exception) {
-            Log.e("RECUPERA ANNUNCI TEST PREZZO SUPERIORE", "Errore nei test", e)
-        }
     }
 
     //--- Inizio test sulla funzione che mi recupera gli elementi con un prezzo compreso tra un range:  max<X>min ---
     @Test fun testRecuperaAnnunciPerRange(): Unit = runBlocking{
-        try {
-            //--- Inserimento dati su Firestore Firebase ---
+
 
             val geoPosition = Location("provider")
             geoPosition.altitude = 37.4220
@@ -1108,15 +1352,10 @@ class ExampleInstrumentedTest {
             newAnnuncio3.eliminaAnnuncioDaFirebase()
             newAnnuncio4.eliminaAnnuncioDaFirebase()
             //--- Fine eliminazione dati su Firestore Firebase ---
-
-        } catch (e: Exception) {
-            Log.e("RECUPERA ANNUNCI TEST PREZZO RANGE", "Errore nei test", e)
-        }
     }
 
     //--- Inizio test sulla funzione che mi permette di recuperare tutti gli annunci che si trovano nel DB ---
     @Test fun testRecuperaTuttiAnnunciFirebaseFirestore(): Unit = runBlocking {
-        try {
                 val geoPosition = Location("provider")
                 geoPosition.altitude = 37.4220
                 geoPosition.longitude = -122.0841
@@ -1188,14 +1427,10 @@ class ExampleInstrumentedTest {
                 newAnnuncio3.eliminaAnnuncioDaFirebase()
                 newAnnuncio4.eliminaAnnuncioDaFirebase()
                 //--- Fine eliminazione dati su Firestore Firebase ---
-        }catch (e: Exception) {
-            Log.e("RECUPERA TUTTI ANNUNCI TEST", "Errore nei test", e)
-        }
     }
 
     //--- Inizio test sulla funzione che mi recupera gli elementi che hanno quel titolo ---
     @Test fun testRecuperaAnnunciPerTitoloFirebaseFirestore(): Unit= runBlocking{
-        try {
             val geoPosition = Location("provider")
             geoPosition.altitude = 37.4220
             geoPosition.longitude = -122.0841
@@ -1271,14 +1506,10 @@ class ExampleInstrumentedTest {
             newAnnuncio3.eliminaAnnuncioDaFirebase()
             newAnnuncio4.eliminaAnnuncioDaFirebase()
             //--- Fine eliminazione dati su Firestore Firebase ---
-        }catch (e: Exception) {
-            Log.e("RECUPERA ANNUNCI TEST PREZZO INFERIORE", "Errore nei test", e)
-        }
     }
 
     //--- Inizio test sulla funzione che mi recupera gli elementi che hanno disponibilita a essere spediti ---
     @Test fun testRecuperaAnnunciPerDisponibilitaSpedireFirebaseFirestore(): Unit = runBlocking{
-        try {
             val geoPosition = Location("provider")
             geoPosition.altitude = 37.4220
             geoPosition.longitude = -122.0841
@@ -1349,14 +1580,10 @@ class ExampleInstrumentedTest {
             newAnnuncio3.eliminaAnnuncioDaFirebase()
             newAnnuncio4.eliminaAnnuncioDaFirebase()
             //--- Fine eliminazione dati su Firestore Firebase ---
-        }catch (e: Exception) {
-            Log.e("RECUPERA ANNUNCI TITOLO TEST", "Errore nei test", e)
-        }
     }
 
     //--- Inizio test sulle funzioni che mi modificano gli annunci: titolo, descrizione, categoria e prezzo ---
     @Test fun testModificaAnnunciTitoloDescrizioneCategoriaPrezzoFirebaseFirestore(): Unit = runBlocking {
-        try {
             val geoPosition = Location("provider")
             geoPosition.altitude = 37.4220
             geoPosition.longitude = -122.0841
@@ -1399,14 +1626,10 @@ class ExampleInstrumentedTest {
             newAnnuncio1.eliminaAnnuncioDaFirebase()
 
             //--- Fine eliminazione dati su Firestore Firebase ---
-        }catch (e: Exception) {
-            Log.e("MODIFICA ANNUNCI TEST", "Errore nei test", e)
-        }
     }
 
     //--- Inizio test sulla funzione che mi elimina gli annunci ---
     @Test fun testEliminaAnnunci(): Unit = runBlocking{
-        try {
             //--- Inserimento dati su Firestore Firebase ---
             val geoPosition = Location("provider")
             geoPosition.altitude = 37.4220
@@ -1474,26 +1697,314 @@ class ExampleInstrumentedTest {
             assertEquals(primaInserimento,getNumeroElementiFirestore())
 
             //--- Fine eliminazione dati su Firestore Firebase ---
-        }catch (e: Exception) {
-            Log.e("MODIFICA ANNUNCI TEST", "Errore nei test", e)
-        }
     }
 
+    @Test fun testTempoMedioAcquistoPerUtente(): Unit = runBlocking{
+
+        val geoPosition = Location("provider")
+        geoPosition.altitude = 37.4220
+        geoPosition.longitude = -122.0841
+
+        val calendarInizioVenditaAnnuncio1 = Calendar.getInstance()
+        calendarInizioVenditaAnnuncio1.add(Calendar.DAY_OF_YEAR, -5)
+        val timeStampInizioVenditaAnnuncio1 = calendarInizioVenditaAnnuncio1.timeInMillis
+
+        val calendarFineVenditaAnnuncio1 = Calendar.getInstance()
+        calendarFineVenditaAnnuncio1.add(Calendar.DAY_OF_YEAR, -2)
+        val timeStampFineVenditaAnnuncio1 = calendarFineVenditaAnnuncio1.timeInMillis
+
+        val newAnnuncio1 = Annuncio(
+            "ada.lovelace",
+            "Mr Robot: Season 1 Blu-Ray + Digital HD",
+            "Mr. Robot, is a techno thriller that follows Elliot, a young programmer, who works as a cyber-security engineer by day and as a vigilante hacker by night.",
+            16.99,
+            2,
+            true,
+            "filmETv/serieTv",
+            geoPosition,
+            timeStampInizioVenditaAnnuncio1,
+            timeStampFineVenditaAnnuncio1,
+            "alan.turing"
+        )
+
+        val newAnnuncio2 = Annuncio(
+            "ada.lovelace",
+            "Apple iPhone 12 Pro Max 256GB Pacific Blue Unlocked",
+            "The iPhone 12 Pro Max is Apple's flagship smartphone with a stunning 6.7-inch Super Retina XDR display, A14 Bionic chip, 5G capability, and a powerful triple-camera system.",
+            1100.00,
+            1,
+            false,
+            "elettronica/smartphone",
+            geoPosition
+        )
+
+        val calendarInizioVenditaAnnuncio3 = Calendar.getInstance()
+        calendarInizioVenditaAnnuncio3.add(Calendar.DAY_OF_YEAR, -9)
+        val timeStampInizioVenditaAnnuncio3 = calendarInizioVenditaAnnuncio3.timeInMillis
+
+        val calendarFineVenditaAnnuncio3 = Calendar.getInstance()
+        calendarFineVenditaAnnuncio3.add(Calendar.DAY_OF_YEAR, -6)
+        val timeStampFineVenditaAnnuncio3 = calendarFineVenditaAnnuncio3.timeInMillis
+
+        val newAnnuncio3 = Annuncio(
+            "ada.lovelace",
+            "Vintage Leather Messenger Bag",
+            "This vintage-inspired leather messenger bag is perfect for carrying your laptop and everyday essentials. With a spacious main compartment, multiple pockets, and an adjustable strap, it's both stylish and functional.",
+            79.99,
+            3,
+            true,
+            "informatica/accessori",
+            geoPosition,
+            timeStampInizioVenditaAnnuncio3,
+            timeStampFineVenditaAnnuncio3,
+            "alan.turing"
+        )
+
+        val calendarInizioVenditaAnnuncio4 = Calendar.getInstance()
+        calendarInizioVenditaAnnuncio4.add(Calendar.DAY_OF_YEAR, -10)
+        val timeStampInizioVenditaAnnuncio4 = calendarInizioVenditaAnnuncio4.timeInMillis
+
+        val calendarFineVenditaAnnuncio4 = Calendar.getInstance()
+        calendarFineVenditaAnnuncio4.add(Calendar.DAY_OF_YEAR, -4)
+        val timeStampFineVenditaAnnuncio4 = calendarFineVenditaAnnuncio4.timeInMillis
+
+
+        val newAnnuncio4 = Annuncio(
+            "userIdTestProva",
+            "Apple Watch Series 7 45mm GPS + Cellular",
+            "The Apple Watch Series 7 is the ultimate fitness and health companion, with a stunning always-on Retina display, blood oxygen sensor, ECG app, and 50% faster charging. Stay connected with GPS + Cellular capability and a wide range of watch faces and bands.",
+            499.00,
+            1,
+            true,
+            "wearable",
+            geoPosition,
+            timeStampInizioVenditaAnnuncio4,
+            timeStampFineVenditaAnnuncio4,
+            "alan.turing"
+        )
+
+        newAnnuncio1.salvaAnnuncioSuFirebase()
+        newAnnuncio2.salvaAnnuncioSuFirebase()
+        newAnnuncio3.salvaAnnuncioSuFirebase()
+        newAnnuncio4.salvaAnnuncioSuFirebase()
+
+        //--- Fine Inserimento dati su Firestore Firebase ---
+
+        val scenarioAdminLoginActivity = ActivityScenario.launch(AdminLoginActivity::class.java)
+
+        scenarioAdminLoginActivity.onActivity { activity ->
+            runBlocking {
+                assertEquals(4.0, activity.calcolaTempoMedioAnnunciUtenteVenduto("ada.lovelace"),0.1)
+            }
+        }
+
+        //--- Eliminazione dati su Firestore Firebase ---
+        newAnnuncio1.eliminaAnnuncioDaFirebase()
+        newAnnuncio2.eliminaAnnuncioDaFirebase()
+        newAnnuncio3.eliminaAnnuncioDaFirebase()
+        newAnnuncio4.eliminaAnnuncioDaFirebase()
+        //--- Fine eliminazione dati su Firestore Firebase ---
+    }
+
+    @Test fun testNumeroOggettiVendita(): Unit = runBlocking{
+
+        val geoPosition = Location("provider")
+        geoPosition.altitude = 37.4220
+        geoPosition.longitude = -122.0841
+
+        val calendarInizioVenditaAnnuncio1 = Calendar.getInstance()
+        calendarInizioVenditaAnnuncio1.add(Calendar.DAY_OF_YEAR, -5)
+        val timeStampInizioVenditaAnnuncio1 = calendarInizioVenditaAnnuncio1.timeInMillis
+
+        val calendarFineVenditaAnnuncio1 = Calendar.getInstance()
+        calendarFineVenditaAnnuncio1.add(Calendar.DAY_OF_YEAR, -2)
+        val timeStampFineVenditaAnnuncio1 = calendarFineVenditaAnnuncio1.timeInMillis
+
+        val newAnnuncio1 = Annuncio(
+            "ada.lovelace",
+            "Mr Robot: Season 1 Blu-Ray + Digital HD",
+            "Mr. Robot, is a techno thriller that follows Elliot, a young programmer, who works as a cyber-security engineer by day and as a vigilante hacker by night.",
+            16.99,
+            2,
+            true,
+            "filmETv/serieTv",
+            geoPosition,
+            timeStampInizioVenditaAnnuncio1,
+            timeStampFineVenditaAnnuncio1,
+            "alan.turing"
+        )
+
+        val newAnnuncio2 = Annuncio(
+            "userIdTestProva",
+            "Apple iPhone 12 Pro Max 256GB Pacific Blue Unlocked",
+            "The iPhone 12 Pro Max is Apple's flagship smartphone with a stunning 6.7-inch Super Retina XDR display, A14 Bionic chip, 5G capability, and a powerful triple-camera system.",
+            1100.00,
+            1,
+            false,
+            "elettronica/smartphone",
+            geoPosition
+        )
+
+        val newAnnuncio3 = Annuncio(
+            "userIdTestProva",
+            "Vintage Leather Messenger Bag",
+            "This vintage-inspired leather messenger bag is perfect for carrying your laptop and everyday essentials. With a spacious main compartment, multiple pockets, and an adjustable strap, it's both stylish and functional.",
+            79.99,
+            3,
+            true,
+            "informatica/accessori",
+            geoPosition
+        )
+
+        val newAnnuncio4 = Annuncio(
+            "userIdTestProva",
+            "Apple Watch Series 7 45mm GPS + Cellular",
+            "The Apple Watch Series 7 is the ultimate fitness and health companion, with a stunning always-on Retina display, blood oxygen sensor, ECG app, and 50% faster charging. Stay connected with GPS + Cellular capability and a wide range of watch faces and bands.",
+            499.00,
+            1,
+            true,
+            "wearable",
+            geoPosition
+        )
+
+        newAnnuncio1.salvaAnnuncioSuFirebase()
+        newAnnuncio2.salvaAnnuncioSuFirebase()
+        newAnnuncio3.salvaAnnuncioSuFirebase()
+        newAnnuncio4.salvaAnnuncioSuFirebase()
+
+        val scenarioAdminLoginActivity = ActivityScenario.launch(AdminLoginActivity::class.java)
+
+        scenarioAdminLoginActivity.onActivity { activity ->
+            runBlocking {
+                assertEquals(3, activity.numeroOggettiInVendita())
+            }
+        }
+
+        //--- Eliminazione dati su Firestore Firebase ---
+        newAnnuncio1.eliminaAnnuncioDaFirebase()
+        newAnnuncio2.eliminaAnnuncioDaFirebase()
+        newAnnuncio3.eliminaAnnuncioDaFirebase()
+        newAnnuncio4.eliminaAnnuncioDaFirebase()
+        //--- Fine eliminazione dati su Firestore Firebase ---
+    }
+
+    @Test fun testNumeroOggettiVenditaSpecificoUtente(): Unit = runBlocking{
+
+        val geoPosition = Location("provider")
+        geoPosition.altitude = 37.4220
+        geoPosition.longitude = -122.0841
+
+        val calendarInizioVenditaAnnuncio1 = Calendar.getInstance()
+        calendarInizioVenditaAnnuncio1.add(Calendar.DAY_OF_YEAR, -5)
+        val timeStampInizioVenditaAnnuncio1 = calendarInizioVenditaAnnuncio1.timeInMillis
+
+        val calendarFineVenditaAnnuncio1 = Calendar.getInstance()
+        calendarFineVenditaAnnuncio1.add(Calendar.DAY_OF_YEAR, -2)
+        val timeStampFineVenditaAnnuncio1 = calendarFineVenditaAnnuncio1.timeInMillis
+
+        val newAnnuncio1 = Annuncio(
+            "ada.lovelace",
+            "Mr Robot: Season 1 Blu-Ray + Digital HD",
+            "Mr. Robot, is a techno thriller that follows Elliot, a young programmer, who works as a cyber-security engineer by day and as a vigilante hacker by night.",
+            16.99,
+            2,
+            true,
+            "filmETv/serieTv",
+            geoPosition,
+            timeStampInizioVenditaAnnuncio1,
+            timeStampFineVenditaAnnuncio1,
+            "alan.turing"
+        )
+
+        val newAnnuncio2 = Annuncio(
+            "userIdTestProva",
+            "Apple iPhone 12 Pro Max 256GB Pacific Blue Unlocked",
+            "The iPhone 12 Pro Max is Apple's flagship smartphone with a stunning 6.7-inch Super Retina XDR display, A14 Bionic chip, 5G capability, and a powerful triple-camera system.",
+            1100.00,
+            1,
+            false,
+            "elettronica/smartphone",
+            geoPosition
+        )
+
+        val newAnnuncio3 = Annuncio(
+            "userIdTestProva",
+            "Vintage Leather Messenger Bag",
+            "This vintage-inspired leather messenger bag is perfect for carrying your laptop and everyday essentials. With a spacious main compartment, multiple pockets, and an adjustable strap, it's both stylish and functional.",
+            79.99,
+            3,
+            true,
+            "informatica/accessori",
+            geoPosition
+        )
+
+        val newAnnuncio4 = Annuncio(
+            "alan.turing",
+            "Apple Watch Series 7 45mm GPS + Cellular",
+            "The Apple Watch Series 7 is the ultimate fitness and health companion, with a stunning always-on Retina display, blood oxygen sensor, ECG app, and 50% faster charging. Stay connected with GPS + Cellular capability and a wide range of watch faces and bands.",
+            499.00,
+            1,
+            true,
+            "wearable",
+            geoPosition
+        )
+
+        newAnnuncio1.salvaAnnuncioSuFirebase()
+        newAnnuncio2.salvaAnnuncioSuFirebase()
+        newAnnuncio3.salvaAnnuncioSuFirebase()
+        newAnnuncio4.salvaAnnuncioSuFirebase()
+
+        val scenarioAdminLoginActivity = ActivityScenario.launch(AdminLoginActivity::class.java)
+
+        scenarioAdminLoginActivity.onActivity { activity ->
+            runBlocking {
+                assertEquals(0,activity.numeroOggettiInVenditaPerSpecificoUtente("ada.lovelace"))
+                assertEquals(1,activity.numeroOggettiInVenditaPerSpecificoUtente("alan.turing"))
+                assertEquals(2,activity.numeroOggettiInVenditaPerSpecificoUtente("userIdTestProva"))
+            }
+        }
+
+        newAnnuncio1.eliminaAnnuncioDaFirebase()
+        newAnnuncio2.eliminaAnnuncioDaFirebase()
+        newAnnuncio3.eliminaAnnuncioDaFirebase()
+        newAnnuncio4.eliminaAnnuncioDaFirebase()
+    }
 
     // --- Inizio funzione che testa il mantenimento delle informazioni aggiornate nel HashMap considerando DB ---
     // --> Non funziona ma HashMap è correttamente aggiornata, anche il DB <--
-    /*
-    @Ignore
-    suspend fun testSubscribeRealTimeDatabase(){
+    //!-- Penso che sia per il fatto che addSnapshotListener lavora in "maniera asincrona" --!
+/*
+    @Test fun testSubscribeRealTimeDatabase(): Unit = runBlocking{
 
-        try{
+        val scenarioSignUpActivity = ActivityScenario.launch(SignUpActivity::class.java)
+
+        scenarioSignUpActivity.onActivity { activity ->
+            runBlocking {
+                activity.salvaUtenteSuFirebaseFirestore(
+                    "alan.turing",
+                    "Alan",
+                    "Turing",
+                    "23/06/1912",
+                    "3358924674"
+                )
+
+                activity.salvaUtenteSuFirebaseFirestore(
+                    "ada.lovelace",
+                    "Ada",
+                    "Lovelace",
+                    "10/12/1815",
+                    "0212345671"
+                )
+            }
+        }
+
             //--- Inserimento dati su Firestore Firebase ---
             val geoPosition = Location("provider")
             geoPosition.altitude = 37.4220
             geoPosition.longitude = -122.0841
 
             val newAnnuncio1 = Annuncio(
-                "userIdTestProva",
+                "ada.lovelace",
                 "Mr Robot: Season 1 Blu-Ray + Digital HD",
                 "Mr. Robot, is a techno thriller that follows Elliot, a young programmer, who works as a cyber-security engineer by day and as a vigilante hacker by night.",
                 16.99,
@@ -1504,7 +2015,7 @@ class ExampleInstrumentedTest {
             )
 
             val newAnnuncio2 = Annuncio(
-                "userIdTestProva",
+                "ada.lovelace",
                 "Apple iPhone 12 Pro Max 256GB Pacific Blue Unlocked",
                 "The iPhone 12 Pro Max is Apple's flagship smartphone with a stunning 6.7-inch Super Retina XDR display, A14 Bionic chip, 5G capability, and a powerful triple-camera system.",
                 1100.00,
@@ -1514,69 +2025,66 @@ class ExampleInstrumentedTest {
                 geoPosition
             )
 
-            val newAnnuncio3 = Annuncio(
-                "userIdTestProva",
-                "Vintage Leather Messenger Bag",
-                "This vintage-inspired leather messenger bag is perfect for carrying your laptop and everyday essentials. With a spacious main compartment, multiple pockets, and an adjustable strap, it's both stylish and functional.",
-                79.99,
-                3,
-                true,
-                "informatica/accessori",
-                geoPosition
-            )
-
-            val newAnnuncio4 = Annuncio(
-                "userIdTestProva",
-                "Apple Watch Series 7 45mm GPS + Cellular",
-                "The Apple Watch Series 7 is the ultimate fitness and health companion, with a stunning always-on Retina display, blood oxygen sensor, ECG app, and 50% faster charging. Stay connected with GPS + Cellular capability and a wide range of watch faces and bands.",
-                499.00,
-                1,
-                true,
-                "wearable",
-                geoPosition
-            )
 
             newAnnuncio1.salvaAnnuncioSuFirebase()
-            //newAnnuncio2.salvaAnnuncioSuFirebase()
-            //newAnnuncio3.salvaAnnuncioSuFirebase()
-            //newAnnuncio4.salvaAnnuncioSuFirebase()
-
+            newAnnuncio2.salvaAnnuncioSuFirebase()
             //--- Fine Inserimento dati su Firestore Firebase ---
-            activityScenarioRule.scenario.onActivity { activity ->
 
-                    //Facciamo riferimento al documento che abbiamo appena creato
-                    val documentoRif = Annuncio.database.collection("annunci").document(newAnnuncio1.annuncioId)
 
-                    Log.d("Prima update",newAnnuncio1.annuncioId)
+        val scenarioUserLoginActivity = ActivityScenario.launch(UserLoginActivity::class.java)
 
-                    runBlocking {
-                        //simula una modifica effettuata da un altro client
-                        documentoRif.update(
-                            "titolo",
-                            "Mr. Robot 2",
-                            "descrizione",
-                            "Second season of the critically acclaimed TV series about a cybersecurity engineer turned hacker."
-                        ).await()
+        scenarioUserLoginActivity.onActivity { activity ->
+            runBlocking {
 
-                        delay(1000)
-                    }
-                    assertEquals("Annuncio(userId='userIdTestProva', titolo='Mr. Robot 2', descrizione='Second season of the critically acclaimed TV series about a cybersecurity engineer turned hacker.', prezzo=16.99, stato=2, disponibilitaSpedire=true, categoria='filmETv/serieTv', posizione=Location[provider 0.000000,-122.084100 et=0], annuncioId='${newAnnuncio1.annuncioId}')",activity.myAnnunci[newAnnuncio1.annuncioId].toString())
+                var myElementoPreferito1 = activity.inserisciAnnuncioPreferitoFirebaseFirestore(
+                    "alan.turing",
+                    newAnnuncio1.annuncioId
+                )
+
+                val query = activity.subscribeRealTimeDatabasePreferiti("alan.turing")
+
+                //--- Metodo utilizzato per il mantenimento delle informazioni aggiornate ---
+                if(query != null)
+                    activity.subscribeRealTimeDatabase(query)
+
+                val documentoRif =
+                    Annuncio.database.collection(Annuncio.nomeCollection).document(newAnnuncio1.annuncioId)
+
+                Log.d("Prima update", newAnnuncio1.annuncioId)
+
+                runBlocking {
+                    //simula una modifica effettuata da un altro client
+                    documentoRif.update(
+                        "titolo",
+                        "Mr. Robot 2",
+                        "descrizione",
+                        "Second season of the critically acclaimed TV series about a cybersecurity engineer turned hacker."
+                    ).await()
+                }
+
+                Thread.sleep(1000)
+
+                assertEquals("", activity.myAnnunciPreferiti[newAnnuncio1.annuncioId].toString())
+
+                activity.eliminaAnnuncioPreferitoFirebaseFirestore(
+                    "ada.lovelace",
+                    myElementoPreferito1
+                )
             }
-
-            //--- Eliminazione dati su Firestore Firebase ---
-            newAnnuncio1.eliminaAnnuncioDaFirebase()
-            //newAnnuncio2.eliminaAnnuncioDaFirebase()
-            //newAnnuncio3.eliminaAnnuncioDaFirebase()
-            //newAnnuncio4.eliminaAnnuncioDaFirebase()
-            //--- Fine eliminazione dati su Firestore Firebase ---
-
-        } catch (e: Exception) {
-            Log.e("RECUPERA ANNUNCI TEST REAL TIME", "Errore nei test", e)
         }
-    }
-    */
-    // --- Fine funzione che testa il mantenimento delle informazioni aggiornate nel HashMap considerando DB ---
 
+        val myCollection = Annuncio.database.collection("utente")
+
+        myCollection.document("ada.lovelace").delete().await()
+        myCollection.document("alan.turing").delete().await()
+
+        //--- Eliminazione dati su Firestore Firebase ---
+        newAnnuncio1.eliminaAnnuncioDaFirebase()
+        newAnnuncio2.eliminaAnnuncioDaFirebase()
+        //--- Fine eliminazione dati su Firestore Firebase ---
+    }
+*/
+    // --- Fine funzione che testa il mantenimento delle informazioni aggiornate nel HashMap considerando DB ---
 
     //--- Metodo di supporto, che mi serve per recupera il numero di documenti nella collezione annunci che sono salvati su FireStore ---
     @Ignore

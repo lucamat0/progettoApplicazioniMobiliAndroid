@@ -20,13 +20,9 @@ class AdminLoginActivity : UserLoginActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_admin_logged)
 
-        val extras = intent.extras
-
-        userId = extras?.getString("userId").toString()
-
-        lateinit var username : String
-
-        val userRef = this.database.collection("utente").document(userId)
+        /*
+        var username = ""
+        val userRef = this.database.collection("utente").document(this.userId)
         userRef.get().addOnSuccessListener { document ->
             if(document != null){
                 username = document.get("nome").toString()
@@ -36,6 +32,7 @@ class AdminLoginActivity : UserLoginActivity() {
 
             Toast.makeText(this, "Benvenuto ${username}!", Toast.LENGTH_LONG).show()
         }
+         */
 
         val logoutButton = findViewById<Button>(R.id.logout)
 
@@ -57,7 +54,7 @@ class AdminLoginActivity : UserLoginActivity() {
                 if (task.isSuccessful) {
                     Log.d("ELIMINAZIONE UTENTE", "Documento eliminato con successo")
 
-                    //Eliminazione del utente dal Authentication???
+                    this.auth.currentUser!!.delete()
 
                 } else {
                     Log.e("ELIMINAZIONE UTENTE", "Errore durante l'eliminazione del documento", task.exception)
@@ -88,12 +85,12 @@ class AdminLoginActivity : UserLoginActivity() {
 
     //--- Accesso a dati statistici ---
 
-    private suspend fun numeroOggettiInVendita(): Int{
+    public suspend fun numeroOggettiInVendita(): Int{
         return try {
 
             val myCollection = this.database.collection(Annuncio.nomeCollection);
 
-            val query = myCollection.whereNotEqualTo("userIdAcquirente", null)
+            val query = myCollection.whereEqualTo("userIdAcquirente", null)
 
             val myDocuments = query.get().await()
 
@@ -108,12 +105,12 @@ class AdminLoginActivity : UserLoginActivity() {
         }
     }
 
-    private suspend fun numeroOggettiInVenditaPerSpecificoUtente(userId: String): Int{
+    public suspend fun numeroOggettiInVenditaPerSpecificoUtente(userId: String): Int{
         return try {
 
             val myCollection = this.database.collection(Annuncio.nomeCollection);
 
-            val query = myCollection.whereNotEqualTo("userIdAcquirente", null).whereEqualTo("userId", userId)
+            val query = myCollection.whereEqualTo("userIdAcquirente", null).whereEqualTo("userId", userId)
 
             val myDocuments = query.get().await()
 
@@ -192,5 +189,36 @@ class AdminLoginActivity : UserLoginActivity() {
             return myHashRecensioni
     }
 
+    public suspend fun calcolaTempoMedioAnnunciUtenteVenduto(userId: String): Double{
 
+        val myCollection = this.database.collection(Annuncio.nomeCollection)
+
+        val query = myCollection.whereEqualTo("userId", userId).whereNotEqualTo("userIdAcquirente",null)
+
+        val myDocuments = query.get().await()
+
+        val numeroDocumenti = myDocuments.size()
+        var tempoTotale : Long = 0
+        for(myDocument in myDocuments.documents){
+
+            val timeStampInizioVendita = myDocument.getLong("timeStampInizioVendita")
+            val timeStampFineVendita = myDocument.getLong("timeStampFineVendita")
+
+            //Log.d("TEMPO INIZIO VENDITA", "Il tempo inizio vendita é $timeStampInizioVendita")
+
+            //Log.d("TEMPO FINE VENDITA", "Il tempo fine vendita é $timeStampFineVendita")
+
+            tempoTotale += (timeStampFineVendita!!.toLong() - timeStampInizioVendita!!.toLong())*-1
+
+            //Log.d("TEMPO TOTALE", "Il tempo totale é $tempoTotale")
+
+        }
+
+        val tempoMedio = tempoTotale/numeroDocumenti
+
+        //Log.d("TEMPO MEDIO", "Il tempo medio é $tempoMedio")
+
+        //86400000 = numero di millisecondi per giorno.
+        return tempoMedio.toDouble()/86400000.toDouble()
+    }
 }
