@@ -1,7 +1,6 @@
 package it.uniupo.oggettiusati
 
 import android.location.Location
-import android.util.Log
 import androidx.test.core.app.ActivityScenario
 import androidx.test.platform.app.InstrumentationRegistry
 import androidx.test.ext.junit.runners.AndroidJUnit4
@@ -367,12 +366,14 @@ class ExampleInstrumentedTest {
                 val myElementoPreferito1 = activity.inserisciAnnuncioPreferitoFirebaseFirestore("ada.lovelace", newAnnuncio2.annuncioId)
                 val myElementoPreferito2 = activity.inserisciAnnuncioPreferitoFirebaseFirestore("ada.lovelace", newAnnuncio1.annuncioId)
 
-                val myHashMapAda = activity.recuperaAnnunciPreferitoFirebaseFirestore("ada.lovelace")
+                val myHashMapAda = activity.recuperaAnnunciPreferitiFirebaseFirestore("ada.lovelace")
 
-                assertEquals("Annuncio(userId='alan.turing', titolo='Mr Robot: Season 1 Blu-Ray + Digital HD', descrizione='Mr. Robot, is a techno thriller that follows Elliot, a young programmer, who works as a cyber-security engineer by day and as a vigilante hacker by night.', prezzo=16.99, stato=2, disponibilitaSpedire=true, categoria='filmETv/serieTv', posizione=Location[provider 0.000000,-122.084100 et=0], annuncioId='${newAnnuncio1.annuncioId}')",myHashMapAda[newAnnuncio1.annuncioId].toString())
-                assertEquals("Annuncio(userId='alan.turing', titolo='Apple iPhone 12 Pro Max 256GB Pacific Blue Unlocked', descrizione='The iPhone 12 Pro Max is Apple's flagship smartphone with a stunning 6.7-inch Super Retina XDR display, A14 Bionic chip, 5G capability, and a powerful triple-camera system.', prezzo=1100.0, stato=1, disponibilitaSpedire=false, categoria='elettronica/smartphone', posizione=Location[provider 0.000000,-122.084100 et=0], annuncioId='${newAnnuncio2.annuncioId}')",myHashMapAda[newAnnuncio2.annuncioId].toString())
+                assertEquals("Annuncio(userId='alan.turing', titolo='Mr Robot: Season 1 Blu-Ray + Digital HD', descrizione='Mr. Robot, is a techno thriller that follows Elliot, a young programmer, who works as a cyber-security engineer by day and as a vigilante hacker by night.', prezzo=16.99, stato=2, disponibilitaSpedire=true, categoria='filmETv/serieTv', posizione=Location[provider 0.000000,-122.084100 et=0], annuncioId='${newAnnuncio1.annuncioId}')",
+                    myHashMapAda!![newAnnuncio1.annuncioId].toString())
+                assertEquals("Annuncio(userId='alan.turing', titolo='Apple iPhone 12 Pro Max 256GB Pacific Blue Unlocked', descrizione='The iPhone 12 Pro Max is Apple's flagship smartphone with a stunning 6.7-inch Super Retina XDR display, A14 Bionic chip, 5G capability, and a powerful triple-camera system.', prezzo=1100.0, stato=1, disponibilitaSpedire=false, categoria='elettronica/smartphone', posizione=Location[provider 0.000000,-122.084100 et=0], annuncioId='${newAnnuncio2.annuncioId}')",
+                    myHashMapAda!![newAnnuncio2.annuncioId]!!.toString())
 
-                assertEquals(0,activity.recuperaAnnunciPreferitoFirebaseFirestore("alan.turing").size)
+                assertNull(activity.recuperaAnnunciPreferitiFirebaseFirestore("alan.turing"))
 
                 activity.eliminaAnnuncioPreferitoFirebaseFirestore("ada.lovelace", myElementoPreferito1)
                 activity.eliminaAnnuncioPreferitoFirebaseFirestore("ada.lovelace", myElementoPreferito2)
@@ -1163,26 +1164,23 @@ class ExampleInstrumentedTest {
 
                     //Log.d("TEST", activity.recuperaAnnunciPerMostrarliNellaHome(1)!!.toString())
 
-                    //assertEquals(, )
+                    activity.recuperaAnnunciPrezzoInferiore(1200)
+                    assertEquals(4, activity.recuperaAnnunciPerMostrarliNellaHome(1)!!.size)
 
-                    assertEquals(4, activity.recuperaAnnunciPrezzoInferiore(1200).size)
-                    assertEquals(1, activity.recuperaAnnunciPrezzoInferiore(20).size)
-                    assertEquals(3, activity.recuperaAnnunciPrezzoInferiore(500).size)
-                    assertEquals(2, activity.recuperaAnnunciPrezzoInferiore(80).size)
-                    assertEquals(2, activity.recuperaAnnunciPrezzoInferiore(499).size)
-                    assertEquals(0, activity.recuperaAnnunciPrezzoInferiore(15).size)
-
-                    /*
-                    //---
-                    assertEquals(2, activity.recuperaAnnunciPrezzoInferiore(80).size)
-                    assertEquals(1, activity.recuperaAnnunciTitolo("Vintage Leather Messenger Bag").size)
-
+                    activity.recuperaAnnunciPrezzoInferiore(20)
                     assertEquals(1, activity.recuperaAnnunciPerMostrarliNellaHome(1)!!.size)
 
-                    assertEquals(4,activity.recuperaTuttiAnnunci().size)
+                    activity.recuperaAnnunciPrezzoInferiore(500)
+                    assertEquals(3, activity.recuperaAnnunciPerMostrarliNellaHome(1)!!.size)
 
-                     */
-                    //---
+                    activity.recuperaAnnunciPrezzoInferiore(80)
+                    assertEquals(2, activity.recuperaAnnunciPerMostrarliNellaHome(1)!!.size)
+
+                    activity.recuperaAnnunciPrezzoInferiore(499)
+                    assertEquals(2, activity.recuperaAnnunciPerMostrarliNellaHome(1)!!.size)
+
+                    activity.recuperaAnnunciPrezzoInferiore(15)
+                    assertEquals(0, activity.recuperaAnnunciPerMostrarliNellaHome(1)!!.size)
 
                 }
             }
@@ -1258,12 +1256,24 @@ class ExampleInstrumentedTest {
 
             scenarioUserLoginActivity.onActivity { activity ->
                 runBlocking {
-                    assertEquals(0, activity.recuperaAnnunciPrezzoSuperiore(1200).size)
-                    assertEquals(3, activity.recuperaAnnunciPrezzoSuperiore(20).size)
-                    assertEquals(1, activity.recuperaAnnunciPrezzoSuperiore(500).size)
-                    assertEquals(2, activity.recuperaAnnunciPrezzoSuperiore(80).size)
-                    assertEquals(1, activity.recuperaAnnunciPrezzoSuperiore(499).size)
-                    assertEquals(4, activity.recuperaAnnunciPrezzoSuperiore(15).size)
+
+                    activity.recuperaAnnunciPrezzoSuperiore(1200)
+                    assertEquals(0, activity.recuperaAnnunciPerMostrarliNellaHome(1)!!.size)
+
+                    activity.recuperaAnnunciPrezzoSuperiore(20)
+                    assertEquals(3, activity.recuperaAnnunciPerMostrarliNellaHome(1)!!.size)
+
+                    activity.recuperaAnnunciPrezzoSuperiore(500)
+                    assertEquals(1, activity.recuperaAnnunciPerMostrarliNellaHome(1)!!.size)
+
+                    activity.recuperaAnnunciPrezzoSuperiore(80)
+                    assertEquals(2, activity.recuperaAnnunciPerMostrarliNellaHome(1)!!.size)
+
+                    activity.recuperaAnnunciPrezzoSuperiore(499)
+                    assertEquals(1, activity.recuperaAnnunciPerMostrarliNellaHome(1)!!.size)
+
+                    activity.recuperaAnnunciPrezzoSuperiore(15)
+                    assertEquals(4, activity.recuperaAnnunciPerMostrarliNellaHome(1)!!.size)
                 }
             }
 
@@ -1337,12 +1347,23 @@ class ExampleInstrumentedTest {
 
             scenarioUserLoginActivity.onActivity { activity ->
                 runBlocking {
-                    assertEquals(1, activity.recuperaAnnunciPrezzoRange(450,1000).size)
-                    assertEquals(2, activity.recuperaAnnunciPrezzoRange(15,100).size)
-                    assertEquals(1, activity.recuperaAnnunciPrezzoRange(15,20).size)
-                    assertEquals(0, activity.recuperaAnnunciPrezzoRange(499,1100).size)
-                    assertEquals(2, activity.recuperaAnnunciPrezzoRange(498,1101).size)
-                    assertEquals(4, activity.recuperaAnnunciPrezzoRange(15,1200).size)
+                    activity.recuperaAnnunciPrezzoRange(450,1000)
+                    assertEquals(1, activity.recuperaAnnunciPerMostrarliNellaHome(1)!!.size)
+
+                    activity.recuperaAnnunciPrezzoRange(15,100)
+                    assertEquals(2, activity.recuperaAnnunciPerMostrarliNellaHome(1)!!.size)
+
+                    activity.recuperaAnnunciPrezzoRange(15,20)
+                    assertEquals(1, activity.recuperaAnnunciPerMostrarliNellaHome(1)!!.size)
+
+                    activity.recuperaAnnunciPrezzoRange(499,1100)
+                    assertEquals(0, activity.recuperaAnnunciPerMostrarliNellaHome(1)!!.size)
+
+                    activity.recuperaAnnunciPrezzoRange(498,1101)
+                    assertEquals(2, activity.recuperaAnnunciPerMostrarliNellaHome(1)!!.size)
+
+                    activity.recuperaAnnunciPrezzoRange(15,1200)
+                    assertEquals(4, activity.recuperaAnnunciPerMostrarliNellaHome(1)!!.size)
                 }
             }
 
@@ -1410,14 +1431,12 @@ class ExampleInstrumentedTest {
                 newAnnuncio4.salvaAnnuncioSuFirebase()
 
                 //--- Fine Inserimento dati su Firestore Firebase ---
-
-                val numeroAnnunci = getNumeroElementiFirestore()
-
                 val scenarioUserLoginActivity = ActivityScenario.launch(UserLoginActivity::class.java)
 
                 scenarioUserLoginActivity.onActivity { activity ->
                     runBlocking{
-                        assertEquals(numeroAnnunci, activity.recuperaTuttiAnnunci().size)
+                        activity.recuperaTuttiAnnunci()
+                        assertEquals(4, activity.recuperaAnnunciPerMostrarliNellaHome(1)!!.size)
                     }
                 }
 
@@ -1491,12 +1510,20 @@ class ExampleInstrumentedTest {
             scenarioUserLoginActivity.onActivity { activity ->
                 runBlocking{
 
-                    assertEquals(1,activity.recuperaAnnunciTitolo("Mr Robot: Season 1 Blu-Ray + Digital HD").size)
-                    assertEquals(1,activity.recuperaAnnunciTitolo("Apple iPhone 12 Pro Max 256GB Pacific Blue Unlocked").size)
-                    assertEquals(1,activity.recuperaAnnunciTitolo("Vintage Leather Messenger Bag").size)
-                    assertEquals(1,activity.recuperaAnnunciTitolo("Apple Watch Series 7 45mm GPS + Cellular").size)
+                    activity.recuperaAnnunciTitolo("Mr Robot: Season 1 Blu-Ray + Digital HD")
+                    assertEquals(1, activity.recuperaAnnunciPerMostrarliNellaHome(1)!!.size)
 
-                    assertEquals(0,activity.recuperaAnnunciTitolo("Apple iPhone 11 Pro").size)
+                    activity.recuperaAnnunciTitolo("Apple iPhone 12 Pro Max 256GB Pacific Blue Unlocked")
+                    assertEquals(1, activity.recuperaAnnunciPerMostrarliNellaHome(1)!!.size)
+
+                    activity.recuperaAnnunciTitolo("Vintage Leather Messenger Bag")
+                    assertEquals(1, activity.recuperaAnnunciPerMostrarliNellaHome(1)!!.size)
+
+                    activity.recuperaAnnunciTitolo("Apple Watch Series 7 45mm GPS + Cellular")
+                    assertEquals(1, activity.recuperaAnnunciPerMostrarliNellaHome(1)!!.size)
+
+                    activity.recuperaAnnunciTitolo("Apple iPhone 11 Pro")
+                    assertEquals(0, activity.recuperaAnnunciPerMostrarliNellaHome(1)!!.size)
                 }
             }
 
@@ -1569,8 +1596,11 @@ class ExampleInstrumentedTest {
 
             scenarioUserLoginActivity.onActivity { activity ->
                 runBlocking{
-                    assertEquals(3,activity.recuperaAnnunciDisponibilitaSpedire(true).size)
-                    assertEquals(1,activity.recuperaAnnunciDisponibilitaSpedire(false).size)
+                    activity.recuperaAnnunciDisponibilitaSpedire(true)
+                    assertEquals(3, activity.recuperaAnnunciPerMostrarliNellaHome(1)!!.size)
+
+                    activity.recuperaAnnunciDisponibilitaSpedire(false)
+                    assertEquals(1, activity.recuperaAnnunciPerMostrarliNellaHome(1)!!.size)
                 }
             }
 
@@ -2097,4 +2127,39 @@ class ExampleInstrumentedTest {
         return myDocuments.size()
     }
     //--- Fine metodo di supporto ---
+
+    //--- Metodo utilizzato per inserire un annuncio come preferito a un utente ---
+    /*
+    @Test fun inserisciAnnuncioPreferito(): Unit = runBlocking{
+
+        val geoPosition = Location("provider")
+        geoPosition.altitude = 37.4220
+        geoPosition.longitude = -122.0841
+
+        val newAnnuncio1 = Annuncio(
+            "alan.turing",
+            "Mr Robot: Season 1 Blu-Ray + Digital HD",
+            "Mr. Robot, is a techno thriller that follows Elliot, a young programmer, who works as a cyber-security engineer by day and as a vigilante hacker by night.",
+            16.99,
+            2,
+            true,
+            "filmETv/serieTv",
+            geoPosition
+        )
+
+        newAnnuncio1.salvaAnnuncioSuFirebase()
+
+        val scenarioUserLoginActivity = ActivityScenario.launch(UserLoginActivity::class.java)
+
+        scenarioUserLoginActivity.onActivity { activity ->
+            runBlocking {
+                val myElementoPreferito1 = activity.inserisciAnnuncioPreferitoFirebaseFirestore(
+                    "wTuCWaYaPVP59Oh0iG2El9BcEq22",
+                    newAnnuncio1.annuncioId
+                )
+            }
+        }
+    }
+*/
+    //--- Fine metodo utilizzato per inserire un annuncio come preferito a un utente ---
 }

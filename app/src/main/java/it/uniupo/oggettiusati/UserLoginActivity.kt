@@ -1,7 +1,6 @@
 package it.uniupo.oggettiusati
 
 import android.content.Intent
-import android.location.Location
 import android.os.Bundle
 import android.util.Log
 import android.view.View
@@ -36,11 +35,13 @@ open class UserLoginActivity : AppCompatActivity() {
 
     //--- HashMap che mi memorizza gli annunci preferiti, del utente loggato e invia una notifica quando varia uno di questi. ---
     public var myAnnunciPreferiti = HashMap<String, Annuncio>()
+    public var myListenerAnnunciPreferiti: ListenerRegistration? = null
 
     //--- Variabili utili per filtrare gli annunci ---
 
     //HashMap che mi memorizza gli annunci che devo mostrare, a seconda della pagina in cui mi trovo mi vengono mostrati i 10 elementi
-    public var myAnnunci = HashMap<String, Annuncio>()
+    public var myAnnunciHome = HashMap<String, Annuncio>()
+    public var myListenerAnnunciHome: ListenerRegistration? = null
 
     //Vado a specificare la collection, su cui lavoro.
     val myCollection = this.database.collection(Annuncio.nomeCollection);
@@ -65,12 +66,11 @@ open class UserLoginActivity : AppCompatActivity() {
 
         runBlocking {
 
-            val query = subscribeRealTimeDatabasePreferiti(userId)
+            recuperaAnnunciPreferitiFirebaseFirestore(userId)
 
-            //--- Metodo utilizzato per il mantenimento delle informazioni aggiornate ---
-            if(query != null)
-                subscribeRealTimeDatabase(query)
+            //recuperaAnnunciPerMostrarliNellaHome(1)
 
+            //subscribeRealTimeDatabase(queryRisultato,myAnnunciHome)
         }
 
         lateinit var username: String
@@ -169,9 +169,10 @@ open class UserLoginActivity : AppCompatActivity() {
 
     }
 
-    public fun definisciQuery(): Query{
+    private fun definisciQuery(): Query{
 
-        this.queryRisultato = myCollection
+        //Quando ad un annuncio non è assegnato un acquirente, non vogliamo mostrare nella home degli annunci che sono già stati venduti.
+        this.queryRisultato = myCollection.whereEqualTo("userIdAcquirente",null)
 
         if(titoloAnnuncio != null)
             this.queryRisultato = this.queryRisultato.whereEqualTo("titolo", titoloAnnuncio)
@@ -199,130 +200,67 @@ open class UserLoginActivity : AppCompatActivity() {
 
             val myDocumenti = queryRisultato.orderBy(FieldPath.documentId()).limit(10).get().await()
 
-            myAnnunci = recuperaAnnunci(myDocumenti)
+            myAnnunciHome = recuperaAnnunci(myDocumenti)
 
-            return myAnnunci
+            myListenerAnnunciHome?.remove()
+
+            return myAnnunciHome
         }
-        else if(numeroPagina>1 && myAnnunci.isNotEmpty()){
+        else if(numeroPagina>1 && myAnnunciHome.isNotEmpty()){
 
             val myDocumenti = queryRisultato.orderBy(FieldPath.documentId()).startAfter(ultimoAnnuncioId).limit(10).get().await()
 
-            myAnnunci = recuperaAnnunci(myDocumenti)
+            myAnnunciHome = recuperaAnnunci(myDocumenti)
 
-            return myAnnunci
+            return myAnnunciHome
         }
         else
             return null
     }
 
     //Sospendo il metodo, per aspettare che la lista dei documenti sia stata recuperata e insirita nel arrayList
-    public suspend fun recuperaTuttiAnnunci(): HashMap<String, Annuncio> {
+    suspend fun recuperaTuttiAnnunci() {
 
         this.titoloAnnuncio = null
         this.disponibilitaSpedire = null
         this.prezzoSuperiore = null
         this.prezzoMinore = null
-
-        //Ritorno una referenza alla collezzione contenente i miei documenti.
-        val myCollection = this.database.collection(Annuncio.nomeCollection);
-
-        val query = myCollection
-
-        //Recupero la collezione contenente tutti gli elementi, ossia gli annunci.
-        val myDocumenti = query.get().await()
-
-        return recuperaAnnunci(myDocumenti);
     }
 
     //Recupera gli annunci che contengono una sequernza/sottosequenza nel titolo del annuncio.
-    public suspend fun recuperaAnnunciTitolo(nomeAnnuncio: String): HashMap<String, Annuncio> {
+    suspend fun recuperaAnnunciTitolo(nomeAnnuncio: String){
 
         this.titoloAnnuncio = nomeAnnuncio
-
-        //Ritorno una referenza alla collezzione contenente i miei documenti.
-        val myCollection = this.database.collection(Annuncio.nomeCollection);
-
-        val query = myCollection.whereEqualTo("titolo", nomeAnnuncio)
-
-        //Recupero la collezione contenente tutti gli elementi, ossia gli annunci.
-        val myDocumenti = query.get().await()
-
-        return recuperaAnnunci(myDocumenti);
     }
 
     //Fissano un limite inferiore
-    public suspend fun recuperaAnnunciPrezzoInferiore(prezzoMinore: Int): HashMap<String, Annuncio> {
+    suspend fun recuperaAnnunciPrezzoInferiore(prezzoMinore: Int){
 
         this.prezzoMinore = Integer(prezzoMinore)
         this.prezzoSuperiore = null
-
-        //Ritorno una referenza alla collezzione contenente i miei documenti.
-        val myCollection = this.database.collection(Annuncio.nomeCollection);
-
-        val query = myCollection.whereLessThan("prezzo", prezzoMinore)
-
-        //Recupero la collezione contenente tutti gli elementi, ossia gli annunci.
-        val myDocumenti = query.get().await()
-
-        return recuperaAnnunci(myDocumenti);
     }
 
     //Fissano un limite superiore
-    public suspend fun recuperaAnnunciPrezzoSuperiore(prezzoSuperiore: Int): HashMap<String, Annuncio> {
+    suspend fun recuperaAnnunciPrezzoSuperiore(prezzoSuperiore: Int) {
 
         this.prezzoMinore = null
         this.prezzoSuperiore = Integer(prezzoSuperiore)
-
-        //Ritorno una referenza alla collezzione contenente i miei documenti.
-        val myCollection = this.database.collection(Annuncio.nomeCollection);
-
-        val query = myCollection.whereGreaterThan("prezzo", prezzoSuperiore)
-
-        //Recupero la collezione contenente tutti gli elementi, ossia gli annunci.
-        val myDocumenti = query.get().await()
-
-        return recuperaAnnunci(myDocumenti);
     }
 
     // Fissano un range in cui l'annuncio deve essere compreso tra il prezzo minore e quello maggiore.
-    public suspend fun recuperaAnnunciPrezzoRange(
-        prezzoMinore: Int,
-        prezzoSuperiore: Int
-    ): HashMap<String, Annuncio> {
+    suspend fun recuperaAnnunciPrezzoRange(prezzoMinore: Int, prezzoSuperiore: Int){
 
         this.prezzoMinore = Integer(prezzoMinore)
         this.prezzoSuperiore = Integer(prezzoSuperiore)
-
-
-        //Ritorno una referenza alla collezzione contenente i miei documenti.
-        val myCollection = this.database.collection(Annuncio.nomeCollection);
-
-        val query = myCollection.whereGreaterThan("prezzo", prezzoMinore)
-            .whereLessThan("prezzo", prezzoSuperiore)
-
-        //Recupero la collezione contenente tutti gli elementi, ossia gli annunci.
-        val myDocumenti = query.get().await()
-
-        return recuperaAnnunci(myDocumenti);
     }
 
     //Ritorna gli annunci che rispettano la disponibilitá di spedire.
-    public suspend fun recuperaAnnunciDisponibilitaSpedire(disponibilitaSpedire: Boolean): HashMap<String, Annuncio> {
-
+    suspend fun recuperaAnnunciDisponibilitaSpedire(disponibilitaSpedire: Boolean) {
         this.disponibilitaSpedire = disponibilitaSpedire
-
-        //Ritorno una referenza alla collezzione contenente i miei documenti.
-        val myCollection = this.database.collection(Annuncio.nomeCollection);
-
-        val query = myCollection.whereEqualTo("disponibilitaSpedire", disponibilitaSpedire)
-
-        //Recupero la collezione contenente tutti gli elementi, ossia gli annunci.
-        var myDocumenti = query.get().await()
-
-        return recuperaAnnunci(myDocumenti);
     }
 
-    //--- Da fare!!! ---
+    //--- Da guardare!!! ---
+    /*
     public suspend fun recuperaAnnunciLocalizzazione(
         posizioneUtente: Location,
         distanzaMax: Int
@@ -339,41 +277,12 @@ open class UserLoginActivity : AppCompatActivity() {
 
         return myAnnunci
     }
-
+    */
     // --- Da fare ---
 
+    public suspend fun subscribeRealTimeDatabase(query: Query, myAnnunci: HashMap<String,Annuncio>): ListenerRegistration {
 
-    //--- ----
-    public suspend fun subscribeRealTimeDatabasePreferiti(userId: String): Query? {
-
-        val myCollection = this.database.collection("utente")
-
-        val myDocumentUtente = myCollection.document(userId)
-
-        val myCollectionPreferito = myDocumentUtente.collection("preferito").get().await()
-
-        if(myCollectionPreferito.documents.size>0) {
-
-            val myListaId = mutableListOf<String>()
-
-            for (myPreferito in myCollectionPreferito.documents) {
-                myListaId.add(myPreferito.get("annuncioId") as String)
-            }
-
-            val myCollectionAnnuncio = this.database.collection(Annuncio.nomeCollection)
-
-            //--- Inizio informazioni per il mantenimento delle informazioni, filtrate, aggiornate ---
-            val query = myCollectionAnnuncio.whereIn(FieldPath.documentId(), myListaId)
-
-            return query
-        }
-        else
-            return null
-    }
-
-    public suspend fun subscribeRealTimeDatabase(query: Query) {
-
-        query.addSnapshotListener { snapshot, e ->
+        var  listenerRegistration = query.addSnapshotListener { snapshot, e ->
             if (e != null) {
                 Log.w("Query", "Listen failed.", e)
                 return@addSnapshotListener
@@ -383,16 +292,17 @@ open class UserLoginActivity : AppCompatActivity() {
                 var a = documentoAnnuncioToObject(myDocumentoAnnuncio.document)
 
                 //Log.d("CAMBIO DOCUMENTO", "Il documento ${a.toString()} è cambiato!")
-
                 Toast.makeText(this, "Il documento ${a.annuncioId} è cambiato!", Toast.LENGTH_LONG).show()
 
-                myAnnunciPreferiti[a.annuncioId] = a
+                myAnnunci[a.annuncioId] = a
 
                 //Log.d("CONTENUTO ARRAYLIST",myAnnunciPreferiti.toString())
             }
         }
 
         //Log.d("CONTENUTO ARRAYLIST",myAnnunci.toString())
+
+        return listenerRegistration
     }
 
     //In base alla query che viene passata, questa funzione mi filtra gli annunci e mi ritorna un arrayList di annunci.
@@ -479,7 +389,7 @@ open class UserLoginActivity : AppCompatActivity() {
         return saldoAccount(myCollectionTransazioni) >= prezzoAcquisto
     }
 
-    suspend fun saldoAccount(myCollectionTransazioni: CollectionReference): Double {
+    public suspend fun saldoAccount(myCollectionTransazioni: CollectionReference): Double {
 
         var query = myCollectionTransazioni.get().await()
 
@@ -506,16 +416,23 @@ open class UserLoginActivity : AppCompatActivity() {
 
         val myDocumento = myCollection.document(userId)
 
-        val myCollectionCarrello = myDocumento.collection("preferito")
+        val myCollectionPreferito = myDocumento.collection("preferito")
 
         val dataOraAttuale = Date().time
 
-        val myElementoCarrello = hashMapOf(
+        val myElementoPreferito = hashMapOf(
             "annuncioId" to annuncioId,
             "dataOraAttuale" to dataOraAttuale
         )
 
-        return myCollectionCarrello.add(myElementoCarrello).await().id.toString()
+        val idPreferito = myCollectionPreferito.add(myElementoPreferito).await().id.toString()
+
+        val myDocumentiPreferiti = myCollectionPreferito.get().await()
+
+        if(myDocumentiPreferiti.documents.size>0)
+            aggiornaListenerPreferiti(myDocumentiPreferiti)
+
+        return idPreferito
     }
 
     public suspend fun eliminaAnnuncioPreferitoFirebaseFirestore(userId : String, elementoCarrelloId: String){
@@ -529,6 +446,44 @@ open class UserLoginActivity : AppCompatActivity() {
         val myDocumentCarrello = myCollectionCarrello.document(elementoCarrelloId)
 
         myDocumentCarrello.delete().await()
+    }
+
+    public suspend fun recuperaAnnunciPreferitiFirebaseFirestore(userId : String): HashMap<String, Annuncio>? {
+
+        val myCollectionUtente = this.database.collection("utente")
+
+        val myDocumentUtente = myCollectionUtente.document(userId)
+
+        val myDocumentiPreferiti = myDocumentUtente.collection("preferito").get().await()
+
+        if(myDocumentiPreferiti.documents.size>0) {
+
+            aggiornaListenerPreferiti(myDocumentiPreferiti)
+
+            return myAnnunciPreferiti
+        }
+        return null
+    }
+
+    //Listener dei preferiti si aggiorna quando, inseriamo un nuovo elemento nei preferiti, oppure quando andiamo a recuperare i preferiti.
+    //Da qui, ogni modifica effettuata sugli annunci ci viene notificata, provvisoriamente con un Toast.
+    private suspend fun aggiornaListenerPreferiti(myDocumentiPreferiti: QuerySnapshot) {
+
+        val myListaId = mutableListOf<String>()
+
+        for (myPreferito in myDocumentiPreferiti.documents)
+            myListaId.add(myPreferito.get("annuncioId") as String)
+
+        val myCollectionAnnuncio = this.database.collection(Annuncio.nomeCollection)
+
+        //--- Inizio informazioni per il mantenimento delle informazioni, filtrate, aggiornate ---
+        val query = myCollectionAnnuncio.whereIn(FieldPath.documentId(), myListaId)
+
+        myAnnunciPreferiti = recuperaAnnunci(query.get().await())
+
+        myListenerAnnunciPreferiti?.remove()
+
+        myListenerAnnunciPreferiti = subscribeRealTimeDatabase(query, myAnnunciPreferiti)
     }
 
     public suspend fun inserisciAnnuncioCarrelloFirebaseFirestore(userId : String, annuncioId: String): String {
@@ -573,27 +528,6 @@ open class UserLoginActivity : AppCompatActivity() {
         val myCollectionAnnuncio = this.database.collection(Annuncio.nomeCollection)
         val myHashMap = HashMap<String, Annuncio>()
         for(myElemento in myElementiCarrello.documents){
-
-            val myDocumentAnnuncio = myCollectionAnnuncio.document((myElemento.get("annuncioId") as String)).get().await()
-
-            val myAnnuncio = documentoAnnuncioToObject(myDocumentAnnuncio)
-
-            myHashMap[myAnnuncio.annuncioId] = myAnnuncio
-        }
-        return myHashMap
-    }
-
-    public suspend fun recuperaAnnunciPreferitoFirebaseFirestore(userId : String): HashMap<String, Annuncio>{
-
-        val myCollection = this.database.collection("utente")
-
-        val myDocument = myCollection.document(userId)
-
-        val myElementiPreferito = myDocument.collection("preferito").get().await()
-
-        val myCollectionAnnuncio = this.database.collection(Annuncio.nomeCollection)
-        val myHashMap = HashMap<String, Annuncio>()
-        for(myElemento in myElementiPreferito.documents){
 
             val myDocumentAnnuncio = myCollectionAnnuncio.document((myElemento.get("annuncioId") as String)).get().await()
 
