@@ -189,7 +189,7 @@ class AdminLoginActivity : UserLoginActivity() {
             return myHashRecensioni
     }
 
-    public suspend fun calcolaTempoMedioAnnunciUtenteVenduto(userId: String): Double{
+    public suspend fun calcolaTempoMedioAnnunciUtenteVenduto(userId: String): Double? {
 
         val myCollection = this.database.collection(Annuncio.nomeCollection)
 
@@ -198,27 +198,33 @@ class AdminLoginActivity : UserLoginActivity() {
         val myDocuments = query.get().await()
 
         val numeroDocumenti = myDocuments.size()
-        var tempoTotale : Long = 0
-        for(myDocument in myDocuments.documents){
 
-            val timeStampInizioVendita = myDocument.getLong("timeStampInizioVendita")
-            val timeStampFineVendita = myDocument.getLong("timeStampFineVendita")
+        if(numeroDocumenti>0) {
 
-            //Log.d("TEMPO INIZIO VENDITA", "Il tempo inizio vendita é $timeStampInizioVendita")
+            var tempoTotale: Long = 0
+            for (myDocument in myDocuments.documents) {
 
-            //Log.d("TEMPO FINE VENDITA", "Il tempo fine vendita é $timeStampFineVendita")
+                val timeStampInizioVendita = myDocument.getLong("timeStampInizioVendita")
+                val timeStampFineVendita = myDocument.getLong("timeStampFineVendita")
 
-            tempoTotale += (timeStampFineVendita!!.toLong() - timeStampInizioVendita!!.toLong())*-1
+                //Log.d("TEMPO INIZIO VENDITA", "Il tempo inizio vendita é $timeStampInizioVendita")
 
-            //Log.d("TEMPO TOTALE", "Il tempo totale é $tempoTotale")
+                //Log.d("TEMPO FINE VENDITA", "Il tempo fine vendita é $timeStampFineVendita")
 
+                tempoTotale += (timeStampFineVendita!!.toLong() - timeStampInizioVendita!!.toLong()) * -1
+
+                //Log.d("TEMPO TOTALE", "Il tempo totale é $tempoTotale")
+
+            }
+
+            val tempoMedio = tempoTotale / numeroDocumenti
+
+            //Log.d("TEMPO MEDIO", "Il tempo medio é $tempoMedio")
+
+            //86400000 = numero di millisecondi per giorno.
+            return tempoMedio.toDouble() / 86400000.toDouble()
         }
-
-        val tempoMedio = tempoTotale/numeroDocumenti
-
-        //Log.d("TEMPO MEDIO", "Il tempo medio é $tempoMedio")
-
-        //86400000 = numero di millisecondi per giorno.
-        return tempoMedio.toDouble()/86400000.toDouble()
+        else
+            return null
     }
 }
