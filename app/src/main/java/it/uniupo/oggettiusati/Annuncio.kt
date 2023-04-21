@@ -41,16 +41,38 @@ class Annuncio(
 
     //collegamento con il mio database, variabile statica.
     companion object {
-        var database = Firebase.firestore
+        public var database = Firebase.firestore
+        public val nomeCollection = "annuncio"
     }
 
     lateinit var annuncioId: String
 
     private var userIdAcquirente: String? = null
 
-    constructor(userId: String, titolo: String, descrizione: String, prezzo: Double, stato: Int, disponibilitaSpedire: Boolean, posizione: GeoPoint, categoria: String, userIdAcquirente: String?, annuncioId: String) : this(userId, titolo, descrizione, prezzo, stato, disponibilitaSpedire, categoria) {
+    private var timeStampInizioVendita: Long? = null
+
+    private var timeStampFineVendita: Long? = null
+
+    constructor(
+        userId: String, titolo: String, descrizione: String, prezzo: Double, stato: Int, disponibilitaSpedire: Boolean,
+        categoria: String, posizione: GeoPoint, timeStampInizioVendita: Long, timeStampFineVendita: Long?, userIdAcquirente: String?, annuncioId: String) : this(userId, titolo, descrizione, prezzo, stato, disponibilitaSpedire, categoria) {
         this.annuncioId = annuncioId
+
         this.userIdAcquirente = userIdAcquirente
+        this.timeStampInizioVendita = timeStampInizioVendita
+        this.timeStampFineVendita = timeStampFineVendita
+
+        this.posizione.latitude = posizione.latitude
+        this.posizione.longitude = posizione.longitude
+    }
+
+    constructor(
+        userId: String, titolo: String, descrizione: String, prezzo: Double, stato: Int, disponibilitaSpedire: Boolean,
+        categoria: String, posizione: Location, timeStampInizioVendita: Long, timeStampFineVendita: Long?, userIdAcquirente: String?) : this(userId, titolo, descrizione, prezzo, stato, disponibilitaSpedire, categoria) {
+
+        this.userIdAcquirente = userIdAcquirente
+        this.timeStampInizioVendita = timeStampInizioVendita
+        this.timeStampFineVendita = timeStampFineVendita
 
         this.posizione.latitude = posizione.latitude
         this.posizione.longitude = posizione.longitude
@@ -62,6 +84,8 @@ class Annuncio(
 
             val geo = GeoPoint(posizione.latitude,posizione.longitude)
 
+            this.timeStampInizioVendita = System.currentTimeMillis()
+
             val annuncio = hashMapOf(
                 "userId" to userId,
                 "titolo" to titolo,
@@ -71,10 +95,12 @@ class Annuncio(
                 "disponibilitaSpedire" to disponibilitaSpedire,
                 "categoria" to categoria,
                 "posizione" to geo,
+                "timeStampInizioVendita" to timeStampInizioVendita,
+                "timeStampFineVendita" to timeStampFineVendita,
                 "userIdAcquirente" to userIdAcquirente
             )
 
-            val myCollection = Annuncio.database.collection("annunci")
+            val myCollection = Annuncio.database.collection(Annuncio.nomeCollection)
 
             //Log.d("DEBUG","Prima")
 
@@ -86,18 +112,19 @@ class Annuncio(
 
             Log.d("SALVA ANNUNCIO SU FIREBASE", annuncioId)
 
+            //caricaImmagineSuFirebase(immagineUri)
     }
 
     private suspend fun modificaAnnuncioSuFirebase(){
 
-        val adRif = database.collection("annunci").document(this.annuncioId)
+        val adRif = database.collection(Annuncio.nomeCollection).document(this.annuncioId)
 
         adRif.update("userId",userId,"titolo",titolo,"descrizione",descrizione,"prezzo",prezzo,"stato",stato,"disponibilitaSpedire",disponibilitaSpedire,"categoria",categoria).await()
     }
 
     suspend fun eliminaAnnuncioDaFirebase(){
 
-        val myCollection = database.collection("annunci")
+        val myCollection = database.collection(Annuncio.nomeCollection)
 
         val myDocument = myCollection.document(this.annuncioId)
 
@@ -136,9 +163,7 @@ class Annuncio(
     fun getTitolo() :String {
         return titolo
     }
-    fun getPrezzo() :Double {
-        return prezzo
-    }
+
 
     suspend fun setVenduto(userIdAcquirente: String){
         if(this.userIdAcquirente == null){
@@ -171,6 +196,18 @@ class Annuncio(
         this.prezzo = newPrezzo
 
         modificaAnnuncioSuFirebase()
+    }
+
+    public fun getPrezzo(): Double {
+        return prezzo
+    }
+
+    public fun getTimeStampInizioVendita(): Long? {
+        return timeStampInizioVendita
+    }
+
+    public fun isVenduto(): Boolean{
+        return userIdAcquirente != null
     }
 
     //Metodo che mi permette di tradurre la distanza in Km, date due coordinate composte da longitudine e latitudine
