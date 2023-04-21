@@ -215,6 +215,10 @@ class Annuncio(
         return annuncioId
     }
 
+    fun getTitolo(): String {
+        return titolo
+    }
+
     //Metodo che mi permette di tradurre la distanza in Km, date due coordinate composte da longitudine e latitudine
     private fun distanzaInKm(posizioneUtente: Location): Double {
 

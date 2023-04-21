@@ -110,7 +110,7 @@ open class UserLoginActivity : AppCompatActivity() {
         //This loop will create as many Views as documents containing
         //the image with title and price of object
         for (key in myAnnunciHome.keys){
-            data.add(ItemsViewModel(myAnnunciHome[key]?.annuncioId, R.drawable.ic_launcher_background, "${myAnnunciHome[key]?.getTitolo()}", myAnnunciHome[key]?.getPrezzo(), auth.currentUser?.email/*, myAnnunciHome[key]?.getNTel()*/) )
+            data.add(ItemsViewModel(myAnnunciHome[key]?.getAnnuncioId(), R.drawable.ic_launcher_background, "${myAnnunciHome[key]?.getTitolo()}", myAnnunciHome[key]?.getPrezzo(), auth.currentUser?.email/*, myAnnunciHome[key]?.getNTel()*/) )
         }
 
         //this will pass the ArrayList to our Adapter
