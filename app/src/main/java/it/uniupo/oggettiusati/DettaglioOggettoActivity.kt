@@ -22,7 +22,7 @@ class DettaglioOggettoActivity : AppCompatActivity() {
 
         val annuncioId = extras?.getString("annuncioId").toString()
 
-        database.collection("annunci").document(annuncioId).get()
+        database.collection(Annuncio.nomeCollection).document(annuncioId).get()
             .addOnSuccessListener { document ->
                 if (document != null) {
                     findViewById<TextView>(R.id.nome).text = document["titolo"].toString()

@@ -57,9 +57,9 @@ open class UserLoginActivity : AppCompatActivity() {
     private var ultimoAnnuncioId: String? = null
 
     //--- Variabile utile per salvare utente, id ---
-    var userId: String = "userIdProva"
+//    var userId: String = "userIdProva"
 
-    //val userId = auth.currentUser!!.uid
+    val userId = auth.currentUser!!.uid
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -95,6 +95,9 @@ open class UserLoginActivity : AppCompatActivity() {
 //                "ACCESSORI AUTO"
 //            ).salvaAnnuncioSuFirebase()
 //        }
+
+        //da sistemare, chiamare recuperaAnnunciPerMostrarliNellaHome(...) all'avvio dell'activity
+        runBlocking { recuperaAnnunciPerMostrarliNellaHome(1) }
 
         //RecyclerView
 
@@ -429,9 +432,9 @@ open class UserLoginActivity : AppCompatActivity() {
 
         val myCollection = this.database.collection("utente")
 
-        val myDocumento = myCollection.document(userId)
+        val myDocumentoUtente = myCollection.document(userId)
 
-        val myCollectionRicerca = myDocumento.collection("ricerca")
+        val myCollectionRicerca = myDocumentoUtente.collection("ricerca")
 
         val myDocumentiRicerca = myCollectionRicerca.get().await()
 
