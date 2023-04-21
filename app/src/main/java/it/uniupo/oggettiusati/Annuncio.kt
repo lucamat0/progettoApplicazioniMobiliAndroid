@@ -41,11 +41,17 @@ class Annuncio(
 
     //collegamento con il mio database, variabile statica.
     companion object {
-        public var database = Firebase.firestore
-        public val nomeCollection = "annuncio"
+        val nomeCollection = "annuncio"
     }
 
-    public lateinit var annuncioId: String
+    //--- Inizio variabili utili all'inserimento delle immagini sul cloud ---
+    val storage = FirebaseStorage.getInstance()
+    val storageRef = storage.reference
+    //--- Fine variabili utili all'inserimento delle immagini sul cloud ---
+
+    val database = Firebase.firestore
+
+    private lateinit var annuncioId: String
 
     private var userIdAcquirente: String? = null
 
@@ -79,8 +85,8 @@ class Annuncio(
     }
 
     //Funzione che mi permette di scrivere sul cloud, FireBase, i dati del singolo annuncio, passo anche la posizione dell'immagine che voglio caricare sul cloud.
-    //public fun salvaAnnuncioSuFirebase(immagineUri: Uri){
-    public suspend fun salvaAnnuncioSuFirebase(){
+    suspend fun salvaAnnuncioSuFirebase(myImmagini: ArrayList<Uri>?){
+    //public suspend fun salvaAnnuncioSuFirebase(){
 
             val geo = GeoPoint(posizione.latitude,posizione.longitude)
 
@@ -100,7 +106,7 @@ class Annuncio(
                 "userIdAcquirente" to userIdAcquirente
             )
 
-            val myCollection = Annuncio.database.collection(Annuncio.nomeCollection)
+            val myCollection = database.collection(nomeCollection)
 
             //Log.d("DEBUG","Prima")
 
@@ -112,96 +118,101 @@ class Annuncio(
 
             Log.d("SALVA ANNUNCIO SU FIREBASE", annuncioId)
 
-            //caricaImmagineSuFirebase(immagineUri)
+            if(myImmagini != null)
+                caricaImmagineSuFirebase(myImmagini)
     }
 
     private suspend fun modificaAnnuncioSuFirebase(){
 
-        val adRif = database.collection(Annuncio.nomeCollection).document(this.annuncioId)
+        val adRif = database.collection(nomeCollection).document(this.annuncioId)
 
         adRif.update("userId",userId,"titolo",titolo,"descrizione",descrizione,"prezzo",prezzo,"stato",stato,"disponibilitaSpedire",disponibilitaSpedire,"categoria",categoria).await()
     }
 
-    public suspend fun eliminaAnnuncioDaFirebase(){
+    suspend fun eliminaAnnuncioDaFirebase(){
 
-        val myCollection = database.collection(Annuncio.nomeCollection)
+        val myCollection = database.collection(nomeCollection)
 
         val myDocument = myCollection.document(this.annuncioId)
 
         myDocument.delete().await()
     }
 
-    private fun caricaImmagineSuFirebase(immagineUri: Uri){
-
-        val storage = FirebaseStorage.getInstance()
-
-        var storageRef = storage.reference
+    private fun caricaImmagineSuFirebase(myImmagini: ArrayList<Uri>){
 
         val cartella = storageRef.child(annuncioId)
 
-        //Utilizzo il randomizzatore per generare un valore pseudocasuale, dedotto dal tempo, questo valore lo converto in una stringa. Questo valore sará associato al immagine.
-        val immagineRef = cartella.child( Random(System.currentTimeMillis()).toString())
+        for(immagineUri in myImmagini) {
 
-        // Carica l'immagine sul bucket di archiviazione Firebase
-        val uploadTask = immagineRef.putFile(immagineUri)
+            //Utilizzo il randomizzatore per generare un valore pseudocasuale, dedotto dal tempo, questo valore lo converto in una stringa. Questo valore sará associato al immagine.
+            val immagineRef = cartella.child(Random(System.currentTimeMillis()).toString())
 
-        // Aggiungi un listener per controllare il progresso del caricamento
-        uploadTask.addOnProgressListener { taskSnapshot ->
-            val progress = (100.0 * taskSnapshot.bytesTransferred / taskSnapshot.totalByteCount)
-            Log.d("Caricamento immagine", "Caricamento in corso: $progress% completato")
-        }.addOnPausedListener {
-            Log.d("Caricamento immagine", "Caricamento in pausa")
-        }.addOnSuccessListener {
-            Log.d("Caricamento immagine", "Caricamento completato: ${it.metadata?.path}")
+            // Carica l'immagine sul bucket di archiviazione Firebase
+            val uploadTask = immagineRef.putFile(immagineUri)
 
-            Log.d("Creazione annuncio", "Annuncio creato con successo")
-        }.addOnFailureListener {
-            Log.e("Caricamento immagine", "Errore durante il caricamento dell'immagine", it)
+            // Aggiungi un listener per controllare il progresso del caricamento
+            uploadTask.addOnProgressListener { taskSnapshot ->
+                val progress = (100.0 * taskSnapshot.bytesTransferred / taskSnapshot.totalByteCount)
+                Log.d("Caricamento immagine", "Caricamento in corso: $progress% completato")
+            }.addOnPausedListener {
+                Log.d("Caricamento immagine", "Caricamento in pausa")
+            }.addOnSuccessListener {
+                Log.d("Caricamento immagine", "Caricamento completato: ${it.metadata?.path}")
+
+                Log.d("Creazione annuncio", "Annuncio creato con successo")
+            }.addOnFailureListener {
+                Log.e("Caricamento immagine", "Errore durante il caricamento dell'immagine", it)
+            }
+
         }
     }
 
-    public suspend fun setVenduto(userIdAcquirente: String){
+    suspend fun setVenduto(userIdAcquirente: String){
         if(this.userIdAcquirente == null){
             this.userIdAcquirente = userIdAcquirente
 
-            salvaAnnuncioSuFirebase()
+            modificaAnnuncioSuFirebase()
         }
     }
 
-    public suspend fun setTitolo(newTitolo:String){
+    suspend fun setTitolo(newTitolo:String){
         this.titolo = newTitolo
 
         modificaAnnuncioSuFirebase()
     }
 
-    public suspend fun setDescrizione(newDescrizione:String){
+    suspend fun setDescrizione(newDescrizione:String){
         this.descrizione = newDescrizione
 
         modificaAnnuncioSuFirebase()
     }
 
-    public suspend fun setCategoria(newCategoria:String){
+    suspend fun setCategoria(newCategoria:String){
         this.categoria = newCategoria
 
         modificaAnnuncioSuFirebase()
     }
 
-    public suspend fun setPrezzo(newPrezzo: Double){
+    suspend fun setPrezzo(newPrezzo: Double){
         this.prezzo = newPrezzo
 
         modificaAnnuncioSuFirebase()
     }
 
-    public fun getPrezzo(): Double {
+    fun getPrezzo(): Double {
         return prezzo
     }
 
-    public fun getTimeStampInizioVendita(): Long? {
+    fun getTimeStampInizioVendita(): Long? {
         return timeStampInizioVendita
     }
 
-    public fun isVenduto(): Boolean{
+    fun isVenduto(): Boolean{
         return userIdAcquirente != null
+    }
+
+    fun getAnnuncioId(): String {
+        return annuncioId
     }
 
     //Metodo che mi permette di tradurre la distanza in Km, date due coordinate composte da longitudine e latitudine
@@ -215,9 +226,9 @@ class Annuncio(
 
         val theta = lon1 - lon2
 
-        var dist = sin(Math.toRadians(lat1)) * sin(Math.toRadians(lat2)) + cos(Math.toRadians(lat1)) * cos(Math.toRadians(lat2)) * cos(Math.toRadians(theta))
+        var dist = sin(toRadians(lat1)) * sin(toRadians(lat2)) + cos(toRadians(lat1)) * cos(toRadians(lat2)) * cos(toRadians(theta))
         dist = acos(dist)
-        dist = Math.toDegrees(dist)
+        dist = toDegrees(dist)
         dist *= 60 * 1.1515
         dist *= 1.609344
 
@@ -225,7 +236,7 @@ class Annuncio(
     }
 
     //Mi ritorna true se l'annuncio, ha una distanza inferiore a quella massima.
-    public fun distanzaMinore(posizioneUtente: Location, distanzaMax: Int): Boolean{
+    fun distanzaMinore(posizioneUtente: Location, distanzaMax: Int): Boolean{
         return  distanzaInKm(posizioneUtente) <= distanzaMax
     }
 

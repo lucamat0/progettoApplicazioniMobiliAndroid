@@ -19,8 +19,8 @@ import java.util.Date
 
 class SignUpActivity : AppCompatActivity() {
 
-    public val auth = FirebaseAuth.getInstance()
-    public val database = Firebase.firestore
+    val auth = FirebaseAuth.getInstance()
+    val database = Firebase.firestore
 
     private lateinit var user: FirebaseUser
 

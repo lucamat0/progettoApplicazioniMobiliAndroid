@@ -1,6 +1,8 @@
 package it.uniupo.oggettiusati
 
 import android.content.Intent
+import android.location.Location
+import android.net.Uri
 import android.os.Bundle
 import android.util.Log
 import android.view.View
@@ -29,20 +31,20 @@ import kotlin.collections.ArrayList
 open class UserLoginActivity : AppCompatActivity() {
 
     //--- Inizio informazioni per il collegamento con firebase firestore ---
-    public val auth = FirebaseAuth.getInstance()
-    public val database = Firebase.firestore
+    val auth = FirebaseAuth.getInstance()
+    val database = Firebase.firestore
     //--- Fine informazioni per il collegamento con firebase firestore ---
 
     //--- HashMap che mi memorizza gli annunci preferiti, del utente loggato e invia una notifica quando varia uno di questi. ---
-    public var myAnnunciPreferiti = HashMap<String, Annuncio>()
-    public var myListenerAnnunciPreferiti: ListenerRegistration? = null
+    var myAnnunciPreferiti = HashMap<String, Annuncio>()
+    var myListenerAnnunciPreferiti: ListenerRegistration? = null
 
     //HashMap che mi memorizza gli annunci che devo mostrare, a seconda della pagina in cui mi trovo mi vengono mostrati i 10 elementi
-    public var myAnnunciHome = HashMap<String, Annuncio>()
-    public var myListenerAnnunciHome: ListenerRegistration? = null
+    var myAnnunciHome = HashMap<String, Annuncio>()
+    var myListenerAnnunciHome: ListenerRegistration? = null
 
     //Vado a specificare la collection, su cui lavoro.
-    val myCollection = this.database.collection(Annuncio.nomeCollection);
+    val myCollection = this.database.collection(Annuncio.nomeCollection)
 
     private var queryRisultato: Query = myCollection
 
@@ -57,11 +59,11 @@ open class UserLoginActivity : AppCompatActivity() {
     //--- Variabile utile per salvare utente, id ---
     var userId: String = "userIdProva"
 
+    //val userId = auth.currentUser!!.uid
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_user_logged)
-
-        //userId = auth.currentUser!!.uid
 
         runBlocking {
 
@@ -166,6 +168,47 @@ open class UserLoginActivity : AppCompatActivity() {
 
     }
 
+    private fun selezionaImmagini(){
+
+        val intent = Intent()
+
+        intent.type = "image/*"
+        intent.action = Intent.ACTION_GET_CONTENT
+
+        intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true)
+        startActivityForResult(Intent.createChooser(intent, "Seleziona immagini"), 100)
+    }
+
+    var myImmaginiAnnuncio = ArrayList<Uri>()
+
+    //override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?){
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) = runBlocking{
+        super.onActivityResult(requestCode, resultCode, data)
+
+        if (requestCode == 100 && resultCode == RESULT_OK) {
+            if (data != null) {
+                // L'utente ha selezionato più immagini
+                if (data.clipData != null) {
+                    val count = data.clipData!!.itemCount
+                    for (i in 0 until count) {
+                        val imageUri = data.clipData!!.getItemAt(i).uri
+                        myImmaginiAnnuncio.add(imageUri)
+                    }
+                // L'utente ha selezionato una singola immagine
+                } else {
+                    val imageUri = data.data!!
+                    myImmaginiAnnuncio.add(imageUri)
+                }
+            }
+
+            val userId = "testId"
+            val newAnnuncio = Annuncio(userId, "Mr Robot: Season 3 Blu-Ray + Digital HD", "Mr. Robot, is a techno thriller that follows Elliot, a young programmer, who works as a cyber-security engineer by day and as a vigilante hacker by night.", 16.99, 2, true, "filmETv/serieTv")
+            newAnnuncio.salvaAnnuncioSuFirebase(myImmaginiAnnuncio)
+        }
+    }
+
+
+
     private fun definisciQuery(titoloAnnuncio: String?, disponibilitaSpedire: Boolean?, prezzoSuperiore: Int?, prezzoMinore: Int?): Query {
 
         //Quando ad un annuncio non è assegnato un acquirente, non vogliamo mostrare nella home degli annunci che sono già stati venduti.
@@ -175,23 +218,26 @@ open class UserLoginActivity : AppCompatActivity() {
             myQuery = myQuery.whereEqualTo("titolo", titoloAnnuncio)
         //siamo nel caso in cui deve essere compreso
         if(prezzoSuperiore != null && prezzoMinore != null)
-            myQuery = myQuery.orderBy("prezzo").whereGreaterThan("prezzo", prezzoMinore!!).whereLessThan("prezzo", prezzoSuperiore!!)
+            myQuery = myQuery.orderBy("prezzo").whereGreaterThan("prezzo", prezzoMinore).whereLessThan("prezzo", prezzoSuperiore)
         else{
             if(prezzoSuperiore != null)
-                myQuery = myQuery.orderBy("prezzo").whereGreaterThan("prezzo", prezzoSuperiore!!)
-            if(prezzoMinore != null)
-                myQuery = myQuery.orderBy("prezzo").whereLessThan("prezzo", prezzoMinore!!)
+                myQuery = myQuery.orderBy("prezzo").whereGreaterThan("prezzo", prezzoSuperiore)
+            else if(prezzoMinore != null)
+                myQuery = myQuery.orderBy("prezzo").whereLessThan("prezzo", prezzoMinore)
         }
         if(disponibilitaSpedire != null)
             myQuery = myQuery.whereEqualTo("disponibilitaSpedire", disponibilitaSpedire)
+
 
         return myQuery
     }
 
     //Ogni pagina, mostra 10 annunci alla volta, questo metodo mi ritorna 10 annunci alla volta, in base ai parametri specificati dal utente
-    public suspend fun recuperaAnnunciPerMostrarliNellaHome(numeroPagina: Int): HashMap<String, Annuncio>? {
+    suspend fun recuperaAnnunciPerMostrarliNellaHome(numeroPagina: Int): HashMap<String, Annuncio>? {
 
         if(numeroPagina==1){
+
+            myListenerAnnunciHome?.remove()
 
             queryRisultato = definisciQuery(titoloAnnuncio, disponibilitaSpedire, prezzoSuperiore, prezzoMinore)
 
@@ -199,13 +245,21 @@ open class UserLoginActivity : AppCompatActivity() {
 
             myAnnunciHome = recuperaAnnunci(myDocumenti)
 
+            myListenerAnnunciHome = subscribeRealTimeDatabase(queryRisultato,myAnnunciHome,false)
+
             return myAnnunciHome
         }
         else if(numeroPagina>1 && myAnnunciHome.isNotEmpty()){
 
-            val myDocumenti = queryRisultato.orderBy(FieldPath.documentId()).startAfter(ultimoAnnuncioId).limit(10).get().await()
+            myListenerAnnunciHome?.remove()
 
-            Log.d("MOSTRA HOME LAST",ultimoAnnuncioId.toString())
+            queryRisultato = queryRisultato.orderBy(FieldPath.documentId()).startAfter(ultimoAnnuncioId).limit(10)
+
+            myListenerAnnunciHome = subscribeRealTimeDatabase(queryRisultato,myAnnunciHome,false)
+
+            val myDocumenti = queryRisultato.get().await()
+
+            //Log.d("MOSTRA HOME LAST",ultimoAnnuncioId.toString())
 
             myAnnunciHome = recuperaAnnunci(myDocumenti)
 
@@ -216,7 +270,7 @@ open class UserLoginActivity : AppCompatActivity() {
     }
 
     //Sospendo il metodo, per aspettare che la lista dei documenti sia stata recuperata e insirita nel arrayList
-    public suspend fun recuperaTuttiAnnunci() {
+    fun recuperaTuttiAnnunci() {
 
         this.titoloAnnuncio = null
         this.disponibilitaSpedire = null
@@ -225,7 +279,7 @@ open class UserLoginActivity : AppCompatActivity() {
     }
 
     //Recupera gli annunci che contengono una sequernza/sottosequenza nel titolo del annuncio.
-    public fun recuperaAnnunciTitolo(nomeAnnuncio: String){
+    fun recuperaAnnunciTitolo(nomeAnnuncio: String){
 
         this.titoloAnnuncio = nomeAnnuncio
     }
@@ -238,25 +292,25 @@ open class UserLoginActivity : AppCompatActivity() {
     }
 
     //Fissano un limite superiore
-    public fun recuperaAnnunciPrezzoSuperiore(prezzoSuperiore: Int) {
+    fun recuperaAnnunciPrezzoSuperiore(prezzoSuperiore: Int) {
 
         this.prezzoMinore = null
         this.prezzoSuperiore = prezzoSuperiore
     }
 
     // Fissano un range in cui l'annuncio deve essere compreso tra il prezzo minore e quello maggiore.
-    public fun recuperaAnnunciPrezzoRange(prezzoMinore: Int, prezzoSuperiore: Int){
+    fun recuperaAnnunciPrezzoRange(prezzoMinore: Int, prezzoSuperiore: Int){
 
         this.prezzoMinore = prezzoMinore
         this.prezzoSuperiore = prezzoSuperiore
     }
 
     //Ritorna gli annunci che rispettano la disponibilitá di spedire.
-    public fun recuperaAnnunciDisponibilitaSpedire(disponibilitaSpedire: Boolean) {
+    fun recuperaAnnunciDisponibilitaSpedire(disponibilitaSpedire: Boolean) {
         this.disponibilitaSpedire = disponibilitaSpedire
     }
 
-    //--- Da guardare!!! ---
+    //Devo recuperare annuncio
     /*
     public suspend fun recuperaAnnunciLocalizzazione(
         posizioneUtente: Location,
@@ -277,21 +331,23 @@ open class UserLoginActivity : AppCompatActivity() {
     */
     // --- Da fare ---
 
-    public suspend fun subscribeRealTimeDatabase(query: Query, myAnnunci: HashMap<String,Annuncio>): ListenerRegistration {
+    fun subscribeRealTimeDatabase(query: Query, myAnnunci: HashMap<String,Annuncio>,preferiti: Boolean): ListenerRegistration {
 
-        var  listenerRegistration = query.addSnapshotListener { snapshot, e ->
+        val  listenerRegistration = query.addSnapshotListener { snapshot, e ->
             if (e != null) {
                 Log.w("Query", "Listen failed.", e)
                 return@addSnapshotListener
             }
             for (myDocumentoAnnuncio in snapshot!!.documentChanges) {
 
-                var a = documentoAnnuncioToObject(myDocumentoAnnuncio.document)
+                val a = documentoAnnuncioToObject(myDocumentoAnnuncio.document)
 
                 //Log.d("CAMBIO DOCUMENTO", "Il documento ${a.toString()} è cambiato!")
-                Toast.makeText(this, "Il documento ${a.annuncioId} è cambiato!", Toast.LENGTH_LONG).show()
 
-                myAnnunci[a.annuncioId] = a
+                if(preferiti)
+                    Toast.makeText(this, "Il documento ${a.getAnnuncioId()} è cambiato!", Toast.LENGTH_LONG).show()
+
+                myAnnunci[a.getAnnuncioId()] = a
 
                 //Log.d("CONTENUTO ARRAYLIST",myAnnunciPreferiti.toString())
             }
@@ -306,7 +362,7 @@ open class UserLoginActivity : AppCompatActivity() {
     private fun recuperaAnnunci(myDocumenti: QuerySnapshot): HashMap<String, Annuncio> {
 
         //Inizializzo HashMap vuota, la chiave sarà il suo Id, l'elemento associato alla chiave sarà oggetto Annuncio.
-        var myAnnunci = HashMap<String, Annuncio>()
+        val myAnnunci = HashMap<String, Annuncio>()
 
         for (myDocumentoAnnuncio in myDocumenti.documents) {
             myAnnunci[myDocumentoAnnuncio.id] = documentoAnnuncioToObject(myDocumentoAnnuncio)
@@ -317,12 +373,12 @@ open class UserLoginActivity : AppCompatActivity() {
         return myAnnunci
     }
 
-    public suspend fun inserisciRicercaSuFirebaseFirestore(
+    suspend fun inserisciRicercaSuFirebaseFirestore(
         idUtente: String,
         titoloAnnuncio: String?, disponibilitaSpedire: Boolean?, prezzoSuperiore: Int?, prezzoMinore: Int?
     ): String {
 
-        val myCollectionUtente = this.database.collection("utente");
+        val myCollectionUtente = this.database.collection("utente")
 
         val myDocumento = myCollectionUtente.document(idUtente)
 
@@ -339,10 +395,10 @@ open class UserLoginActivity : AppCompatActivity() {
             "numeroAnnunci" to numeroAnnunci
         )
 
-        return myCollectionRicerca.add(myRicerca).await().id.toString()
+        return myCollectionRicerca.add(myRicerca).await().id
     }
 
-    public suspend fun eliminaRicercaFirebaseFirestore(userId : String, idRicerca: String){
+    suspend fun eliminaRicercaFirebaseFirestore(userId : String, idRicerca: String){
 
         val myCollection = this.database.collection("utente")
 
@@ -355,7 +411,7 @@ open class UserLoginActivity : AppCompatActivity() {
         myDocumentRicerca.delete().await()
     }
 
-    public suspend fun controllaStatoRicercheAnnunci(userId : String): Boolean {
+    suspend fun controllaStatoRicercheAnnunci(userId : String): Boolean {
 
         val myCollection = this.database.collection("utente")
 
@@ -368,7 +424,7 @@ open class UserLoginActivity : AppCompatActivity() {
         for(myDocumento in myDocumentiRicerca.documents){
 
             val titoloAnnuncio = myDocumento.get("titoloAnnuncio") as String?
-            val disponibilitaSpedire = myDocumento.getBoolean("disponibilitaSpedire") as Boolean?
+            val disponibilitaSpedire = myDocumento.getBoolean("disponibilitaSpedire")
 
             val prezzoSuperiore = (myDocumento.get("prezzoSuperiore") as Long?)?.toInt()
 
@@ -420,7 +476,7 @@ open class UserLoginActivity : AppCompatActivity() {
     }
 
     //Questo metodo, avrá un voto nella recensione valido, per una maggiore usabilitá si aggiunge comunque il controllo del voto, compreso tra 1 e 5/
-    public suspend fun inserisciRecensioneSuFirebaseFirestore(
+    suspend fun inserisciRecensioneSuFirebaseFirestore(
         titoloRecensione: String,
         descrizioneRecensione: String,
         votoAlUtente: Int,
@@ -430,7 +486,7 @@ open class UserLoginActivity : AppCompatActivity() {
         //se il voto del utente si trova tra 1 e 5 allora inserisci la recensione...
         if(votoAlUtente in 1..5) {
 
-            val myCollectionUtente = this.database.collection("utente");
+            val myCollectionUtente = this.database.collection("utente")
 
             val myDocumento = myCollectionUtente.document(idUtenteRecensito)
 
@@ -443,14 +499,14 @@ open class UserLoginActivity : AppCompatActivity() {
                 "idUtenteEspresso" to this.userId
             )
 
-            return myCollectionRecensione.add(myRecensione).await().id.toString()
+            return myCollectionRecensione.add(myRecensione).await().id
         }
         //se il voto, assegnato dal utente, non é valido...
         else
             return null
     }
 
-    public suspend fun salvaTransazioneSuFirestoreFirebase(idUtente: String, importo: Double, tipoTransazione: Boolean): String{
+    suspend fun salvaTransazioneSuFirestoreFirebase(idUtente: String, importo: Double, tipoTransazione: Boolean): String{
 
         val myCollection = this.database.collection("utente")
 
@@ -468,10 +524,10 @@ open class UserLoginActivity : AppCompatActivity() {
             "tipo" to tipoTransazione
         )
 
-        return myCollectionTransazioneUtente.add(myTransazione).await().id.toString()
+        return myCollectionTransazioneUtente.add(myTransazione).await().id
     }
 
-    public suspend fun acquistaAnnuncio(idUtente: String,myAnnuncio: Annuncio){
+    suspend fun acquistaAnnuncio(idUtente: String,myAnnuncio: Annuncio){
 
         if(isAcquistabile(idUtente,myAnnuncio.getPrezzo())){
             salvaTransazioneSuFirestoreFirebase(idUtente,myAnnuncio.getPrezzo(),false)
@@ -479,7 +535,7 @@ open class UserLoginActivity : AppCompatActivity() {
         }
     }
 
-    public suspend fun isAcquistabile(idUtente: String, prezzoAcquisto: Double) : Boolean{
+    suspend fun isAcquistabile(idUtente: String, prezzoAcquisto: Double) : Boolean{
 
         val myCollection = this.database.collection("utente")
 
@@ -488,9 +544,9 @@ open class UserLoginActivity : AppCompatActivity() {
         return saldoAccount(myCollectionTransazioni) >= prezzoAcquisto
     }
 
-    public suspend fun saldoAccount(myCollectionTransazioni: CollectionReference): Double {
+    suspend fun saldoAccount(myCollectionTransazioni: CollectionReference): Double {
 
-        var query = myCollectionTransazioni.get().await()
+        val query = myCollectionTransazioni.get().await()
 
         var saldoAccount = 0.0
         for(myTransazione in query.documents){
@@ -500,7 +556,7 @@ open class UserLoginActivity : AppCompatActivity() {
             Log.d("SALDO ACCOUNT", myTransazione.id + "tipo: "+ tipo.toString())
 
             //true -> ricarica
-            if(tipo!!)
+            if(tipo)
                 saldoAccount += myTransazione.getDouble("importo")!!
             else
                 saldoAccount -= myTransazione.getDouble("importo")!!
@@ -509,7 +565,7 @@ open class UserLoginActivity : AppCompatActivity() {
         return saldoAccount
     }
 
-    public suspend fun inserisciAnnuncioPreferitoFirebaseFirestore(userId : String, annuncioId: String): String {
+    suspend fun inserisciAnnuncioPreferitoFirebaseFirestore(userId : String, annuncioId: String): String {
 
         val myCollection = this.database.collection("utente")
 
@@ -524,7 +580,7 @@ open class UserLoginActivity : AppCompatActivity() {
             "dataOraAttuale" to dataOraAttuale
         )
 
-        val idPreferito = myCollectionPreferito.add(myElementoPreferito).await().id.toString()
+        val idPreferito = myCollectionPreferito.add(myElementoPreferito).await().id
 
         val myDocumentiPreferiti = myCollectionPreferito.get().await()
 
@@ -534,7 +590,7 @@ open class UserLoginActivity : AppCompatActivity() {
         return idPreferito
     }
 
-    public suspend fun eliminaAnnuncioPreferitoFirebaseFirestore(userId : String, elementoCarrelloId: String){
+    suspend fun eliminaAnnuncioPreferitoFirebaseFirestore(userId : String, elementoCarrelloId: String){
 
         val myCollection = this.database.collection("utente")
 
@@ -547,7 +603,7 @@ open class UserLoginActivity : AppCompatActivity() {
         myDocumentCarrello.delete().await()
     }
 
-    public suspend fun recuperaAnnunciPreferitiFirebaseFirestore(userId : String): HashMap<String, Annuncio>? {
+    suspend fun recuperaAnnunciPreferitiFirebaseFirestore(userId : String): HashMap<String, Annuncio>? {
 
         val myCollectionUtente = this.database.collection("utente")
 
@@ -562,6 +618,22 @@ open class UserLoginActivity : AppCompatActivity() {
             return myAnnunciPreferiti
         }
         return null
+    }
+
+    suspend fun recuperaRicercheSalvateFirebaseFirestore(userId: String): ArrayList<Ricerca>{
+
+        val myCollection = this.database.collection("utente")
+
+        val myDocumentUtente = myCollection.document(userId)
+
+        val myDocumentsRicerca = myDocumentUtente.collection("ricerca").get().await()
+
+        val myArrayList = ArrayList<Ricerca>()
+        for(myRicerca in myDocumentsRicerca.documents){
+            myArrayList.add(Ricerca(userId,myRicerca.get("idRicerca") as String, myRicerca.get("titoloAnnuncio") as String?, myRicerca.getBoolean("disponibilitaSpedire"), myRicerca.get("prezzoSuperiore") as Int?, myRicerca.get("prezzoMinore") as Int?, myRicerca.get("numeroAnnunci") as Int))
+        }
+
+        return myArrayList
     }
 
     //Listener dei preferiti si aggiorna quando, inseriamo un nuovo elemento nei preferiti, oppure quando andiamo a recuperare i preferiti.
@@ -582,10 +654,10 @@ open class UserLoginActivity : AppCompatActivity() {
 
         myListenerAnnunciPreferiti?.remove()
 
-        myListenerAnnunciPreferiti = subscribeRealTimeDatabase(query, myAnnunciPreferiti)
+        myListenerAnnunciPreferiti = subscribeRealTimeDatabase(query, myAnnunciPreferiti, true)
     }
 
-    public suspend fun inserisciAnnuncioCarrelloFirebaseFirestore(userId : String, annuncioId: String): String {
+    suspend fun inserisciAnnuncioCarrelloFirebaseFirestore(userId : String, annuncioId: String): String {
 
         val myCollection = this.database.collection("utente")
 
@@ -600,10 +672,10 @@ open class UserLoginActivity : AppCompatActivity() {
             "dataOraAttuale" to dataOraAttuale
         )
 
-        return myCollectionCarrello.add(myElementoCarrello).await().id.toString()
+        return myCollectionCarrello.add(myElementoCarrello).await().id
     }
 
-    public suspend fun eliminaAnnuncioCarrelloFirebaseFirestore(userId : String, elementoCarrelloId: String){
+    suspend fun eliminaAnnuncioCarrelloFirebaseFirestore(userId : String, elementoCarrelloId: String){
 
         val myCollection = this.database.collection("utente")
 
@@ -616,7 +688,7 @@ open class UserLoginActivity : AppCompatActivity() {
         myDocumentCarrello.delete().await()
     }
 
-    public suspend fun recuperaAnnunciCarrelloFirebaseFirestore(userId : String): HashMap<String, Annuncio>{
+    suspend fun recuperaAnnunciCarrelloFirebaseFirestore(userId : String): HashMap<String, Annuncio>{
 
         val myCollection = this.database.collection("utente")
 
@@ -637,18 +709,18 @@ open class UserLoginActivity : AppCompatActivity() {
 
                 val myAnnuncio = documentoAnnuncioToObject(myDocumentAnnuncio)
 
-                myHashMap[myAnnuncio.annuncioId] = myAnnuncio
+                myHashMap[myAnnuncio.getAnnuncioId()] = myAnnuncio
             }
             return myHashMap
         }
-        return HashMap<String, Annuncio>()
+        return HashMap()
     }
 
-    public fun documentoAnnuncioToObject(myDocumentoAnnuncio: DocumentSnapshot): Annuncio {
+    fun documentoAnnuncioToObject(myDocumentoAnnuncio: DocumentSnapshot): Annuncio {
 
         val userIdAcquirente: String? = myDocumentoAnnuncio.get("userIdAcquirente") as String?
 
-        val timeStampFineVendita: Long? = myDocumentoAnnuncio.getLong("timeStampFineVendita") as Long?
+        val timeStampFineVendita: Long? = myDocumentoAnnuncio.getLong("timeStampFineVendita")
 
         return Annuncio(
             myDocumentoAnnuncio.get("userId") as String,
@@ -662,31 +734,8 @@ open class UserLoginActivity : AppCompatActivity() {
             myDocumentoAnnuncio.getLong("timeStampInizioVendita") as Long,
             timeStampFineVendita,
             userIdAcquirente,
-            myDocumentoAnnuncio.id as String)
+            myDocumentoAnnuncio.id)
     }
+
+    data class Ricerca(val userId: String, val idRicerca: String, val titoloAnnuncio: String?, val disponibilitaSpedire: Boolean?, val prezzoSuperiore: Int?, val prezzoMinore: Int?, val numeroAnnunci: Int)
 }
-
-    /*
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        super.onActivityResult(requestCode, resultCode, data)
-
-        if (requestCode == REQUEST_IMAGE_PICK && resultCode == RESULT_OK) {
-            val imageUri: Uri? = data?.data
-            //imageView.setImageURI(imageUri)
-
-            Log.d("Immagine",imageUri.toString())
-
-            val userId = "aaaaa"
-
-            val newAnnuncio = Annuncio(userId, "Mr Robot: Season 1 Blu-Ray + Digital HD", "Mr. Robot, is a techno thriller that follows Elliot, a young programmer, who works as a cyber-security engineer by day and as a vigilante hacker by night.", 16.99, 2, true, "filmETv/serieTv",  imageUri!!)
-
-            //DA CAMBIARE!!!
-            newAnnuncio.salvaAnnuncioSuFirebase(database)
-
-        }
-    }
-
-    companion object {
-        private const val REQUEST_IMAGE_PICK = 100
-    }
-         */

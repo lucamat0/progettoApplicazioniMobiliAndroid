@@ -54,7 +54,7 @@ class AdminLoginActivity : UserLoginActivity() {
                 if (task.isSuccessful) {
                     Log.d("ELIMINAZIONE UTENTE", "Documento eliminato con successo")
 
-                    this.auth.currentUser!!.delete()
+                    //this.auth.currentUser!!.delete()
 
                 } else {
                     Log.e("ELIMINAZIONE UTENTE", "Errore durante l'eliminazione del documento", task.exception)
@@ -68,14 +68,13 @@ class AdminLoginActivity : UserLoginActivity() {
 
     }
 
-    private suspend fun sospendiUtente(userId: String){
+    suspend fun sospendiUtente(userId: String){
 
         try {
             val myCollection = this.database.collection("utente");
 
-            val myDocument = myCollection.document(userId)
+            myCollection.document(userId).update("sospeso", true).await()
 
-            myDocument.update("sospeso", true).await()
         }catch (e: Exception){
             Log.e("ERRORE SOSPENDI UTENTE","Durante la sospensione del utente c'é stato un errore!", e)
         }
@@ -85,7 +84,7 @@ class AdminLoginActivity : UserLoginActivity() {
 
     //--- Accesso a dati statistici ---
 
-    public suspend fun numeroOggettiInVendita(): Int{
+    suspend fun numeroOggettiInVendita(): Int{
         return try {
 
             val myCollection = this.database.collection(Annuncio.nomeCollection);
@@ -105,7 +104,7 @@ class AdminLoginActivity : UserLoginActivity() {
         }
     }
 
-    public suspend fun numeroOggettiInVenditaPerSpecificoUtente(userId: String): Int{
+    suspend fun numeroOggettiInVenditaPerSpecificoUtente(userId: String): Int{
         return try {
 
             val myCollection = this.database.collection(Annuncio.nomeCollection);
@@ -146,7 +145,7 @@ class AdminLoginActivity : UserLoginActivity() {
     }
 
     //Nel caso in cui non ci fosse nessuna recensione non rientra nella lista, una maniera efficente per farlo???
-    public suspend fun classificaUtentiRecensitiConVotoPiuAlto(): Map<String, Double> {
+    suspend fun classificaUtentiRecensitiConVotoPiuAlto(): Map<String, Double> {
 
         val myCollection = this.database.collection("utente")
 
@@ -189,7 +188,7 @@ class AdminLoginActivity : UserLoginActivity() {
             return myHashRecensioni
     }
 
-    public suspend fun calcolaTempoMedioAnnunciUtenteVenduto(userId: String): Double? {
+    suspend fun calcolaTempoMedioAnnunciUtenteVenduto(userId: String): Double? {
 
         val myCollection = this.database.collection(Annuncio.nomeCollection)
 

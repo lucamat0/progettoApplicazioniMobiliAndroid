@@ -4,6 +4,8 @@ import android.location.Location
 import androidx.test.core.app.ActivityScenario
 import androidx.test.platform.app.InstrumentationRegistry
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import com.google.firebase.firestore.ktx.firestore
+import com.google.firebase.ktx.Firebase
 import kotlinx.coroutines.*
 import kotlinx.coroutines.tasks.await
 import org.junit.*
@@ -65,6 +67,7 @@ class ExampleInstrumentedTest {
 */
 
     lateinit var myAnnunci : ArrayList <Annuncio>
+    val database = Firebase.firestore
 
     @Before fun testSalvaAnnunciUtentiFirebaseFirestore(): Unit = runBlocking{
 
@@ -260,7 +263,7 @@ class ExampleInstrumentedTest {
         ))
 
         for(myAnnuncio in myAnnunci)
-            myAnnuncio.salvaAnnuncioSuFirebase()
+            myAnnuncio.salvaAnnuncioSuFirebase(null)
     }
 
     @After fun testEliminaAnnunciUtentiFirebaseFirestore():Unit = runBlocking{
@@ -268,7 +271,7 @@ class ExampleInstrumentedTest {
         for(myAnnuncio in myAnnunci)
             myAnnuncio.eliminaAnnuncioDaFirebase()
 
-        val myCollectionUtente = Annuncio.database.collection("utente")
+        val myCollectionUtente = database.collection("utente")
 
         myCollectionUtente.document("ada.loelace").delete().await()
         myCollectionUtente.document("alan.turing").delete().await()
@@ -282,7 +285,7 @@ class ExampleInstrumentedTest {
         scenarioUserLoginActivity.onActivity { activity ->
             runBlocking {
 
-                val myCollectionUtente = Annuncio.database.collection("utente");
+                val myCollectionUtente = database.collection("utente");
 
                 val myDocumento = myCollectionUtente.document("alan.turing")
 
@@ -304,7 +307,7 @@ class ExampleInstrumentedTest {
                     "wearable"
                 )
 
-                a.salvaAnnuncioSuFirebase()
+                a.salvaAnnuncioSuFirebase(null)
                 myAnnunci.add(a)
 
                 assertTrue(activity.controllaStatoRicercheAnnunci("alan.turing"))
@@ -319,7 +322,7 @@ class ExampleInstrumentedTest {
                     "electronics"
                 )
 
-                b.salvaAnnuncioSuFirebase()
+                b.salvaAnnuncioSuFirebase(null)
                 myAnnunci.add(b)
 
                 assertFalse(activity.controllaStatoRicercheAnnunci("alan.turing"))
@@ -335,13 +338,13 @@ class ExampleInstrumentedTest {
 
         scenarioUserLoginActivity.onActivity { activity ->
             runBlocking {
-                val myElementoNelCarrello2 = activity.inserisciAnnuncioCarrelloFirebaseFirestore("ada.loelace", myAnnunci.get(1).annuncioId)
-                val myElementoNelCarrello1 = activity.inserisciAnnuncioCarrelloFirebaseFirestore("ada.loelace", myAnnunci.get(0).annuncioId)
+                val myElementoNelCarrello2 = activity.inserisciAnnuncioCarrelloFirebaseFirestore("ada.loelace", myAnnunci.get(1).getAnnuncioId())
+                val myElementoNelCarrello1 = activity.inserisciAnnuncioCarrelloFirebaseFirestore("ada.loelace", myAnnunci.get(0).getAnnuncioId())
 
                 val myHashMapAda = activity.recuperaAnnunciCarrelloFirebaseFirestore("ada.loelace")
 
-                assertEquals("Annuncio(userId='ada.loelace', titolo='Mr Robot: Season 1 Blu-Ray + Digital HD', descrizione='Mr. Robot, is a techno thriller that follows Elliot, a young programmer, who works as a cyber-security engineer by day and as a vigilante hacker by night.', prezzo=16.99, stato=2, disponibilitaSpedire=true, categoria='filmETv/serieTv', posizione=Location[provider 0.000000,-122.084100 et=0], annuncioId='${myAnnunci.get(0).annuncioId}')",myHashMapAda[myAnnunci.get(0).annuncioId].toString())
-                assertEquals("Annuncio(userId='alan.turing', titolo='Apple iPhone 12 Pro Max 256GB Pacific Blue Unlocked', descrizione='The iPhone 12 Pro Max is Apple's flagship smartphone with a stunning 6.7-inch Super Retina XDR display, A14 Bionic chip, 5G capability, and a powerful triple-camera system.', prezzo=1100.0, stato=1, disponibilitaSpedire=false, categoria='elettronica/smartphone', posizione=Location[provider 0.000000,-122.084100 et=0], annuncioId='${myAnnunci.get(1).annuncioId}')",myHashMapAda[myAnnunci.get(1).annuncioId].toString())
+                assertEquals("Annuncio(userId='ada.loelace', titolo='Mr Robot: Season 1 Blu-Ray + Digital HD', descrizione='Mr. Robot, is a techno thriller that follows Elliot, a young programmer, who works as a cyber-security engineer by day and as a vigilante hacker by night.', prezzo=16.99, stato=2, disponibilitaSpedire=true, categoria='filmETv/serieTv', posizione=Location[provider 0.000000,-122.084100 et=0], getgetAnnuncioId()()='${myAnnunci.get(0).getAnnuncioId()}')",myHashMapAda[myAnnunci.get(0).getAnnuncioId()].toString())
+                assertEquals("Annuncio(userId='alan.turing', titolo='Apple iPhone 12 Pro Max 256GB Pacific Blue Unlocked', descrizione='The iPhone 12 Pro Max is Apple's flagship smartphone with a stunning 6.7-inch Super Retina XDR display, A14 Bionic chip, 5G capability, and a powerful triple-camera system.', prezzo=1100.0, stato=1, disponibilitaSpedire=false, categoria='elettronica/smartphone', posizione=Location[provider 0.000000,-122.084100 et=0], getgetAnnuncioId()()='${myAnnunci.get(1).getAnnuncioId()}')",myHashMapAda[myAnnunci.get(1).getAnnuncioId()].toString())
 
                 assertEquals(0,activity.recuperaAnnunciCarrelloFirebaseFirestore("alan.turing").size)
 
@@ -358,22 +361,22 @@ class ExampleInstrumentedTest {
         scenarioUserLoginActivity.onActivity { activity ->
             runBlocking {
 
-                val myElementoPreferito1 = activity.inserisciAnnuncioPreferitoFirebaseFirestore("ada.loelace", myAnnunci.get(1).annuncioId)
-                val myElementoPreferito2 = activity.inserisciAnnuncioPreferitoFirebaseFirestore("ada.loelace", myAnnunci.get(0).annuncioId)
+                val myElementoPreferito1 = activity.inserisciAnnuncioPreferitoFirebaseFirestore("ada.loelace", myAnnunci.get(1).getAnnuncioId())
+                val myElementoPreferito2 = activity.inserisciAnnuncioPreferitoFirebaseFirestore("ada.loelace", myAnnunci.get(0).getAnnuncioId())
 
                 val myHashMapAda = activity.recuperaAnnunciPreferitiFirebaseFirestore("ada.loelace")
 
-                assertEquals("Annuncio(userId='ada.loelace', titolo='Mr Robot: Season 1 Blu-Ray + Digital HD', descrizione='Mr. Robot, is a techno thriller that follows Elliot, a young programmer, who works as a cyber-security engineer by day and as a vigilante hacker by night.', prezzo=16.99, stato=2, disponibilitaSpedire=true, categoria='filmETv/serieTv', posizione=Location[provider 0.000000,-122.084100 et=0], annuncioId='${myAnnunci.get(0).annuncioId}')",
-                    myHashMapAda!![myAnnunci.get(0).annuncioId].toString())
-                assertEquals("Annuncio(userId='alan.turing', titolo='Apple iPhone 12 Pro Max 256GB Pacific Blue Unlocked', descrizione='The iPhone 12 Pro Max is Apple's flagship smartphone with a stunning 6.7-inch Super Retina XDR display, A14 Bionic chip, 5G capability, and a powerful triple-camera system.', prezzo=1100.0, stato=1, disponibilitaSpedire=false, categoria='elettronica/smartphone', posizione=Location[provider 0.000000,-122.084100 et=0], annuncioId='${myAnnunci.get(1).annuncioId}')",
-                    myHashMapAda!![myAnnunci.get(1).annuncioId]!!.toString())
+                assertEquals("Annuncio(userId='ada.loelace', titolo='Mr Robot: Season 1 Blu-Ray + Digital HD', descrizione='Mr. Robot, is a techno thriller that follows Elliot, a young programmer, who works as a cyber-security engineer by day and as a vigilante hacker by night.', prezzo=16.99, stato=2, disponibilitaSpedire=true, categoria='filmETv/serieTv', posizione=Location[provider 0.000000,-122.084100 et=0], getgetAnnuncioId()()='${myAnnunci.get(0).getAnnuncioId()}')",
+                    myHashMapAda!![myAnnunci.get(0).getAnnuncioId()].toString())
+                assertEquals("Annuncio(userId='alan.turing', titolo='Apple iPhone 12 Pro Max 256GB Pacific Blue Unlocked', descrizione='The iPhone 12 Pro Max is Apple's flagship smartphone with a stunning 6.7-inch Super Retina XDR display, A14 Bionic chip, 5G capability, and a powerful triple-camera system.', prezzo=1100.0, stato=1, disponibilitaSpedire=false, categoria='elettronica/smartphone', posizione=Location[provider 0.000000,-122.084100 et=0], getgetAnnuncioId()()='${myAnnunci.get(1).getAnnuncioId()}')",
+                    myHashMapAda!![myAnnunci.get(1).getAnnuncioId()]!!.toString())
 
                 assertNull(activity.recuperaAnnunciPreferitiFirebaseFirestore("alan.turing"))
 
                 activity.eliminaAnnuncioPreferitoFirebaseFirestore("ada.loelace", myElementoPreferito1)
                 activity.eliminaAnnuncioPreferitoFirebaseFirestore("ada.loelace", myElementoPreferito2)
 
-                val myCollection = Annuncio.database.collection("utente")
+                val myCollection = database.collection("utente")
 
                 myCollection.document("ada.loelace").delete().await()
                 myCollection.document("alan.turing").delete().await()
@@ -388,7 +391,7 @@ class ExampleInstrumentedTest {
         scenarioUserLoginActivity.onActivity { activity ->
             runBlocking {
 
-                val myCollection = Annuncio.database.collection("utente")
+                val myCollection = database.collection("utente")
 
                 val myDocument = myCollection.document("ada.lovelace")
 
@@ -396,8 +399,8 @@ class ExampleInstrumentedTest {
 
                 assertEquals(0, myPreferiti.get().await().size())
 
-                val myElementoPreferito1 = activity.inserisciAnnuncioPreferitoFirebaseFirestore("ada.lovelace", myAnnunci.get(0).annuncioId)
-                val myElementoPreferito2 = activity.inserisciAnnuncioPreferitoFirebaseFirestore("ada.lovelace", myAnnunci.get(1).annuncioId)
+                val myElementoPreferito1 = activity.inserisciAnnuncioPreferitoFirebaseFirestore("ada.lovelace", myAnnunci.get(0).getAnnuncioId())
+                val myElementoPreferito2 = activity.inserisciAnnuncioPreferitoFirebaseFirestore("ada.lovelace", myAnnunci.get(1).getAnnuncioId())
 
                 assertEquals(2, myPreferiti.get().await().size())
 
@@ -416,7 +419,7 @@ class ExampleInstrumentedTest {
         scenarioUserLoginActivity.onActivity { activity ->
             runBlocking {
 
-                val myCollection = Annuncio.database.collection("utente")
+                val myCollection = database.collection("utente")
 
                 val myDocument = myCollection.document("ada.lovelace")
 
@@ -424,8 +427,8 @@ class ExampleInstrumentedTest {
 
                 assertEquals(0, myCarrello.get().await().size())
 
-                val myElementoNelCarrello1 = activity.inserisciAnnuncioCarrelloFirebaseFirestore("ada.lovelace", myAnnunci.get(0).annuncioId)
-                val myElementoNelCarrello2 = activity.inserisciAnnuncioCarrelloFirebaseFirestore("ada.lovelace", myAnnunci.get(1).annuncioId)
+                val myElementoNelCarrello1 = activity.inserisciAnnuncioCarrelloFirebaseFirestore("ada.lovelace", myAnnunci.get(0).getAnnuncioId())
+                val myElementoNelCarrello2 = activity.inserisciAnnuncioCarrelloFirebaseFirestore("ada.lovelace", myAnnunci.get(1).getAnnuncioId())
 
                 assertEquals(2, myCarrello.get().await().size())
 
@@ -451,7 +454,7 @@ class ExampleInstrumentedTest {
                 assertEquals(false, activity.isAcquistabile("alan.turing", 110.0))
                 assertEquals(false, activity.isAcquistabile("alan.turing", 100.1))
 
-              Annuncio.database.collection("utente").document("alan.turing").collection("transazione").document(idTransazioneAlan).delete().await()
+              database.collection("utente").document("alan.turing").collection("transazione").document(idTransazioneAlan).delete().await()
             }
         }
     }
@@ -469,7 +472,7 @@ class ExampleInstrumentedTest {
                 //Effettuo una ricarica di 100€
                 idTransazioniAlan.add(activity.salvaTransazioneSuFirestoreFirebase("alan.turing", 100.00, true))
 
-                val myCollection = Annuncio.database.collection("utente")
+                val myCollection = database.collection("utente")
 
                 val myCollectionTransazioneAlan =
                     myCollection.document("alan.turing").collection("transazione")
@@ -493,7 +496,7 @@ class ExampleInstrumentedTest {
     @Test fun testClassificaUtentiRecensitiConVotoPiuAlto() {
 
 
-        val myCollectionUtente = Annuncio.database.collection("utente")
+        val myCollectionUtente = database.collection("utente")
 
         val myCollectionRecensioneAda = myCollectionUtente.document("ada.loelace").collection("recensione")
         val myCollectionRecensioneAlan = myCollectionUtente.document("alan.turing").collection("recensione")
@@ -545,7 +548,7 @@ class ExampleInstrumentedTest {
     //--- Inizio test sulla funzione che mi inserisci un documento per ogni utente ---
     @Test fun testInserisciUtenteFirebaseFirestore(): Unit = runBlocking {
 
-        val myCollection = Annuncio.database.collection("utente")
+        val myCollection = database.collection("utente")
 
         val primaInserimento = myCollection.get().await().size()
 
@@ -576,7 +579,7 @@ class ExampleInstrumentedTest {
 
         scenarioUserLoginActivity.onActivity { activity ->
             runBlocking {
-                val myDocumentUtente = Annuncio.database.collection("utente").document("alan.turing")
+                val myDocumentUtente = database.collection("utente").document("alan.turing")
 
                 val myCollectionRecensione = myDocumentUtente.collection("recensione")
 
@@ -584,7 +587,7 @@ class ExampleInstrumentedTest {
 
                 val idRecensione = activity.inserisciRecensioneSuFirebaseFirestore("Fantastico prodotto! Consigliatissimo!", "Ho acquistato questo prodotto e sono rimasto estremamente soddisfatto. La qualità è eccellente e corrisponde perfettamente alla descrizione fornita dal venditore. Inoltre, il prezzo è competitivo rispetto ad altri prodotti simili sul mercato. La spedizione è stata rapida e il servizio clienti è stato disponibile e cortese nel rispondere alle mie domande. Consiglio vivamente questo prodotto a chiunque sia alla ricerca di un'ottima soluzione per le proprie esigenze.",5,"alan.turing")
 
-                assertEquals(numeroDocsRecensioni+1,Annuncio.database.collection("utente").document("alan.turing").collection("recensione").get().await().size())
+                assertEquals(numeroDocsRecensioni+1,database.collection("utente").document("alan.turing").collection("recensione").get().await().size())
 
                 val idRecensioneVotoNonValido = activity.inserisciRecensioneSuFirebaseFirestore("Fantastico prodotto! Consigliatissimo!", "Ho acquistato questo prodotto e sono rimasto estremamente soddisfatto. La qualità è eccellente e corrisponde perfettamente alla descrizione fornita dal venditore. Inoltre, il prezzo è competitivo rispetto ad altri prodotti simili sul mercato. La spedizione è stata rapida e il servizio clienti è stato disponibile e cortese nel rispondere alle mie domande. Consiglio vivamente questo prodotto a chiunque sia alla ricerca di un'ottima soluzione per le proprie esigenze.",6,"alan.turing")
 
@@ -612,7 +615,7 @@ class ExampleInstrumentedTest {
             "computer"
         )
 
-        a.salvaAnnuncioSuFirebase()
+        a.salvaAnnuncioSuFirebase(null)
         myAnnunci.add(a)
 
         val b = Annuncio(
@@ -625,7 +628,7 @@ class ExampleInstrumentedTest {
             "smartphone"
         )
 
-        b.salvaAnnuncioSuFirebase()
+        b.salvaAnnuncioSuFirebase(null)
         myAnnunci.add(b)
 
         val c = Annuncio(
@@ -638,7 +641,7 @@ class ExampleInstrumentedTest {
             "computer"
         )
 
-        c.salvaAnnuncioSuFirebase()
+        c.salvaAnnuncioSuFirebase(null)
         myAnnunci.add(c)
 
         val scenarioUserLoginActivity = ActivityScenario.launch(UserLoginActivity::class.java)
@@ -849,23 +852,23 @@ class ExampleInstrumentedTest {
     //--- Inizio test sulle funzioni che mi modificano gli annunci: titolo, descrizione, categoria e prezzo ---
     @Test fun testModificaAnnunciTitoloDescrizioneCategoriaPrezzoFirebaseFirestore(): Unit = runBlocking{
 
-            assertEquals("Annuncio(userId='alan.turing', titolo='Apple iPhone 12 Pro Max 256GB Pacific Blue Unlocked', descrizione='The iPhone 12 Pro Max is Apple's flagship smartphone with a stunning 6.7-inch Super Retina XDR display, A14 Bionic chip, 5G capability, and a powerful triple-camera system.', prezzo=1100.0, stato=1, disponibilitaSpedire=false, categoria='elettronica/smartphone', posizione=Location[provider 0.000000,-122.084100 et=0 alt=37.422], annuncioId='${myAnnunci.get(1).annuncioId}')",myAnnunci.get(1).toString())
+            assertEquals("Annuncio(userId='alan.turing', titolo='Apple iPhone 12 Pro Max 256GB Pacific Blue Unlocked', descrizione='The iPhone 12 Pro Max is Apple's flagship smartphone with a stunning 6.7-inch Super Retina XDR display, A14 Bionic chip, 5G capability, and a powerful triple-camera system.', prezzo=1100.0, stato=1, disponibilitaSpedire=false, categoria='elettronica/smartphone', posizione=Location[provider 0.000000,-122.084100 et=0 alt=37.422], getgetAnnuncioId()()='${myAnnunci.get(1).getAnnuncioId()}')",myAnnunci.get(1).toString())
 
             myAnnunci.get(1).setTitolo("Apple Watch Series 7 45mm GPS + Cellular")
 
-            assertEquals("Annuncio(userId='alan.turing', titolo='Apple Watch Series 7 45mm GPS + Cellular', descrizione='The iPhone 12 Pro Max is Apple's flagship smartphone with a stunning 6.7-inch Super Retina XDR display, A14 Bionic chip, 5G capability, and a powerful triple-camera system.', prezzo=1100.0, stato=1, disponibilitaSpedire=false, categoria='elettronica/smartphone', posizione=Location[provider 0.000000,-122.084100 et=0 alt=37.422], annuncioId='${myAnnunci.get(1).annuncioId}')",myAnnunci.get(1).toString())
+            assertEquals("Annuncio(userId='alan.turing', titolo='Apple Watch Series 7 45mm GPS + Cellular', descrizione='The iPhone 12 Pro Max is Apple's flagship smartphone with a stunning 6.7-inch Super Retina XDR display, A14 Bionic chip, 5G capability, and a powerful triple-camera system.', prezzo=1100.0, stato=1, disponibilitaSpedire=false, categoria='elettronica/smartphone', posizione=Location[provider 0.000000,-122.084100 et=0 alt=37.422], getgetAnnuncioId()()='${myAnnunci.get(1).getAnnuncioId()}')",myAnnunci.get(1).toString())
 
             myAnnunci.get(1).setDescrizione("The Apple Watch Series 7 is the ultimate fitness and health companion, with a stunning always-on Retina display, blood oxygen sensor, ECG app, and 50% faster charging. Stay connected with GPS + Cellular capability and a wide range of watch faces and bands.")
 
-            assertEquals("Annuncio(userId='alan.turing', titolo='Apple Watch Series 7 45mm GPS + Cellular', descrizione='The Apple Watch Series 7 is the ultimate fitness and health companion, with a stunning always-on Retina display, blood oxygen sensor, ECG app, and 50% faster charging. Stay connected with GPS + Cellular capability and a wide range of watch faces and bands.', prezzo=1100.0, stato=1, disponibilitaSpedire=false, categoria='elettronica/smartphone', posizione=Location[provider 0.000000,-122.084100 et=0 alt=37.422], annuncioId='${myAnnunci.get(1).annuncioId}')",myAnnunci.get(1).toString())
+            assertEquals("Annuncio(userId='alan.turing', titolo='Apple Watch Series 7 45mm GPS + Cellular', descrizione='The Apple Watch Series 7 is the ultimate fitness and health companion, with a stunning always-on Retina display, blood oxygen sensor, ECG app, and 50% faster charging. Stay connected with GPS + Cellular capability and a wide range of watch faces and bands.', prezzo=1100.0, stato=1, disponibilitaSpedire=false, categoria='elettronica/smartphone', posizione=Location[provider 0.000000,-122.084100 et=0 alt=37.422], getgetAnnuncioId()()='${myAnnunci.get(1).getAnnuncioId()}')",myAnnunci.get(1).toString())
 
             myAnnunci.get(1).setCategoria("wearable")
 
-            assertEquals("Annuncio(userId='alan.turing', titolo='Apple Watch Series 7 45mm GPS + Cellular', descrizione='The Apple Watch Series 7 is the ultimate fitness and health companion, with a stunning always-on Retina display, blood oxygen sensor, ECG app, and 50% faster charging. Stay connected with GPS + Cellular capability and a wide range of watch faces and bands.', prezzo=1100.0, stato=1, disponibilitaSpedire=false, categoria='wearable', posizione=Location[provider 0.000000,-122.084100 et=0 alt=37.422], annuncioId='${myAnnunci.get(1).annuncioId}')",myAnnunci.get(1).toString())
+            assertEquals("Annuncio(userId='alan.turing', titolo='Apple Watch Series 7 45mm GPS + Cellular', descrizione='The Apple Watch Series 7 is the ultimate fitness and health companion, with a stunning always-on Retina display, blood oxygen sensor, ECG app, and 50% faster charging. Stay connected with GPS + Cellular capability and a wide range of watch faces and bands.', prezzo=1100.0, stato=1, disponibilitaSpedire=false, categoria='wearable', posizione=Location[provider 0.000000,-122.084100 et=0 alt=37.422], getgetAnnuncioId()()='${myAnnunci.get(1).getAnnuncioId()}')",myAnnunci.get(1).toString())
 
             myAnnunci.get(1).setPrezzo(499.0)
 
-            assertEquals("Annuncio(userId='alan.turing', titolo='Apple Watch Series 7 45mm GPS + Cellular', descrizione='The Apple Watch Series 7 is the ultimate fitness and health companion, with a stunning always-on Retina display, blood oxygen sensor, ECG app, and 50% faster charging. Stay connected with GPS + Cellular capability and a wide range of watch faces and bands.', prezzo=499.0, stato=1, disponibilitaSpedire=false, categoria='wearable', posizione=Location[provider 0.000000,-122.084100 et=0 alt=37.422], annuncioId='${myAnnunci.get(1).annuncioId}')",myAnnunci.get(1).toString())
+            assertEquals("Annuncio(userId='alan.turing', titolo='Apple Watch Series 7 45mm GPS + Cellular', descrizione='The Apple Watch Series 7 is the ultimate fitness and health companion, with a stunning always-on Retina display, blood oxygen sensor, ECG app, and 50% faster charging. Stay connected with GPS + Cellular capability and a wide range of watch faces and bands.', prezzo=499.0, stato=1, disponibilitaSpedire=false, categoria='wearable', posizione=Location[provider 0.000000,-122.084100 et=0 alt=37.422], getgetAnnuncioId()()='${myAnnunci.get(1).getAnnuncioId()}')",myAnnunci.get(1).toString())
     }
 
     @Test fun testTempoMedioAcquistoPerUtente(){
@@ -891,15 +894,46 @@ class ExampleInstrumentedTest {
         }
     }
 
-    @Test fun testNumeroOggettiVenditaSpecificoUtente(){
+    @Test fun testNumeroOggettiVenditaSpecificoUtente() {
 
         val scenarioAdminLoginActivity = ActivityScenario.launch(AdminLoginActivity::class.java)
 
         scenarioAdminLoginActivity.onActivity { activity ->
             runBlocking {
-                assertEquals(4,activity.numeroOggettiInVenditaPerSpecificoUtente("ada.loelace"))
-                assertEquals(4,activity.numeroOggettiInVenditaPerSpecificoUtente("alan.turing"))
-                assertEquals(0,activity.numeroOggettiInVenditaPerSpecificoUtente("tim.bernerslee"))
+                assertEquals(4, activity.numeroOggettiInVenditaPerSpecificoUtente("ada.loelace"))
+                assertEquals(4, activity.numeroOggettiInVenditaPerSpecificoUtente("alan.turing"))
+                assertEquals(0, activity.numeroOggettiInVenditaPerSpecificoUtente("tim.bernerslee"))
+            }
+        }
+    }
+
+    @Test fun testSospendiUtente(){
+
+        val scenarioAdminLoginActivity = ActivityScenario.launch(AdminLoginActivity::class.java)
+
+        scenarioAdminLoginActivity.onActivity { activity ->
+            runBlocking {
+
+                val myCollection = database.collection("utente")
+
+                val myDocument = myCollection.document("alan.turing")
+
+                assertFalse(myDocument.get().await().getBoolean("sospeso")!!)
+
+                activity.sospendiUtente("alan.turing")
+
+                assertTrue(myDocument.get().await().getBoolean("sospeso")!!)
+            }
+        }
+    }
+
+    @Test fun testRecuperaRicercheSalvateFirebaseFirestore(){
+
+        val scenarioAdminLoginActivity = ActivityScenario.launch(AdminLoginActivity::class.java)
+
+        scenarioAdminLoginActivity.onActivity { activity ->
+            runBlocking {
+
             }
         }
     }
@@ -972,7 +1006,7 @@ class ExampleInstrumentedTest {
 
                 var myElementoPreferito1 = activity.inserisciAnnuncioPreferitoFirebaseFirestore(
                     "alan.turing",
-                    newAnnuncio1.annuncioId
+                    newAnnuncio1.getAnnuncioId()
                 )
 
                 val query = activity.subscribeRealTimeDatabasePreferiti("alan.turing")
@@ -982,9 +1016,9 @@ class ExampleInstrumentedTest {
                     activity.subscribeRealTimeDatabase(query)
 
                 val documentoRif =
-                    Annuncio.database.collection(Annuncio.nomeCollection).document(newAnnuncio1.annuncioId)
+                    database.collection(Annuncio.nomeCollection).document(newAnnuncio1.getAnnuncioId())
 
-                Log.d("Prima update", newAnnuncio1.annuncioId)
+                Log.d("Prima update", newAnnuncio1.getAnnuncioId())
 
                 runBlocking {
                     //simula una modifica effettuata da un altro client
@@ -998,7 +1032,7 @@ class ExampleInstrumentedTest {
 
                 Thread.sleep(1000)
 
-                assertEquals("", activity.myAnnunciPreferiti[newAnnuncio1.annuncioId].toString())
+                assertEquals("", activity.myAnnunciPreferiti[newAnnuncio1.getAnnuncioId()].toString())
 
                 activity.eliminaAnnuncioPreferitoFirebaseFirestore(
                     "ada.lovelace",
@@ -1007,7 +1041,7 @@ class ExampleInstrumentedTest {
             }
         }
 
-        val myCollection = Annuncio.database.collection("utente")
+        val myCollection = database.collection("utente")
 
         myCollection.document("ada.lovelace").delete().await()
         myCollection.document("alan.turing").delete().await()
@@ -1024,7 +1058,7 @@ class ExampleInstrumentedTest {
     @Ignore
     suspend fun getNumeroElementiFirestore(): Int {
 
-        val myCollection = Annuncio.database.collection(Annuncio.nomeCollection)
+        val myCollection = database.collection(Annuncio.nomeCollection)
 
         val myDocuments = myCollection.get().await()
 
@@ -1059,7 +1093,7 @@ class ExampleInstrumentedTest {
             runBlocking {
                 val myElementoPreferito1 = activity.inserisciAnnuncioPreferitoFirebaseFirestore(
                     "wTuCWaYaPVP59Oh0iG2El9BcEq22",
-                    newAnnuncio1.annuncioId
+                    newAnnuncio1.getAnnuncioId()
                 )
             }
         }
