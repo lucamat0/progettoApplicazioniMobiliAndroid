@@ -41,10 +41,10 @@ class Annuncio(
 
     //collegamento con il mio database, variabile statica.
     companion object {
-        public var database = Firebase.firestore
+        var database = Firebase.firestore
     }
 
-    public lateinit var annuncioId: String
+    lateinit var annuncioId: String
 
     private var userIdAcquirente: String? = null
 
@@ -57,8 +57,8 @@ class Annuncio(
     }
 
     //Funzione che mi permette di scrivere sul cloud, FireBase, i dati del singolo annuncio, passo anche la posizione dell'immagine che voglio caricare sul cloud.
-    //public fun salvaAnnuncioSuFirebase(immagineUri: Uri){
-    public suspend fun salvaAnnuncioSuFirebase(){
+    //fun salvaAnnuncioSuFirebase(immagineUri: Uri){
+    suspend fun salvaAnnuncioSuFirebase(){
 
             val geo = GeoPoint(posizione.latitude,posizione.longitude)
 
@@ -95,7 +95,7 @@ class Annuncio(
         adRif.update("userId",userId,"titolo",titolo,"descrizione",descrizione,"prezzo",prezzo,"stato",stato,"disponibilitaSpedire",disponibilitaSpedire,"categoria",categoria).await()
     }
 
-    public suspend fun eliminaAnnuncioDaFirebase(){
+    suspend fun eliminaAnnuncioDaFirebase(){
 
         val myCollection = database.collection("annunci")
 
@@ -133,7 +133,14 @@ class Annuncio(
         }
     }
 
-    public suspend fun setVenduto(userIdAcquirente: String){
+    fun getTitolo() :String {
+        return titolo
+    }
+    fun getPrezzo() :Double {
+        return prezzo
+    }
+
+    suspend fun setVenduto(userIdAcquirente: String){
         if(this.userIdAcquirente == null){
             this.userIdAcquirente = userIdAcquirente
 
@@ -142,25 +149,25 @@ class Annuncio(
 
     }
 
-    public suspend fun setTitolo(newTitolo:String){
+    suspend fun setTitolo(newTitolo:String){
         this.titolo = newTitolo
 
         modificaAnnuncioSuFirebase()
     }
 
-    public suspend fun setDescrizione(newDescrizione:String){
+    suspend fun setDescrizione(newDescrizione:String){
         this.descrizione = newDescrizione
 
         modificaAnnuncioSuFirebase()
     }
 
-    public suspend fun setCategoria(newCategoria:String){
+    suspend fun setCategoria(newCategoria:String){
         this.categoria = newCategoria
 
         modificaAnnuncioSuFirebase()
     }
 
-    public suspend fun setPrezzo(newPrezzo: Double){
+    suspend fun setPrezzo(newPrezzo: Double){
         this.prezzo = newPrezzo
 
         modificaAnnuncioSuFirebase()
@@ -187,7 +194,7 @@ class Annuncio(
     }
 
     //Mi ritorna true se l'annuncio, ha una distanza inferiore a quella massima.
-    public fun distanzaMinore(posizioneUtente: Location, distanzaMax: Int): Boolean{
+    fun distanzaMinore(posizioneUtente: Location, distanzaMax: Int): Boolean{
         return  distanzaInKm(posizioneUtente) <= distanzaMax
     }
 

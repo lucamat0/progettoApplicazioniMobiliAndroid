@@ -17,8 +17,8 @@ import it.uniupo.oggettiusati.R
 
 class SignUpActivity : AppCompatActivity() {
 
-    public val auth = FirebaseAuth.getInstance()
-    public val database = Firebase.firestore
+    val auth = FirebaseAuth.getInstance()
+    val database = Firebase.firestore
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

@@ -45,7 +45,7 @@ class AdminLoginActivity : UserLoginActivity() {
     private suspend fun eliminaUtente(userId: String){
 
         try {
-            val myCollection = this.database.collection("users");
+            val myCollection = this.database.collection("users")
 
             val myDocument = myCollection.document(userId)
 
@@ -71,7 +71,7 @@ class AdminLoginActivity : UserLoginActivity() {
     private suspend fun sospendiUtente(userId: String){
 
         try {
-            val myCollection = this.database.collection("users");
+            val myCollection = this.database.collection("users")
 
             val myDocument = myCollection.document(userId)
 

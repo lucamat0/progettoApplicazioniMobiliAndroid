@@ -35,8 +35,8 @@ import kotlin.collections.ArrayList
 open class UserLoginActivity : AppCompatActivity() {
 
     //--- Inizio informazioni per il collegamento con firebase firestore ---
-    public val auth = FirebaseAuth.getInstance()
-    public val database = Firebase.firestore
+    val auth = FirebaseAuth.getInstance()
+    val database = Firebase.firestore
     //--- Fine informazioni per il collegamento con firebase firestore ---
 
     //Indica id dell'utente loggato
@@ -79,6 +79,18 @@ open class UserLoginActivity : AppCompatActivity() {
             Toast.makeText(this, "Benvenuto ${username}!", Toast.LENGTH_LONG).show()
         }
 
+//        runBlocking{
+//            Annuncio(
+//                userId,
+//                "2 gomme 205 55 16 estive al 70% falken",
+//                "CONTROLLA LE DISPONIBILITA' AGGIORNATE; Solo sul NOSTRO sito WWW.DANIGOMEUSATE.COM con tutte le foto delle gomme, sempre aggiornato con tutti i pneumatici usati disponibili al momento, con foto,prezzo,marca ed altre info DOT 17 SPEDIZIONE GRATUITA GOMME USATE ESTIVE -Pneumatici Usati Controllati e Garantiti -TOP qualità fino al 99% -ACQUISTA sul nostro sito DANIGOMMEUSATE.COM subito per TE SPEDIZIONE GRATIS Chiamaci e ordina le tue gomme -Cell e WhatsApp 339-49.11.259 TANTE ALTRE DISPONBIILITA' DI GOMME ESTIVE, GOMME INVERNALI, GOMME PER FURGONE TRASPORTO LEGGERE, delle migliori marche",
+//                850.99,
+//                0,
+//                true,
+//                "ACCESSORI AUTO"
+//            ).salvaAnnuncioSuFirebase()
+//        }
+
         //RecyclerView
 
         //getting the recyclerView by its id
@@ -90,10 +102,10 @@ open class UserLoginActivity : AppCompatActivity() {
         //ArrayList of class ItemsViewModel
         val data = ArrayList<ItemsViewModel>()
 
-        //This loop will create 20 Views containing
-        //the image with the count of view
-        for (i in 1..20){
-            data.add(ItemsViewModel(R.drawable.ic_launcher_background, "Nome Oggetto anche Lungo $i"))
+        //This loop will create as many Views as documents containing
+        //the image with title and price of object
+        for (key in myAnnunci.keys){
+            data.add(ItemsViewModel(myAnnunci[key]?.annuncioId, R.drawable.ic_launcher_background, "${myAnnunci[key]?.getTitolo()}", myAnnunci[key]?.getPrezzo(), auth.currentUser?.email/*, myAnnunci[key]?.getNTel()*/) )
         }
 
         //this will pass the ArrayList to our Adapter
@@ -147,7 +159,7 @@ open class UserLoginActivity : AppCompatActivity() {
 //            format.format(value.toDouble())
 //        }
 
-        priceSlider.addOnChangeListener { slider, value, fromUser ->
+        priceSlider.addOnChangeListener { /*slider, value, fromUser*/ _, _, _ ->
             val priceEditText = findViewById<TextView>(R.id.priceRange)
             val updTxt = "Fascia di prezzo: ${priceSlider.values[0]}€ - ${priceSlider.values[1]}€"
             priceEditText.text = updTxt
@@ -168,7 +180,7 @@ open class UserLoginActivity : AppCompatActivity() {
     }
 
     //Sospendo il metodo, per aspettare che la lista dei documenti sia stata recuperata e insirita nel arrayList
-    public suspend fun recuperaTuttiAnnunci(): HashMap<String, Annuncio> {
+    suspend fun recuperaTuttiAnnunci(): HashMap<String, Annuncio> {
 
         //Ritorno una referenza alla collezzione contenente i miei documenti.
         val myCollection = this.database.collection("annunci");
@@ -196,7 +208,7 @@ open class UserLoginActivity : AppCompatActivity() {
     }
 
     //Fissano un limite inferiore
-    public suspend fun recuperaAnnunciPrezzoInferiore(prezzoMinore: Int): HashMap<String, Annuncio> {
+    suspend fun recuperaAnnunciPrezzoInferiore(prezzoMinore: Int): HashMap<String, Annuncio> {
         //Ritorno una referenza alla collezzione contenente i miei documenti.
         val myCollection = this.database.collection("annunci");
 
@@ -209,7 +221,7 @@ open class UserLoginActivity : AppCompatActivity() {
     }
 
     //Fissano un limite superiore
-    public suspend fun recuperaAnnunciPrezzoSuperiore(prezzoSuperiore: Int): HashMap<String, Annuncio> {
+    suspend fun recuperaAnnunciPrezzoSuperiore(prezzoSuperiore: Int): HashMap<String, Annuncio> {
         //Ritorno una referenza alla collezzione contenente i miei documenti.
         val myCollection = this.database.collection("annunci");
 
@@ -222,7 +234,7 @@ open class UserLoginActivity : AppCompatActivity() {
     }
 
     // Fissano un range in cui l'annuncio deve essere maggiore del prezzo minore e minore del prezzo superiore.
-    public suspend fun recuperaAnnunciPrezzoRange(prezzoMinore: Int, prezzoSuperiore: Int): HashMap<String, Annuncio> {
+    suspend fun recuperaAnnunciPrezzoRange(prezzoMinore: Int, prezzoSuperiore: Int): HashMap<String, Annuncio> {
 
         //Ritorno una referenza alla collezzione contenente i miei documenti.
         val myCollection = this.database.collection("annunci");
@@ -238,7 +250,7 @@ open class UserLoginActivity : AppCompatActivity() {
 
 
     //Ritorna gli annunci che rispettano la disponibilitá di spedire.
-    public suspend fun recuperaAnnunciDisponibilitaSpedire(disponibilitaSpedire: Boolean): HashMap<String, Annuncio> {
+    suspend fun recuperaAnnunciDisponibilitaSpedire(disponibilitaSpedire: Boolean): HashMap<String, Annuncio> {
         //Ritorno una referenza alla collezzione contenente i miei documenti.
         val myCollection = this.database.collection("annunci");
 
@@ -251,9 +263,9 @@ open class UserLoginActivity : AppCompatActivity() {
     }
 
     //--- Da testare ---
-    public suspend fun recuperaAnnunciLocalizzazione(posizioneUtente: Location, distanzaMax: Int): HashMap<String, Annuncio> {
+    suspend fun recuperaAnnunciLocalizzazione(posizioneUtente: Location, distanzaMax: Int): HashMap<String, Annuncio> {
 
-        val myCollection = this.database.collection("annunci");
+        //val myCollection = this.database.collection("annunci");
 
         var myHashMap = recuperaTuttiAnnunci()
 
@@ -289,7 +301,7 @@ open class UserLoginActivity : AppCompatActivity() {
                     myDocumentoAnnuncio.document.getGeoPoint("posizione") as GeoPoint,
                     myDocumentoAnnuncio.document.get("categoria") as String,
                     userIdAcquirente,
-                    myDocumentoAnnuncio.document.id as String
+                    myDocumentoAnnuncio.document.id //as String
                 );
 
                 //Log.d("CAMBIO DOCUMENTO", "Il documento ${a.toString()} è cambiato!")
@@ -327,7 +339,7 @@ open class UserLoginActivity : AppCompatActivity() {
                 myDocumentoAnnuncio.getGeoPoint("posizione") as GeoPoint,
                 myDocumentoAnnuncio.get("categoria") as String,
                 userIdAcquirente,
-                myDocumentoAnnuncio.id as String
+                myDocumentoAnnuncio.id //as String
             );
 
             myAnnunci[myDocumentoAnnuncio.id] = a
