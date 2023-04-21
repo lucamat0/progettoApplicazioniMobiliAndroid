@@ -84,6 +84,20 @@ open class UserLoginActivity : AppCompatActivity() {
             Toast.makeText(this, "Benvenuto ${username}!", Toast.LENGTH_LONG).show()
         }
 
+//        runBlocking{
+//            Annuncio(
+//                userId,
+//                "2 gomme 205 55 16 estive al 70% falken",
+//                "CONTROLLA LE DISPONIBILITA' AGGIORNATE; Solo sul NOSTRO sito WWW.DANIGOMEUSATE.COM con tutte le foto delle gomme, sempre aggiornato con tutti i pneumatici usati disponibili al momento, con foto,prezzo,marca ed altre info DOT 17 SPEDIZIONE GRATUITA GOMME USATE ESTIVE -Pneumatici Usati Controllati e Garantiti -TOP qualità fino al 99% -ACQUISTA sul nostro sito DANIGOMMEUSATE.COM subito per TE SPEDIZIONE GRATIS Chiamaci e ordina le tue gomme -Cell e WhatsApp 339-49.11.259 TANTE ALTRE DISPONBIILITA' DI GOMME ESTIVE, GOMME INVERNALI, GOMME PER FURGONE TRASPORTO LEGGERE, delle migliori marche",
+//                850.99,
+//                0,
+//                true,
+//                "ACCESSORI AUTO"
+//            ).salvaAnnuncioSuFirebase()
+//        }
+
+        //RecyclerView
+
         //getting the recyclerView by its id
         val recyclerVu = findViewById<RecyclerView>(R.id.recyclerview)
 
@@ -93,10 +107,10 @@ open class UserLoginActivity : AppCompatActivity() {
         //ArrayList of class ItemsViewModel
         val data = ArrayList<ItemsViewModel>()
 
-        //This loop will create 20 Views containing
-        //the image with the count of view
-        for (i in 1..20){
-            data.add(ItemsViewModel(R.drawable.ic_launcher_background, "Nome Oggetto anche Lungo $i"))
+        //This loop will create as many Views as documents containing
+        //the image with title and price of object
+        for (key in myAnnunciHome.keys){
+            data.add(ItemsViewModel(myAnnunciHome[key]?.annuncioId, R.drawable.ic_launcher_background, "${myAnnunciHome[key]?.getTitolo()}", myAnnunciHome[key]?.getPrezzo(), auth.currentUser?.email/*, myAnnunciHome[key]?.getNTel()*/) )
         }
 
         //this will pass the ArrayList to our Adapter
@@ -148,7 +162,7 @@ open class UserLoginActivity : AppCompatActivity() {
 //            format.format(value.toDouble())
 //        }
 
-        priceSlider.addOnChangeListener { slider, value, fromUser ->
+        priceSlider.addOnChangeListener { /*slider, value, fromUser*/ _, _, _ ->
             val priceEditText = findViewById<TextView>(R.id.priceRange)
             val updTxt = "Fascia di prezzo: ${priceSlider.values[0]}€ - ${priceSlider.values[1]}€"
             priceEditText.text = updTxt

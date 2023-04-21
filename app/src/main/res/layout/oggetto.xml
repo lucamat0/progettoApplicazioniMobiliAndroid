@@ -4,66 +4,106 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Nome Oggetto"/>
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Categoria Oggetto"/>
 
-<!--    <fragment xmlns:android="http://schemas.android.com/apk/res/android"-->
-<!--        xmlns:map="http://schemas.android.com/apk/res-auto"-->
-<!--        android:name="com.google.android.gms.maps.SupportMapFragment"-->
-<!--        android:id="@+id/map"-->
-<!--        android:layout_width="match_parent"-->
-<!--        android:layout_height="match_parent"/>-->
+            <TextView
+                android:id="@+id/nome"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Nome oggetto"
+                android:textSize="30sp"
+                android:paddingVertical="5dp"
+                android:paddingHorizontal="25dp"
+                android:textStyle="bold"
+                android:layout_gravity="center"
+                android:gravity="center"/>
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Posizione Oggetto"/>
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Descrizione molto lunga dell'oggetto"/>
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Prezzo"/>
+            <TextView
+                android:id="@+id/categoria"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Categoria Oggetto"
+                android:paddingVertical="10dp"
+                android:textSize="18sp"/>
 
-    <Spinner
-        android:id="@+id/stato"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:entries="@array/statoOggetto"
-        android:layout_gravity="center"
-        />
+        <!--    <fragment xmlns:android="http://schemas.android.com/apk/res/android"-->
+        <!--        xmlns:map="http://schemas.android.com/apk/res-auto"-->
+        <!--        android:name="com.google.android.gms.maps.SupportMapFragment"-->
+        <!--        android:id="@+id/map"-->
+        <!--        android:layout_width="match_parent"-->
+        <!--        android:layout_height="match_parent"/>-->
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Slideshow foto"/>
-    <ImageView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:src="@drawable/ic_launcher_background"/>
+            <TextView
+                android:id="@+id/posizione"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Posizione Oggetto"
+                android:paddingVertical="10dp"/>
+            <TextView
+                android:id="@+id/descrizione"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Descrizione molto lunga dell'oggetto"
+                android:paddingVertical="10dp"
+                android:textSize="18sp"/>
+            <TextView
+                android:id="@+id/prezzo"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Prezzo"
+                android:paddingVertical="10dp"
+                android:textSize="25sp"
+                android:layout_gravity="right"
+                android:paddingHorizontal="10dp"/>
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Info venditore: test@gmail.com, 362 789 4378"/>
+            <Spinner
+                android:id="@+id/stato"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:entries="@array/statoOggetto"
+                android:layout_gravity="center"
+                android:paddingVertical="10dp"
+                />
 
-    <Switch
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:checked="false"
-        android:paddingVertical="10dp"
-        android:contentDescription="spedizione"
-        android:layout_gravity="center"
-        android:enabled="true"
-        android:text="Spedizione: "/>
+            <TextView
+                android:id="@+id/foto"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Slideshow foto"
+                android:paddingVertical="10dp"/>
+            <ImageView
+                android:id="@+id/fotoPreview"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:src="@drawable/ic_launcher_background"
+                android:paddingVertical="10dp"/>
+
+            <TextView
+                android:id="@+id/infoVenditore"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Info venditore: test@gmail.com, 362 789 4378"
+                android:paddingVertical="10dp"/>
+
+            <Switch
+                android:id="@+id/spedizione"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:checked="false"
+                android:paddingVertical="10dp"
+                android:contentDescription="spedizione"
+                android:layout_gravity="center"
+                android:enabled="true"
+                android:text="Spedizione: "
+                android:textSize="18sp"/>
+        </LinearLayout>
+    </ScrollView>
 
 </LinearLayout>

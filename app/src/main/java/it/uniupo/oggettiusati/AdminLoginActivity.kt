@@ -5,11 +5,8 @@ import android.location.Location
 import android.os.Bundle
 import android.util.Log
 import android.widget.Button
-import android.widget.Toast
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.firestore.GeoPoint
 import kotlinx.coroutines.tasks.await
-import java.util.*
 import kotlin.collections.HashMap
 
 

@@ -5,6 +5,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
+import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
 import androidx.cardview.widget.CardView
@@ -32,11 +33,15 @@ class CustomAdapter(private val mList: List<ItemsViewModel>) : RecyclerView.Adap
         holder.imageView.setImageResource(ItemsViewModel.image)
 
         //sets the text to the textview from our itemHolder class
-        holder.textView.text = ItemsViewModel.text
+        holder.textView.text = ItemsViewModel.title
+
+        holder.priceTextView.text = ItemsViewModel.price.toString() + " €"
 
         holder.card.setOnClickListener { viewClicked ->
-            viewClicked.context.startActivity(Intent(holder.itemView.context, DettaglioOggettoActivity::class.java))
-
+            val i = Intent(holder.itemView.context, DettaglioOggettoActivity::class.java)
+//            val idAnnuncio = holder.itemView.findViewById<LinearLayout>(R.id.cardLayout)
+            i.putExtra("annuncioId", ItemsViewModel.annuncioId)
+            viewClicked.context.startActivity(i)
 
             //toast tenuto per avere oggetto contesto e test
 //            Toast.makeText(holder.itemView.context, "Benvenuto ${holder.textView.text}!", Toast.LENGTH_LONG).show()
@@ -52,6 +57,7 @@ class CustomAdapter(private val mList: List<ItemsViewModel>) : RecyclerView.Adap
     class ViewHolder(ItemView: View) : RecyclerView.ViewHolder(ItemView){
         val imageView: ImageView = itemView.findViewById(R.id.imageview)
         val textView: TextView = itemView.findViewById(R.id.titolo)
+        val priceTextView: TextView = itemView.findViewById(R.id.prezzo)
         val card: CardView = itemView.findViewById(R.id.cardVu)
     }
 }
