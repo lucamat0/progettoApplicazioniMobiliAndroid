@@ -756,6 +756,4 @@ open class UserLoginActivity : AppCompatActivity() {
     }
 
     data class Ricerca(val userId: String, val idRicerca: String, val titoloAnnuncio: String?, val disponibilitaSpedire: Boolean?, val prezzoSuperiore: Int?, val prezzoMinore: Int?, val numeroAnnunci: Int)
-
-    data class ItemsViewModel(val annuncioId: String?, val image: Int, val title: String, val price : Double? = 0.0, val emailOwner: String? = "default@mail.com", val nTelOwner: String = "0123456789")
 }

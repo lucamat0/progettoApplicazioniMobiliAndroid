@@ -43,7 +43,7 @@ class AdminLoginActivity : UserLoginActivity() {
     private suspend fun eliminaUtente(userId: String){
 
         try {
-            val myCollection = this.database.collection("utente");
+            val myCollection = this.database.collection("utente")
 
             val myDocument = myCollection.document(userId)
 
@@ -68,7 +68,7 @@ class AdminLoginActivity : UserLoginActivity() {
     suspend fun sospendiUtente(userId: String){
 
         try {
-            val myCollection = this.database.collection("utente");
+            val myCollection = this.database.collection("utente")
 
             myCollection.document(userId).update("sospeso", true).await()
 
@@ -84,7 +84,7 @@ class AdminLoginActivity : UserLoginActivity() {
     suspend fun numeroOggettiInVendita(): Int{
         return try {
 
-            val myCollection = this.database.collection(Annuncio.nomeCollection);
+            val myCollection = this.database.collection(Annuncio.nomeCollection)
 
             val query = myCollection.whereEqualTo("userIdAcquirente", null)
 
@@ -104,7 +104,7 @@ class AdminLoginActivity : UserLoginActivity() {
     suspend fun numeroOggettiInVenditaPerSpecificoUtente(userId: String): Int{
         return try {
 
-            val myCollection = this.database.collection(Annuncio.nomeCollection);
+            val myCollection = this.database.collection(Annuncio.nomeCollection)
 
             val query = myCollection.whereEqualTo("userIdAcquirente", null).whereEqualTo("userId", userId)
 
@@ -124,7 +124,7 @@ class AdminLoginActivity : UserLoginActivity() {
     private suspend fun numeroOggettiInVenditaPerRaggioDistanza(posizione: Location): Int{
         return try {
 
-            val myCollection = this.database.collection(Annuncio.nomeCollection);
+            val myCollection = this.database.collection(Annuncio.nomeCollection)
 
             val query = myCollection.whereLessThanOrEqualTo("posizione",posizione)
 

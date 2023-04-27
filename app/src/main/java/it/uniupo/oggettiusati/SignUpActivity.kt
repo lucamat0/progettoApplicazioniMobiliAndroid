@@ -111,7 +111,7 @@ class SignUpActivity : AppCompatActivity() {
     }
 
     //Se tutto è andato bene ritorna idDocumento appena creato, che coincide con id del utente che si trova in autentication.
-    public suspend fun salvaUtenteSuFirebaseFirestore(
+    suspend fun salvaUtenteSuFirebaseFirestore(
         utenteDaSalvareId: String,
         nome: String,
         cognome: String,
@@ -148,7 +148,7 @@ class SignUpActivity : AppCompatActivity() {
                     "Creazione documento utente",
                     "Errore durante la creazione del documento associato all'utente"
                 )
-                return null;
+                return null
             }
         } else {
             return null
