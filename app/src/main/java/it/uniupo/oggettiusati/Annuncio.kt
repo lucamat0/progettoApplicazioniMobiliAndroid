@@ -2,16 +2,19 @@ package it.uniupo.oggettiusati
 
 import android.location.Location
 import android.net.Uri
+import android.os.Parcel
+import android.os.Parcelable
 import android.util.Log
 import com.google.firebase.firestore.GeoPoint
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 import com.google.firebase.storage.FirebaseStorage
+import com.google.firebase.storage.StorageReference
 import kotlinx.coroutines.tasks.await
 import java.lang.Math.*
 import kotlin.random.Random
 
-class Annuncio(
+data class Annuncio(
 
     //Informazioni del proprietario che vuole creare annuncio.
     private var userId: String,
@@ -37,19 +40,30 @@ class Annuncio(
     //Viene utilizzata, per rappresentare la posizione geografica, metodi che mi gestiscono la posizione come latitudine e longitudine
     //Parametro NON obbligatorio, per il costruttore secondario.
     private var posizione: Location = Location("provider")
-){
+): Parcelable {
 
     //collegamento con il mio database, variabile statica.
     companion object {
         val nomeCollection = "annuncio"
+
+        @JvmField val CREATOR = object : Parcelable.Creator<Annuncio> {
+            override fun createFromParcel(parcel: Parcel): Annuncio {
+                return Annuncio(parcel)
+            }
+
+            override fun newArray(size: Int): Array<Annuncio?> {
+                return arrayOfNulls(size)
+            }
+        }
     }
 
     //--- Inizio variabili utili all'inserimento delle immagini sul cloud ---
     val storage = FirebaseStorage.getInstance()
-    val storageRef = storage.reference
+
+    private lateinit var storageRef : StorageReference
     //--- Fine variabili utili all'inserimento delle immagini sul cloud ---
 
-    val database = Firebase.firestore
+    private val database = Firebase.firestore
 
     private lateinit var annuncioId: String
 
@@ -58,6 +72,22 @@ class Annuncio(
     private var timeStampInizioVendita: Long? = null
 
     private var timeStampFineVendita: Long? = null
+
+        constructor(parcel: Parcel) : this(
+            parcel.readString() ?: "",
+            parcel.readString() ?: "",
+            parcel.readString() ?: "",
+            parcel.readDouble(),
+            parcel.readInt(),
+            parcel.readByte() != 0.toByte(),
+            parcel.readString() ?: "",
+            parcel.readParcelable(Location::class.java.classLoader) ?: Location("")
+        ) {
+            annuncioId = parcel.readString() ?: ""
+            userIdAcquirente = parcel.readString()
+            timeStampInizioVendita = parcel.readLong()
+            timeStampFineVendita = parcel.readLong()
+        }
 
     constructor(
         userId: String, titolo: String, descrizione: String, prezzo: Double, stato: Int, disponibilitaSpedire: Boolean,
@@ -115,11 +145,12 @@ class Annuncio(
             //Log.d("DEBUG", "Dopo")
 
             this.annuncioId = myDocument.id
+            this.storageRef = storage.reference.child(annuncioId)
 
             Log.d("SALVA ANNUNCIO SU FIREBASE", annuncioId)
 
             if(myImmagini != null)
-                caricaImmagineSuFirebase(myImmagini)
+                caricaImmaginiSuFirebase(myImmagini)
     }
 
     private suspend fun modificaAnnuncioSuFirebase(){
@@ -138,14 +169,12 @@ class Annuncio(
         myDocument.delete().await()
     }
 
-    private fun caricaImmagineSuFirebase(myImmagini: ArrayList<Uri>){
-
-        val cartella = storageRef.child(annuncioId)
+    private fun caricaImmaginiSuFirebase(myImmagini: ArrayList<Uri>){
 
         for(immagineUri in myImmagini) {
 
             //Utilizzo il randomizzatore per generare un valore pseudocasuale, dedotto dal tempo, questo valore lo converto in una stringa. Questo valore sará associato al immagine.
-            val immagineRef = cartella.child(Random(System.currentTimeMillis()).toString())
+            val immagineRef = storageRef.child(Random(System.currentTimeMillis()).toString())
 
             // Carica l'immagine sul bucket di archiviazione Firebase
             val uploadTask = immagineRef.putFile(immagineUri)
@@ -165,6 +194,19 @@ class Annuncio(
             }
 
         }
+    }
+
+    public suspend fun recuperaImmaginiSuFirebase(): ArrayList<Uri> {
+
+        var myListImmaginiRef = storageRef.listAll().await()
+
+        val myImmagini = ArrayList<Uri>()
+
+        for(item in myListImmaginiRef.items){
+            myImmagini.add(item.downloadUrl.await())
+        }
+
+        return myImmagini
     }
 
     suspend fun setVenduto(userIdAcquirente: String){
@@ -244,7 +286,43 @@ class Annuncio(
         return  distanzaInKm(posizioneUtente) <= distanzaMax
     }
 
+
     override fun toString(): String {
         return "Annuncio(userId='$userId', titolo='$titolo', descrizione='$descrizione', prezzo=$prezzo, stato=$stato, disponibilitaSpedire=$disponibilitaSpedire, categoria='$categoria', posizione=$posizione, annuncioId='$annuncioId')"
+    }
+
+    fun getDisponibilitaSpedire(): Boolean {
+        return disponibilitaSpedire
+    }
+
+    fun getStato(): Int {
+        return stato
+    }
+
+    fun getDescrizione(): String {
+        return descrizione
+    }
+
+    fun getCategoria(): String {
+        return categoria
+    }
+
+    override fun writeToParcel(parcel: Parcel, flags: Int) {
+        parcel.writeString(userId)
+        parcel.writeString(titolo)
+        parcel.writeString(descrizione)
+        parcel.writeDouble(prezzo)
+        parcel.writeInt(stato)
+        parcel.writeByte(if (disponibilitaSpedire) 1 else 0)
+        parcel.writeString(categoria)
+        parcel.writeParcelable(posizione, flags)
+        parcel.writeString(annuncioId)
+        parcel.writeString(userIdAcquirente)
+        parcel.writeValue(timeStampInizioVendita)
+        parcel.writeValue(timeStampFineVendita)
+    }
+
+    override fun describeContents(): Int {
+        return 0
     }
 }

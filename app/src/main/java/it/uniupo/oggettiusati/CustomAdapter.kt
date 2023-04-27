@@ -1,18 +1,19 @@
 package it.uniupo.oggettiusati
 
 import android.content.Intent
+import android.os.BadParcelableException
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
-import android.widget.LinearLayout
 import android.widget.TextView
-import android.widget.Toast
 import androidx.cardview.widget.CardView
-import androidx.core.content.ContextCompat.startActivity
 import androidx.recyclerview.widget.RecyclerView
+import com.bumptech.glide.Glide
+import kotlinx.coroutines.runBlocking
 
-class CustomAdapter(private val mList: List<ItemsViewModel>) : RecyclerView.Adapter<CustomAdapter.ViewHolder>(){
+class CustomAdapter(private val myArrayList: HashMap<String, Annuncio>) : RecyclerView.Adapter<CustomAdapter.ViewHolder>(){
 
     //create new views
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int) : ViewHolder{
@@ -27,30 +28,39 @@ class CustomAdapter(private val mList: List<ItemsViewModel>) : RecyclerView.Adap
     //binds the list items to a view
     override fun onBindViewHolder(holder: ViewHolder, position: Int){
 
-        val ItemsViewModel = mList[position]
-
-        //sets the image to the imageview from our itemHolder class
-        holder.imageView.setImageResource(ItemsViewModel.image)
+        val myAnnuncio = myArrayList.toList()
 
         //sets the text to the textview from our itemHolder class
-        holder.textView.text = ItemsViewModel.title
+        holder.textView.text = myAnnuncio[position].second.getTitolo()
 
-        holder.priceTextView.text = ItemsViewModel.price.toString() + " €"
+        holder.priceTextView.text = myAnnuncio[position].second.getPrezzo().toString() + " €"
 
-        holder.card.setOnClickListener { viewClicked ->
-            val i = Intent(holder.itemView.context, DettaglioOggettoActivity::class.java)
-//            val idAnnuncio = holder.itemView.findViewById<LinearLayout>(R.id.cardLayout)
-            i.putExtra("annuncioId", ItemsViewModel.annuncioId)
-            viewClicked.context.startActivity(i)
+        runBlocking {
 
-            //toast tenuto per avere oggetto contesto e test
-//            Toast.makeText(holder.itemView.context, "Benvenuto ${holder.textView.text}!", Toast.LENGTH_LONG).show()
+            //val myImage = myAnnuncio[position].second.recuperaImmaginiSuFirebase()
+
+            holder.card.setOnClickListener { viewClicked ->
+
+                try {
+                    val intent =
+                        Intent(holder.itemView.context, DettaglioOggettoActivity::class.java)
+
+                    intent.putExtra("annuncio", myAnnuncio[position].second)
+
+                    viewClicked.context.startActivity(intent)
+                } catch (e: BadParcelableException) {
+                    Log.e(
+                        "AnnuncioSerialization",
+                        "Errore nella serializzazione dell'oggetto Annuncio: ${e.message}"
+                    )
+                }
+            }
         }
     }
 
-    //return the number of the items in the list
+    //return the number of the items in the HashMap
     override fun getItemCount(): Int {
-        return mList.size
+        return myArrayList.size
     }
 
     //holds the views for adding it to image and text

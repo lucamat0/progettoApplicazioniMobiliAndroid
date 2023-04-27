@@ -2,43 +2,33 @@ package it.uniupo.oggettiusati
 
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import android.util.Log
 import android.widget.Spinner
 import android.widget.Switch
 import android.widget.TextView
-import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.firestore.ktx.firestore
-import com.google.firebase.ktx.Firebase
 
 class DettaglioOggettoActivity : AppCompatActivity() {
-    val auth = FirebaseAuth.getInstance()
+
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.oggetto)
 
-        val database = Firebase.firestore
+        val myAnnuncio: Annuncio = intent.getParcelableExtra<Annuncio>("annuncio")!!
 
-        val extras = intent.extras
+        findViewById<TextView>(R.id.nome).text = myAnnuncio.getTitolo()
+        findViewById<TextView>(R.id.categoria).text = myAnnuncio.getCategoria()
+        findViewById<TextView>(R.id.descrizione).text = myAnnuncio.getDescrizione()
+        findViewById<TextView>(R.id.prezzo).text = myAnnuncio.getPrezzo().toString()
 
-        val annuncioId = extras?.getString("annuncioId").toString()
+        //--- Inizio ci sevono con amministratore o proprietario ---
+        //val statoOgg = myAnnuncio!!.getStato()
+        //findViewById<Spinner>(R.id.stato).setSelection(if (statoOgg == 0) 3 else if (statoOgg == 1) 2 else if (statoOgg == 2) 1 else 0)
+        //findViewById<Switch>(R.id.spedizione).isChecked = myAnnuncio!!.getDisponibilitaSpedire()
+        //--- Fine ci servono con amministratore o proprietario ---
 
-        database.collection("annunci").document(annuncioId).get()
-            .addOnSuccessListener { document ->
-                if (document != null) {
-                    findViewById<TextView>(R.id.nome).text = document["titolo"].toString()
-                    findViewById<TextView>(R.id.categoria).text = "Categoria: ${document["categoria"].toString()}"
-                    findViewById<TextView>(R.id.descrizione).text = document["descrizione"].toString()
-                    findViewById<TextView>(R.id.prezzo).text = "${document["prezzo"].toString()} €"
-                    val statoOgg = document["stato"] as Long
-                    findViewById<Spinner>(R.id.stato).setSelection(if (statoOgg == 0L) 3 else if (statoOgg == 1L) 2 else if (statoOgg == 2L) 1 else 0)
-                    findViewById<Switch>(R.id.spedizione).isChecked = document["disponibilitaSpedire"] as Boolean
-                } else {
-                    Log.d("DettaglioOggettoActivity.onCreate()", "No such document")
-                }
-            }
-            .addOnFailureListener {exception ->
-                Log.d("DettaglioOggettoActivity.onCreate()", "get failed with ", exception)
-            }
-        findViewById<TextView>(R.id.infoVenditore).text = auth.currentUser?.email
+        // 0 = difettoso, 1 = qualche lieve difetto, 2 = usato ma in perfette condizioni, 3 = nuovo
+        findViewById<TextView>(R.id.stato).text = if(myAnnuncio.getStato()==0) "Stato: difettoso" else if(myAnnuncio.getStato()==1) "Stato: qualche lieve difetto" else if(myAnnuncio.getStato()==2) "Stato: usato ma in perfette condizioni" else "Stato: nuovo"
+        findViewById<TextView>(R.id.spedizione).text = if(myAnnuncio.getDisponibilitaSpedire()) "Spedizione: Si" else "Spedizione: No"
+
     }
 }

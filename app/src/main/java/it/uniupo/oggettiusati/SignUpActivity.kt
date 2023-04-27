@@ -60,7 +60,7 @@ class SignUpActivity : AppCompatActivity() {
                             // recupero Id utente appena memorizzato,
                             // avendolo appena creato NON é possibile che sia null,
                             // quindi lo specifico con !!
-                            val userId = user!!.uid
+                            val userId = user.uid
 
                             runBlocking {
 

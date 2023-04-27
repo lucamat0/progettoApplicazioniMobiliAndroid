@@ -3,7 +3,7 @@
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
-    android:layout_height="125dp"
+    android:layout_height="200dp"
     android:id="@+id/cardVu"
     android:layout_margin="10dp"
     app:cardElevation="6dp">
@@ -41,7 +41,8 @@
                     android:text="nome Oggetto"
                     android:textSize="20sp"
                     android:textStyle="bold"
-                    android:gravity="center"/>
+                    android:gravity="center"
+                    android:paddingVertical="10dp"/>
 <!--                <TextView-->
 <!--                    android:id="@+id/categoria"-->
 <!--                    android:layout_width="wrap_content"-->
@@ -78,15 +79,9 @@
                     android:textSize="20sp"
                     android:textStyle="bold"
                     android:layout_gravity="center"
-                    android:paddingHorizontal="5dp"/>
-                <ImageButton
-                    android:layout_width="60dp"
-                    android:layout_height="60dp"
-                    android:layout_margin="5dp"
-                    android:src="@drawable/baseline_add_shopping_cart_24"
-                    android:backgroundTint="@color/teal_200"
+                    android:paddingHorizontal="5dp"
+                    android:paddingVertical="10dp"/>
 
-                    />
 <!--                <Spinner-->
 <!--                    android:id="@+id/stato"-->
 <!--                    android:layout_width="wrap_content"-->

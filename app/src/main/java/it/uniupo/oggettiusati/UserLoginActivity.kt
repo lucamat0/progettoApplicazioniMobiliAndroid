@@ -1,12 +1,13 @@
 package it.uniupo.oggettiusati
 
+import android.annotation.SuppressLint
 import android.content.Intent
-import android.location.Location
 import android.net.Uri
 import android.os.Bundle
 import android.util.Log
 import android.view.View
 import android.widget.Button
+import android.widget.EditText
 import android.widget.ImageButton
 import android.widget.LinearLayout
 import android.widget.TextView
@@ -57,15 +58,18 @@ open class UserLoginActivity : AppCompatActivity() {
     private var ultimoAnnuncioId: String? = null
 
     //--- Variabile utile per salvare utente, id ---
-    var userId: String = "userIdProva"
+    //var userId: String = "userIdProva"
 
-    //val userId = auth.currentUser!!.uid
+    val userId = auth.currentUser!!.uid
 
+    @SuppressLint("WrongViewCast", "MissingInflatedId")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_user_logged)
 
         runBlocking {
+
+            recuperaAnnunciPerMostrarliNellaHome(1)
 
             recuperaAnnunciPreferitiFirebaseFirestore(userId)
 
@@ -84,19 +88,6 @@ open class UserLoginActivity : AppCompatActivity() {
             Toast.makeText(this, "Benvenuto ${username}!", Toast.LENGTH_LONG).show()
         }
 
-//        runBlocking{
-//            Annuncio(
-//                userId,
-//                "2 gomme 205 55 16 estive al 70% falken",
-//                "CONTROLLA LE DISPONIBILITA' AGGIORNATE; Solo sul NOSTRO sito WWW.DANIGOMEUSATE.COM con tutte le foto delle gomme, sempre aggiornato con tutti i pneumatici usati disponibili al momento, con foto,prezzo,marca ed altre info DOT 17 SPEDIZIONE GRATUITA GOMME USATE ESTIVE -Pneumatici Usati Controllati e Garantiti -TOP qualità fino al 99% -ACQUISTA sul nostro sito DANIGOMMEUSATE.COM subito per TE SPEDIZIONE GRATIS Chiamaci e ordina le tue gomme -Cell e WhatsApp 339-49.11.259 TANTE ALTRE DISPONBIILITA' DI GOMME ESTIVE, GOMME INVERNALI, GOMME PER FURGONE TRASPORTO LEGGERE, delle migliori marche",
-//                850.99,
-//                0,
-//                true,
-//                "ACCESSORI AUTO"
-//            ).salvaAnnuncioSuFirebase()
-//        }
-
-        //RecyclerView
 
         //getting the recyclerView by its id
         val recyclerVu = findViewById<RecyclerView>(R.id.recyclerview)
@@ -104,17 +95,34 @@ open class UserLoginActivity : AppCompatActivity() {
         //this creates a vertical layout Manager
         recyclerVu.layoutManager = LinearLayoutManager(this)
 
-        //ArrayList of class ItemsViewModel
-        val data = ArrayList<ItemsViewModel>()
+        //---
 
-        //This loop will create as many Views as documents containing
-        //the image with title and price of object
-        for (key in myAnnunciHome.keys){
-            data.add(ItemsViewModel(myAnnunciHome[key]?.getAnnuncioId(), R.drawable.ic_launcher_background, "${myAnnunciHome[key]?.getTitolo()}", myAnnunciHome[key]?.getPrezzo(), auth.currentUser?.email/*, myAnnunciHome[key]?.getNTel()*/) )
+        val buttonRicercaTitolo = findViewById<ImageButton>(R.id.searchButton)
+        val casellaRicerca = findViewById<EditText>(R.id.search)
+
+        buttonRicercaTitolo.setOnClickListener {
+
+            val recuperaTitolo = casellaRicerca.text.toString()
+
+            if(recuperaTitolo.isEmpty())
+                recuperaAnnunciTitolo(null)
+            else
+                recuperaAnnunciTitolo(recuperaTitolo)
+
+            runBlocking {
+                recuperaAnnunciPerMostrarliNellaHome(1)
+
+                val adapter = CustomAdapter(myAnnunciHome)
+
+                //setting the Adapter with the recyclerView
+                recyclerVu.adapter = adapter
+            }
         }
 
+        //---
+
         //this will pass the ArrayList to our Adapter
-        val adapter = CustomAdapter(data)
+        val adapter = CustomAdapter(myAnnunciHome)
 
         //setting the Adapter with the recyclerView
         recyclerVu.adapter = adapter
@@ -126,16 +134,8 @@ open class UserLoginActivity : AppCompatActivity() {
             startActivity(Intent(this, MainActivity::class.java))
         }
 
-
+        // --- Inizio metodi relativi ai filtri ---
         val distanceSlider = findViewById<Slider>(R.id.distanceSlider)
-//        distanceSlider.setLabelFormatter {  }
-
-//        val slider = Slider(this)
-//        slider.setLabelFormatter(object : LabelFormatter() {
-//            fun getFormattedValue(value: Float): String? {
-//                return "MY STRING"
-//            }
-//        })
 
         distanceSlider.setLabelFormatter { value -> "$value km"; }
 
@@ -155,14 +155,7 @@ open class UserLoginActivity : AppCompatActivity() {
         val priceSlider = findViewById<RangeSlider>(R.id.priceSlider)
         priceSlider.setLabelFormatter { value -> "${value.toInt()} €"; }
 
-//        rangeSlider.setLabelFormatter { value: Float ->
-//            val format = NumberFormat.getCurrencyInstance()
-//            format.maximumFractionDigits = 0
-//            format.currency = Currency.getInstance("EUR")
-//            format.format(value.toDouble())
-//        }
-
-        priceSlider.addOnChangeListener { /*slider, value, fromUser*/ _, _, _ ->
+        priceSlider.addOnChangeListener { _, _, _ ->
             val priceEditText = findViewById<TextView>(R.id.priceRange)
             val updTxt = "Fascia di prezzo: ${priceSlider.values[0]}€ - ${priceSlider.values[1]}€"
             priceEditText.text = updTxt
@@ -179,7 +172,7 @@ open class UserLoginActivity : AppCompatActivity() {
             }
         }
 
-
+        // --- Fine metodi relativi ai filtri ---
     }
 
     private fun selezionaImmagini(){
@@ -215,9 +208,12 @@ open class UserLoginActivity : AppCompatActivity() {
                 }
             }
 
+            /*
+            //Esempio di funzionamento!
             val userId = "testId"
             val newAnnuncio = Annuncio(userId, "Mr Robot: Season 3 Blu-Ray + Digital HD", "Mr. Robot, is a techno thriller that follows Elliot, a young programmer, who works as a cyber-security engineer by day and as a vigilante hacker by night.", 16.99, 2, true, "filmETv/serieTv")
             newAnnuncio.salvaAnnuncioSuFirebase(myImmaginiAnnuncio)
+            */
         }
     }
 
@@ -259,7 +255,7 @@ open class UserLoginActivity : AppCompatActivity() {
 
             myAnnunciHome = recuperaAnnunci(myDocumenti)
 
-            myListenerAnnunciHome = subscribeRealTimeDatabase(queryRisultato,myAnnunciHome,false)
+            this.myListenerAnnunciHome = subscribeRealTimeDatabase(queryRisultato,myAnnunciHome,false)
 
             return myAnnunciHome
         }
@@ -269,7 +265,7 @@ open class UserLoginActivity : AppCompatActivity() {
 
             queryRisultato = queryRisultato.orderBy(FieldPath.documentId()).startAfter(ultimoAnnuncioId).limit(10)
 
-            myListenerAnnunciHome = subscribeRealTimeDatabase(queryRisultato,myAnnunciHome,false)
+            this.myListenerAnnunciHome = subscribeRealTimeDatabase(queryRisultato,myAnnunciHome,false)
 
             val myDocumenti = queryRisultato.get().await()
 
@@ -293,7 +289,7 @@ open class UserLoginActivity : AppCompatActivity() {
     }
 
     //Recupera gli annunci che contengono una sequernza/sottosequenza nel titolo del annuncio.
-    fun recuperaAnnunciTitolo(nomeAnnuncio: String){
+    fun recuperaAnnunciTitolo(nomeAnnuncio: String?){
 
         this.titoloAnnuncio = nomeAnnuncio
     }
@@ -358,10 +354,18 @@ open class UserLoginActivity : AppCompatActivity() {
 
                 //Log.d("CAMBIO DOCUMENTO", "Il documento ${a.toString()} è cambiato!")
 
+                myAnnunci[a.getAnnuncioId()] = a
+
                 if(preferiti)
                     Toast.makeText(this, "Il documento ${a.getAnnuncioId()} è cambiato!", Toast.LENGTH_LONG).show()
+                else{
+                    val adapter = CustomAdapter(myAnnunciHome)
 
-                myAnnunci[a.getAnnuncioId()] = a
+                    val recyclerVu = findViewById<RecyclerView>(R.id.recyclerview)
+
+                    //setting the Adapter with the recyclerView
+                    recyclerVu.adapter = adapter
+                }
 
                 //Log.d("CONTENUTO ARRAYLIST",myAnnunciPreferiti.toString())
             }
@@ -429,9 +433,9 @@ open class UserLoginActivity : AppCompatActivity() {
 
         val myCollection = this.database.collection("utente")
 
-        val myDocumento = myCollection.document(userId)
+        val myDocumentoUtente = myCollection.document(userId)
 
-        val myCollectionRicerca = myDocumento.collection("ricerca")
+        val myCollectionRicerca = myDocumentoUtente.collection("ricerca")
 
         val myDocumentiRicerca = myCollectionRicerca.get().await()
 
@@ -752,4 +756,6 @@ open class UserLoginActivity : AppCompatActivity() {
     }
 
     data class Ricerca(val userId: String, val idRicerca: String, val titoloAnnuncio: String?, val disponibilitaSpedire: Boolean?, val prezzoSuperiore: Int?, val prezzoMinore: Int?, val numeroAnnunci: Int)
+
+    data class ItemsViewModel(val annuncioId: String?, val image: Int, val title: String, val price : Double? = 0.0, val emailOwner: String? = "default@mail.com", val nTelOwner: String = "0123456789")
 }
