@@ -1,17 +1,24 @@
 package it.uniupo.oggettiusati
 
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.location.Location
 import android.net.Uri
+import android.os.Build
 import android.os.Parcel
 import android.os.Parcelable
 import android.util.Log
+import androidx.annotation.RequiresApi
 import com.google.firebase.firestore.GeoPoint
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
+import com.google.firebase.storage.FileDownloadTask
 import com.google.firebase.storage.FirebaseStorage
 import com.google.firebase.storage.StorageReference
 import kotlinx.coroutines.tasks.await
+import java.io.File
 import java.lang.Math.*
+import java.nio.file.Paths
 import kotlin.random.Random
 
 data class Annuncio(
@@ -60,7 +67,7 @@ data class Annuncio(
     //--- Inizio variabili utili all'inserimento delle immagini sul cloud ---
     val storage = FirebaseStorage.getInstance()
 
-    private lateinit var storageRef : StorageReference
+    lateinit var storageRef : StorageReference
     //--- Fine variabili utili all'inserimento delle immagini sul cloud ---
 
     private val database = Firebase.firestore
@@ -100,6 +107,8 @@ data class Annuncio(
 
         this.posizione.latitude = posizione.latitude
         this.posizione.longitude = posizione.longitude
+        this.storageRef = storage.reference.child(annuncioId)
+
     }
 
     constructor(
@@ -112,6 +121,7 @@ data class Annuncio(
 
         this.posizione.latitude = posizione.latitude
         this.posizione.longitude = posizione.longitude
+
     }
 
     //Funzione che mi permette di scrivere sul cloud, FireBase, i dati del singolo annuncio, passo anche la posizione dell'immagine che voglio caricare sul cloud.
@@ -145,7 +155,7 @@ data class Annuncio(
             //Log.d("DEBUG", "Dopo")
 
             this.annuncioId = myDocument.id
-            this.storageRef = storage.reference.child(annuncioId)
+            this.storageRef = storage.reference.child(annuncioId+"\\")
 
             Log.d("SALVA ANNUNCIO SU FIREBASE", annuncioId)
 
@@ -196,7 +206,8 @@ data class Annuncio(
         }
     }
 
-    public suspend fun recuperaImmaginiSuFirebase(): ArrayList<Uri> {
+    @RequiresApi(Build.VERSION_CODES.O)
+    suspend fun recuperaImmaginiSuFirebase(): ArrayList<Uri> {
 
         var myListImmaginiRef = storageRef.listAll().await()
 

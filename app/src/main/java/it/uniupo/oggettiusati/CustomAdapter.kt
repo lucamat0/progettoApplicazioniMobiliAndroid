@@ -1,17 +1,22 @@
 package it.uniupo.oggettiusati
 
+import android.content.Context
 import android.content.Intent
+import android.graphics.BitmapFactory
 import android.os.BadParcelableException
+import android.os.Build
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
+import androidx.annotation.RequiresApi
 import androidx.cardview.widget.CardView
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.tasks.await
 
 class CustomAdapter(private val myArrayList: HashMap<String, Annuncio>) : RecyclerView.Adapter<CustomAdapter.ViewHolder>(){
 
@@ -26,33 +31,38 @@ class CustomAdapter(private val myArrayList: HashMap<String, Annuncio>) : Recycl
     }
 
     //binds the list items to a view
+    @RequiresApi(Build.VERSION_CODES.O)
     override fun onBindViewHolder(holder: ViewHolder, position: Int){
-
-        val myAnnuncio = myArrayList.toList()
-
-        //sets the text to the textview from our itemHolder class
-        holder.textView.text = myAnnuncio[position].second.getTitolo()
-
-        holder.priceTextView.text = myAnnuncio[position].second.getPrezzo().toString() + " €"
-
         runBlocking {
+            val myAnnuncio = myArrayList.toList()
 
-            //val myImage = myAnnuncio[position].second.recuperaImmaginiSuFirebase()
+            //sets the text to the textview from our itemHolder class
+            holder.textView.text = myAnnuncio[position].second.getTitolo()
 
-            holder.card.setOnClickListener { viewClicked ->
+            holder.priceTextView.text = myAnnuncio[position].second.getPrezzo().toString() + " €"
 
-                try {
-                    val intent =
-                        Intent(holder.itemView.context, DettaglioOggettoActivity::class.java)
+            val myArrayListImmagini = myAnnuncio[position].second.recuperaImmaginiSuFirebase()
 
-                    intent.putExtra("annuncio", myAnnuncio[position].second)
+            if (myArrayListImmagini.size > 0) {
 
-                    viewClicked.context.startActivity(intent)
-                } catch (e: BadParcelableException) {
-                    Log.e(
-                        "AnnuncioSerialization",
-                        "Errore nella serializzazione dell'oggetto Annuncio: ${e.message}"
-                    )
+                Glide.with(holder.itemView.context)
+                    .load(myArrayListImmagini.get(0))
+                    .into(holder.imageView)
+
+                holder.card.setOnClickListener { viewClicked ->
+                    try {
+                        val intent =
+                            Intent(holder.itemView.context, DettaglioOggettoActivity::class.java)
+
+                        intent.putExtra("annuncio", myAnnuncio[position].second)
+
+                        viewClicked.context.startActivity(intent)
+                    } catch (e: BadParcelableException) {
+                        Log.e(
+                            "AnnuncioSerialization",
+                            "Errore nella serializzazione dell'oggetto Annuncio: ${e.message}"
+                        )
+                    }
                 }
             }
         }
