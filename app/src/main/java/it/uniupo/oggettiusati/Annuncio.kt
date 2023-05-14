@@ -206,10 +206,10 @@ data class Annuncio(
         }
     }
 
-    @RequiresApi(Build.VERSION_CODES.O)
+
     suspend fun recuperaImmaginiSuFirebase(): ArrayList<Uri> {
 
-        var myListImmaginiRef = storageRef.listAll().await()
+        val myListImmaginiRef = storageRef.listAll().await()
 
         val myImmagini = ArrayList<Uri>()
 
@@ -254,6 +254,9 @@ data class Annuncio(
 
     fun getPrezzo(): Double {
         return prezzo
+    }
+    fun getPrezzoToString(): String {
+        return String.format("%.2f", prezzo) + "€"
     }
 
     fun getTimeStampInizioVendita(): Long? {

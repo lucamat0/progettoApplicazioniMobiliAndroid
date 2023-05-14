@@ -80,7 +80,18 @@
                     android:paddingHorizontal="5dp"
                     android:paddingVertical="10dp"/>
 
-<!--                <Spinner-->
+                <ImageButton
+                    android:id="@+id/rimuovi"
+                    android:layout_width="60dp"
+                    android:layout_height="60dp"
+                    android:layout_margin="5dp"
+                    android:src="@drawable/baseline_delete_50"
+                    android:backgroundTint="@color/teal_200"
+
+                    />
+
+
+                <!--                <Spinner-->
 <!--                    android:id="@+id/stato"-->
 <!--                    android:layout_width="wrap_content"-->
 <!--                    android:layout_height="wrap_content"-->

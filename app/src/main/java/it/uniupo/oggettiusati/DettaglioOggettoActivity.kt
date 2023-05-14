@@ -16,7 +16,7 @@ class DettaglioOggettoActivity : AppCompatActivity() {
         findViewById<TextView>(R.id.nome).text = myAnnuncio.getTitolo()
         findViewById<TextView>(R.id.categoria).text = myAnnuncio.getCategoria()
         findViewById<TextView>(R.id.descrizione).text = myAnnuncio.getDescrizione()
-        findViewById<TextView>(R.id.prezzo).text = myAnnuncio.getPrezzo().toString()
+        findViewById<TextView>(R.id.prezzo).text = myAnnuncio.getPrezzoToString()
 
         //--- Inizio ci sevono con amministratore o proprietario ---
         //val statoOgg = myAnnuncio!!.getStato()

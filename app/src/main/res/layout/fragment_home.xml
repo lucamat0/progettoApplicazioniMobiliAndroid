@@ -1,0 +1,165 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <LinearLayout
+
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        tools:context=".MainActivity">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            >
+            <EditText
+                android:id="@+id/search"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="6"
+                />
+            <ImageButton
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:id="@+id/searchButton"
+                android:src="@drawable/baseline_search_24"
+                android:layout_marginHorizontal="5dp"/>
+            <ImageButton
+                android:id="@+id/filters"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:src="@drawable/baseline_filter_alt_24"
+                android:layout_marginHorizontal="5dp"/>
+
+        </LinearLayout>
+        <LinearLayout
+            android:id="@+id/filterElements"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:visibility="gone">
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Abilita/disabilita filtri: "
+                />
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <CheckBox
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    />
+
+                <com.google.android.material.slider.Slider
+                    android:id="@+id/distanceSlider"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_margin="5dp"
+                    android:value="1"
+                    android:valueFrom="1"
+                    android:valueTo="100"
+                    android:stepSize="1"
+                    />
+            </LinearLayout>
+            <TextView
+                android:id="@+id/maxDistance"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Distanza max: 3 km"
+                android:layout_gravity="end"
+                android:layout_marginBottom="30dp"
+                />
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <CheckBox
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    />
+
+                <com.google.android.material.slider.RangeSlider
+                    android:id="@+id/priceSlider"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:valueFrom="0.0"
+                    android:valueTo="300.0"
+                    app:values="@array/initial_slider_values"
+                    android:stepSize="10.0"
+                    android:layout_margin="5dp"/>
+
+            </LinearLayout>
+            <TextView
+                android:id="@+id/priceRange"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Fascia di prezzo: 3€ - 30€"
+                android:layout_gravity="end"
+                android:layout_marginBottom="30dp"
+                />
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <CheckBox
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    />
+
+                <androidx.appcompat.widget.SwitchCompat
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:text="Spedizione: "/>
+
+            </LinearLayout>
+
+
+        </LinearLayout>
+
+        <ScrollView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/recyclerview"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    tools:itemCount="5"
+                    tools:listitem="@layout/card_view_design" />
+
+                <Button
+                    android:id="@+id/logout"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Logout"
+                    android:layout_gravity="center_horizontal"
+                    />
+
+            </LinearLayout>
+
+        </ScrollView>
+
+    </LinearLayout>
+
+</FrameLayout>

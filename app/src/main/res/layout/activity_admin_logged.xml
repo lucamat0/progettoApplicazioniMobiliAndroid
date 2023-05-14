@@ -60,7 +60,7 @@
     Toast.makeText(baseContext, "Click on signOUT btn.",
     Toast.LENGTH_SHORT).show()
 
-    FirebaseAuth.getInstance().signOut();
+    FirebaseAuth.getInstance().signOut()
     startActivity(Intent(this,LoginActivity::class.java))
     }
     */
