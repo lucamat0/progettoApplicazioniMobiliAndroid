@@ -21,7 +21,7 @@ class ChatFragment : Fragment() {
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        val fragmentRootView = inflater.inflate(R.layout.fragment_home, container, false)
+        val fragmentRootView = inflater.inflate(R.layout.fragment_chat, container, false)
         //context: activity
         //view or fragmentRootView object to use to call findViewById(): fragmentRootView
 

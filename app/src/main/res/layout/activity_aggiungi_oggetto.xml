@@ -18,25 +18,30 @@
         />
 
     <EditText
+        android:id="@+id/nome"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:hint="Nome Oggetto"
         android:maxLines="4"/>
     <EditText
+        android:id="@+id/categoria"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:hint="Categoria Oggetto"/>
     <EditText
+        android:id="@+id/posizione"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:hint="Posizione Oggetto"/>
     <EditText
+        android:id="@+id/descrizione"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:hint="Descrizione Oggetto"
         android:minLines="4"
         android:maxLines="5"/>
     <EditText
+        android:id="@+id/prezzo"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:hint="Prezzo Oggetto"

@@ -74,14 +74,6 @@ class HomeFragment : Fragment() {
         // Inflate the layout for this fragment
         val fragmentRootView = inflater.inflate(R.layout.fragment_home, container, false)
 
-        runBlocking {
-
-            recuperaAnnunciPerMostrarliNellaHome(1)
-
-            recuperaAnnunciPreferitiFirebaseFirestore(userId)
-
-            controllaStatoRicercheAnnunci(userId)
-        }
 
         lateinit var username: String
         val userRef = database.collection("utente").document(userId)
@@ -96,19 +88,44 @@ class HomeFragment : Fragment() {
         }
 
 
-        //getting the recyclerView by its id
-        val recyclerVu = fragmentRootView?.findViewById<RecyclerView>(R.id.recyclerview)
-        //this creates a vertical layout Manager
-        recyclerVu?.layoutManager = LinearLayoutManager(activity)
-        //this will pass the ArrayList to our Adapter
-        val adapter = CustomAdapter(myAnnunciHome, R.layout.card_view_design)
-        //setting the Adapter with the recyclerView
-        recyclerVu?.adapter = adapter
+
+
+
+
+
+
+        return fragmentRootView
+
+//        return super.onCreateView(inflater, container, savedInstanceState)
+    }
+
+    override fun onResume() {
+        super.onResume()
+        //perform here operation when fragment changes and this become visible (i.e. do updates dynamically when fragment is again visible)
+
+        runBlocking {
+
+            recuperaAnnunciPerMostrarliNellaHome(1)
+
+            recuperaAnnunciPreferitiFirebaseFirestore(userId)
+
+            controllaStatoRicercheAnnunci(userId)
+
+            //getting the recyclerView by its id
+            val recyclerVu = view?.findViewById<RecyclerView>(R.id.recyclerview)
+            //this creates a vertical layout Manager
+            recyclerVu?.layoutManager = LinearLayoutManager(activity)
+            //this will pass the ArrayList to our Adapter
+            val adapter = CustomAdapter(myAnnunciHome, R.layout.card_view_design)
+            //setting the Adapter with the recyclerView
+            recyclerVu?.adapter = adapter
+        }
+
 
         //---
 
-        val buttonRicercaTitolo = fragmentRootView?.findViewById<ImageButton>(R.id.searchButton)
-        val casellaRicerca = fragmentRootView?.findViewById<EditText>(R.id.search)
+        val buttonRicercaTitolo = view?.findViewById<ImageButton>(R.id.searchButton)
+        val casellaRicerca = view?.findViewById<EditText>(R.id.search)
 
         buttonRicercaTitolo?.setOnClickListener {
 
@@ -123,7 +140,7 @@ class HomeFragment : Fragment() {
                 recuperaAnnunciPerMostrarliNellaHome(1)
 
                 val adapterRicerca = CustomAdapter(myAnnunciHome, R.layout.card_view_design)
-
+                val recyclerVu = view?.findViewById<RecyclerView>(R.id.recyclerview)
                 //setting the Adapter with the recyclerView
                 recyclerVu?.adapter = adapterRicerca
             }
@@ -132,14 +149,14 @@ class HomeFragment : Fragment() {
         //---
 
         //logica bottone logout
-        val logoutButton = fragmentRootView?.findViewById<Button>(R.id.logout)
+        val logoutButton = view?.findViewById<Button>(R.id.logout)
         logoutButton?.setOnClickListener {
             FirebaseAuth.getInstance().signOut()
             startActivity(Intent(activity, MainActivity::class.java))
         }
 
         // --- Inizio metodi relativi ai filtri ---
-        val distanceSlider = fragmentRootView?.findViewById<Slider>(R.id.distanceSlider)
+        val distanceSlider = view?.findViewById<Slider>(R.id.distanceSlider)
 
         distanceSlider?.setLabelFormatter { value -> "$value km"; }
 
@@ -149,43 +166,32 @@ class HomeFragment : Fragment() {
             }
 
             override fun onStopTrackingTouch(slider: Slider) {
-                val distanceEditText = fragmentRootView.findViewById<TextView>(R.id.maxDistance)
+                val distanceEditText = view?.findViewById<TextView>(R.id.maxDistance)
                 val updTxt = "Distanza max: ${distanceSlider.value}km"
                 distanceEditText?.text = updTxt
             }
         })
 
 
-        val priceSlider = fragmentRootView?.findViewById<RangeSlider>(R.id.priceSlider)
+        val priceSlider = view?.findViewById<RangeSlider>(R.id.priceSlider)
         priceSlider?.setLabelFormatter { value -> "${value.toInt()} €"; }
 
         priceSlider?.addOnChangeListener { _, _, _ ->
-            val priceEditText = fragmentRootView.findViewById<TextView>(R.id.priceRange)
+            val priceEditText = view?.findViewById<TextView>(R.id.priceRange)
             val updTxt = "Fascia di prezzo: ${priceSlider.values[0]}€ - ${priceSlider.values[1]}€"
             priceEditText?.text = updTxt
         }
 
-        val filterButton = fragmentRootView?.findViewById<ImageButton>(R.id.filters)
+        val filterButton = view?.findViewById<ImageButton>(R.id.filters)
 
         filterButton?.setOnClickListener {
-            val filterLay = fragmentRootView.findViewById<LinearLayout>(R.id.filterElements)
+            val filterLay = view?.findViewById<LinearLayout>(R.id.filterElements)
             if(filterLay?.isVisible == false){
                 filterLay.visibility = View.VISIBLE
             }else{
                 if (filterLay != null) { filterLay.visibility = View.GONE } else { Log.w("d-filter","filterLay e' null") }
             }
         }
-
-
-
-        return fragmentRootView
-
-//        return super.onCreateView(inflater, container, savedInstanceState)
-    }
-
-    override fun onResume() {
-        super.onResume()
-        //perform here operation when fragment changes and this become visible (i.e. do updates dynamically when fragment is again visible)
 
         Toast.makeText(activity, "Sei nella sezione home", Toast.LENGTH_SHORT).show()
     }
