@@ -41,7 +41,7 @@ class AggiungiOggettoActivity : AppCompatActivity() {
 //            val fotoOgg =
             val spedizioneOgg = findViewById<SwitchCompat>(R.id.spedizione)
 
-            val newAnnuncio = Annuncio(auth.uid!!, nomeOgg,descrizioneOgg, prezzoOgg,statoOgg.selectedItemPosition,spedizioneOgg.isChecked,categoriaOgg,posizioneOgg)
+            val newAnnuncio = Annuncio(auth.uid!!, nomeOgg, descrizioneOgg, prezzoOgg, statoOgg.selectedItemPosition, spedizioneOgg.isChecked, categoriaOgg, posizioneOgg)
 
             runBlocking {
                 newAnnuncio.salvaAnnuncioSuFirebase(myImmaginiAnnuncio)
@@ -54,7 +54,7 @@ class AggiungiOggettoActivity : AppCompatActivity() {
         }
     }
 
-    private fun selezionaImmagini(){
+    private fun selezionaImmagini() {
 
         val intent = Intent()
 
@@ -65,8 +65,8 @@ class AggiungiOggettoActivity : AppCompatActivity() {
         startActivityForResult(Intent.createChooser(intent, "Seleziona immagini"), 100)
     }
 
-    //override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?){
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) = runBlocking{
+    //override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) = runBlocking {
         super.onActivityResult(requestCode, resultCode, data)
 
         if (requestCode == 100 && resultCode == RESULT_OK) {

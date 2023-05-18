@@ -44,7 +44,7 @@ class MainActivity : AppCompatActivity() {
         loginButton.setOnClickListener {
             val email = emailView.text.toString()
             val password = passwordView.text.toString()
-            if(email.isNotEmpty() && password.isNotEmpty() && email.isNotBlank() && password.isNotBlank()){
+            if(email.isNotEmpty() && password.isNotEmpty() && email.isNotBlank() && password.isNotBlank()) {
                 auth.signInWithEmailAndPassword(email, password)
                     .addOnCompleteListener(this) { task ->
                         if (task.isSuccessful) {
@@ -55,7 +55,7 @@ class MainActivity : AppCompatActivity() {
 
                             //codice da rifattorizzare
                             val userID = user?.uid
-                            val userRef : DocumentReference
+                            val userRef: DocumentReference
                             var utenteSospeso = true
                             if(userID != null) {
                                 userRef = database.collection("utente").document(userID)
@@ -102,7 +102,7 @@ class MainActivity : AppCompatActivity() {
         } else {
             val userID = user.uid
 
-            lateinit var isAdmin : String
+            lateinit var isAdmin: String
             val userRef = database.collection("utente").document(userID)
             userRef.get().addOnSuccessListener { document ->
                 if (document != null) {
@@ -134,8 +134,8 @@ class MainActivity : AppCompatActivity() {
         val user = auth.currentUser
         if(user != null) {
             FirebaseAuth.getInstance().signOut() //provvisiorio per testare il login
-            //startActivity(Intent(this,LoginActivity::class.java))
-        }else{
+            //startActivity(Intent(this, LoginActivity::class.java))
+        } else {
             Toast.makeText(this, "Utente non loggato al momento", Toast.LENGTH_LONG).show()
         }
     }
@@ -165,19 +165,18 @@ class MainActivity : AppCompatActivity() {
                             database.collection("users").document(userId)
                                 .set(userValues)
                                 .addOnSuccessListener {
-                                    Log.d("Creazione documento utente","La creazione dell'utente è andata a buon fine!")
+                                    Log.d("Creazione documento utente", "La creazione dell'utente è andata a buon fine!")
                                     startActivity(Intent(this, MainActivity::class.java))
                                 }
-                                .addOnFailureListener{ e ->
+                                .addOnFailureListener { e ->
 
-                                    Log.w("Creazione documento utente","Errore durante la creazione del documento associato all'utente",e)
+                                    Log.w("Creazione documento utente", "Errore durante la creazione del documento associato all'utente", e)
 
                                     //Se il documento non si é riuscito a creare bisogna eliminare utente
                                     user.delete()
 
                                 }
-                        }
-                        else {
+                        } else {
                             // La registrazione dell'utente non è andata a buon fine
                             Log.w("Creazione", "createUserWithEmail:failure", task.exception)
                             Toast.makeText(baseContext, "Authentication failed: error creating user.", Toast.LENGTH_SHORT).show()

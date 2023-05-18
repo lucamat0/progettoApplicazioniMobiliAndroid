@@ -21,10 +21,10 @@ import com.bumptech.glide.Glide
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.tasks.await
 
-class CustomAdapter(private val myArrayList: HashMap<String, Annuncio>, val layout : Int) : RecyclerView.Adapter<CustomAdapter.ViewHolder>(){
+class CustomAdapter(private val myArrayList: HashMap<String, Annuncio>, val layout: Int) : RecyclerView.Adapter<CustomAdapter.ViewHolder>() {
 
     //create new views
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int) : ViewHolder{
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
 
         //inflates the card_view_design view
         //that is used to hold list item
@@ -35,7 +35,7 @@ class CustomAdapter(private val myArrayList: HashMap<String, Annuncio>, val layo
 
     //binds the list items to a view
 
-    override fun onBindViewHolder(holder: ViewHolder, position: Int){
+    override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         runBlocking {
             val myAnnuncio = myArrayList.toList()
 
@@ -62,7 +62,7 @@ class CustomAdapter(private val myArrayList: HashMap<String, Annuncio>, val layo
                 }
             }
 
-            if(holder.btnRemove != null){
+            if(holder.btnRemove != null) {
                 holder.btnRemove.setOnClickListener { //viewClicked ->
                     //rimuovo oggetto dal carrello
                     Toast.makeText(holder.itemView.context, "Rimuovo l'oggetto ${null} dal carrello", Toast.LENGTH_SHORT).show()
@@ -84,11 +84,11 @@ class CustomAdapter(private val myArrayList: HashMap<String, Annuncio>, val layo
     }
 
     //holds the views for adding it to image and text
-    class ViewHolder(ItemView: View) : RecyclerView.ViewHolder(ItemView){
+    class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val imageView: ImageView = itemView.findViewById(R.id.imageview)
         val textView: TextView = itemView.findViewById(R.id.titolo)
         val priceTextView: TextView = itemView.findViewById(R.id.prezzo)
         val card: CardView = itemView.findViewById(R.id.cardVu)
-        val btnRemove :ImageButton? = itemView.findViewById(R.id.rimuovi)
+        val btnRemove: ImageButton? = itemView.findViewById(R.id.rimuovi)
     }
 }

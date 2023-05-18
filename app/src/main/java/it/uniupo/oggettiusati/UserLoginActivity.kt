@@ -35,7 +35,8 @@ import kotlin.collections.ArrayList
 val pageTitlesArray = arrayOf(
     "Home",
     "Carrello",
-    "Chat"
+    "Chat",
+    "Preferiti",
 )
 open class UserLoginActivity : AppCompatActivity() {
 
@@ -77,7 +78,7 @@ open class UserLoginActivity : AppCompatActivity() {
 
         //fragments
         val viewPager = findViewById<ViewPager2>(R.id.viewPager)
-        viewPager.adapter = ViewPagerAdapter(supportFragmentManager, lifecycle)
+        viewPager.adapter = ViewPagerAdapter(supportFragmentManager, lifecycle, pageTitlesArray.size)
 
         val tabLayout = findViewById<TabLayout>(R.id.tabLayout)
         TabLayoutMediator(tabLayout, viewPager) { tab, position ->
@@ -164,7 +165,7 @@ open class UserLoginActivity : AppCompatActivity() {
 //
 //        distanceSlider.setLabelFormatter { value -> "$value km"; }
 //
-//        distanceSlider.addOnSliderTouchListener(object :Slider.OnSliderTouchListener{
+//        distanceSlider.addOnSliderTouchListener(object : Slider.OnSliderTouchListener {
 //            override fun onStartTrackingTouch(slider: Slider) {
 //                //...
 //            }
@@ -190,9 +191,9 @@ open class UserLoginActivity : AppCompatActivity() {
 //
 //        filterButton.setOnClickListener {
 //            val filterLay = findViewById<LinearLayout>(R.id.filterElements)
-//            if(!filterLay.isVisible){
+//            if(!filterLay.isVisible) {
 //                filterLay.visibility = View.VISIBLE
-//            }else{
+//            } else {
 //                filterLay.visibility = View.GONE
 //            }
 //        }
@@ -200,7 +201,7 @@ open class UserLoginActivity : AppCompatActivity() {
         // --- Fine metodi relativi ai filtri ---
     }
 
-//    private fun selezionaImmagini(){
+//    private fun selezionaImmagini() {
 //
 //        val intent = Intent()
 //
@@ -213,8 +214,8 @@ open class UserLoginActivity : AppCompatActivity() {
 //
 //    var myImmaginiAnnuncio = ArrayList<Uri>()
 //
-//    //override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?){
-//    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) = runBlocking{
+//    //override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+//    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) = runBlocking {
 //        super.onActivityResult(requestCode, resultCode, data)
 //
 //        if (requestCode == 100 && resultCode == RESULT_OK) {
@@ -247,14 +248,14 @@ open class UserLoginActivity : AppCompatActivity() {
 //    private fun definisciQuery(titoloAnnuncio: String?, disponibilitaSpedire: Boolean?, prezzoSuperiore: Int?, prezzoMinore: Int?): Query {
 //
 //        //Quando ad un annuncio non è assegnato un acquirente, non vogliamo mostrare nella home degli annunci che sono già stati venduti.
-//        var myQuery = myCollection.whereEqualTo("userIdAcquirente",null)
+//        var myQuery = myCollection.whereEqualTo("userIdAcquirente", null)
 //
 //        if(titoloAnnuncio != null)
 //            myQuery = myQuery.whereEqualTo("titolo", titoloAnnuncio)
 //        //siamo nel caso in cui deve essere compreso
 //        if(prezzoSuperiore != null && prezzoMinore != null)
 //            myQuery = myQuery.orderBy("prezzo").whereGreaterThan("prezzo", prezzoMinore).whereLessThan("prezzo", prezzoSuperiore)
-//        else{
+//        else {
 //            if(prezzoSuperiore != null)
 //                myQuery = myQuery.orderBy("prezzo").whereGreaterThan("prezzo", prezzoSuperiore)
 //            else if(prezzoMinore != null)
@@ -270,7 +271,7 @@ open class UserLoginActivity : AppCompatActivity() {
 //    //Ogni pagina, mostra 10 annunci alla volta, questo metodo mi ritorna 10 annunci alla volta, in base ai parametri specificati dal utente
 //    suspend fun recuperaAnnunciPerMostrarliNellaHome(numeroPagina: Int): HashMap<String, Annuncio>? {
 //
-//        if(numeroPagina==1){
+//        if(numeroPagina == 1) {
 //
 //            myListenerAnnunciHome?.remove()
 //
@@ -280,27 +281,25 @@ open class UserLoginActivity : AppCompatActivity() {
 //
 //            myAnnunciHome = recuperaAnnunci(myDocumenti)
 //
-//            this.myListenerAnnunciHome = subscribeRealTimeDatabase(queryRisultato,myAnnunciHome,false)
+//            this.myListenerAnnunciHome = subscribeRealTimeDatabase(queryRisultato, myAnnunciHome, false)
 //
 //            return myAnnunciHome
-//        }
-//        else if(numeroPagina>1 && myAnnunciHome.isNotEmpty()){
+//        } else if(numeroPagina > 1 && myAnnunciHome.isNotEmpty()) {
 //
 //            myListenerAnnunciHome?.remove()
 //
 //            queryRisultato = queryRisultato.orderBy(FieldPath.documentId()).startAfter(ultimoAnnuncioId).limit(10)
 //
-//            this.myListenerAnnunciHome = subscribeRealTimeDatabase(queryRisultato,myAnnunciHome,false)
+//            this.myListenerAnnunciHome = subscribeRealTimeDatabase(queryRisultato, myAnnunciHome, false)
 //
 //            val myDocumenti = queryRisultato.get().await()
 //
-//            //Log.d("MOSTRA HOME LAST",ultimoAnnuncioId.toString())
+//            //Log.d("MOSTRA HOME LAST", ultimoAnnuncioId.toString())
 //
 //            myAnnunciHome = recuperaAnnunci(myDocumenti)
 //
 //            return myAnnunciHome
-//        }
-//        else
+//        } else
 //            return null
 //    }
 //
@@ -314,13 +313,13 @@ open class UserLoginActivity : AppCompatActivity() {
 //    }
 //
 //    //Recupera gli annunci che contengono una sequernza/sottosequenza nel titolo del annuncio.
-//    fun recuperaAnnunciTitolo(nomeAnnuncio: String?){
+//    fun recuperaAnnunciTitolo(nomeAnnuncio: String?) {
 //
 //        this.titoloAnnuncio = nomeAnnuncio
 //    }
 //
 //    //Fissano un limite inferiore
-//    fun recuperaAnnunciPrezzoInferiore(prezzoMinore: Int){
+//    fun recuperaAnnunciPrezzoInferiore(prezzoMinore: Int) {
 //
 //        this.prezzoMinore = prezzoMinore
 //        this.prezzoSuperiore = null
@@ -334,7 +333,7 @@ open class UserLoginActivity : AppCompatActivity() {
 //    }
 //
 //    // Fissano un range in cui l'annuncio deve essere compreso tra il prezzo minore e quello maggiore.
-//    fun recuperaAnnunciPrezzoRange(prezzoMinore: Int, prezzoSuperiore: Int){
+//    fun recuperaAnnunciPrezzoRange(prezzoMinore: Int, prezzoSuperiore: Int) {
 //
 //        this.prezzoMinore = prezzoMinore
 //        this.prezzoSuperiore = prezzoSuperiore
@@ -366,7 +365,7 @@ open class UserLoginActivity : AppCompatActivity() {
 //    */
 //    // --- Da fare ---
 //
-//    fun subscribeRealTimeDatabase(query: Query, myAnnunci: HashMap<String,Annuncio>,preferiti: Boolean): ListenerRegistration {
+//    fun subscribeRealTimeDatabase(query: Query, myAnnunci: HashMap<String, Annuncio>, preferiti: Boolean): ListenerRegistration {
 //
 //        val  listenerRegistration = query.addSnapshotListener { snapshot, e ->
 //            if (e != null) {
@@ -383,7 +382,7 @@ open class UserLoginActivity : AppCompatActivity() {
 //
 //                if(preferiti)
 //                    Toast.makeText(this, "Il documento ${a.getAnnuncioId()} è cambiato!", Toast.LENGTH_LONG).show()
-//                else{
+//                else {
 //                    val adapter = CustomAdapter(myAnnunciHome)
 //
 //                    val recyclerVu = findViewById<RecyclerView>(R.id.recyclerview)
@@ -392,11 +391,11 @@ open class UserLoginActivity : AppCompatActivity() {
 //                    recyclerVu.adapter = adapter
 //                }
 //
-//                //Log.d("CONTENUTO ARRAYLIST",myAnnunciPreferiti.toString())
+//                //Log.d("CONTENUTO ARRAYLIST", myAnnunciPreferiti.toString())
 //            }
 //        }
 //
-//        //Log.d("CONTENUTO ARRAYLIST",myAnnunci.toString())
+//        //Log.d("CONTENUTO ARRAYLIST", myAnnunci.toString())
 //
 //        return listenerRegistration
 //    }
@@ -441,7 +440,7 @@ open class UserLoginActivity : AppCompatActivity() {
 //        return myCollectionRicerca.add(myRicerca).await().id
 //    }
 //
-//    suspend fun eliminaRicercaFirebaseFirestore(userId : String, idRicerca: String){
+//    suspend fun eliminaRicercaFirebaseFirestore(userId: String, idRicerca: String) {
 //
 //        val myCollection = this.database.collection("utente")
 //
@@ -454,7 +453,7 @@ open class UserLoginActivity : AppCompatActivity() {
 //        myDocumentRicerca.delete().await()
 //    }
 //
-//    suspend fun controllaStatoRicercheAnnunci(userId : String): Boolean {
+//    suspend fun controllaStatoRicercheAnnunci(userId: String): Boolean {
 //
 //        val myCollection = this.database.collection("utente")
 //
@@ -464,7 +463,7 @@ open class UserLoginActivity : AppCompatActivity() {
 //
 //        val myDocumentiRicerca = myCollectionRicerca.get().await()
 //
-//        for(myDocumento in myDocumentiRicerca.documents){
+//        for(myDocumento in myDocumentiRicerca.documents) {
 //
 //            val titoloAnnuncio = myDocumento.get("titoloAnnuncio") as String?
 //            val disponibilitaSpedire = myDocumento.getBoolean("disponibilitaSpedire")
@@ -475,7 +474,7 @@ open class UserLoginActivity : AppCompatActivity() {
 //
 //            val numeroAnnunciRicerca = (myDocumento.get("numeroAnnunci") as Long).toInt()
 //
-//            val query = definisciQuery(titoloAnnuncio,disponibilitaSpedire,prezzoSuperiore,prezzoMinore)
+//            val query = definisciQuery(titoloAnnuncio, disponibilitaSpedire, prezzoSuperiore, prezzoMinore)
 //
 //            val numeroAnnunci = query.get().await().size()
 //
@@ -489,8 +488,7 @@ open class UserLoginActivity : AppCompatActivity() {
 //                aggiornaRicerca(userId, myDocumento.id, titoloAnnuncio, disponibilitaSpedire, prezzoSuperiore, prezzoMinore, numeroAnnunci)
 //
 //                return true
-//            }
-//            else if(numeroAnnunci < numeroAnnunciRicerca) {
+//            } else if(numeroAnnunci < numeroAnnunciRicerca) {
 //                Toast.makeText(
 //                    this,
 //                    "Il numero di annunci della ricerca ${myDocumento.id} sono diminuiti!",
@@ -505,7 +503,7 @@ open class UserLoginActivity : AppCompatActivity() {
 //        return false
 //    }
 //
-//    private suspend fun aggiornaRicerca(userId: String, idRicerca: String, titoloAnnuncio: String?, disponibilitaSpedire: Boolean?, prezzoSuperiore: Int?, prezzoMinore: Int?, numeroAnnunci: Int){
+//    private suspend fun aggiornaRicerca(userId: String, idRicerca: String, titoloAnnuncio: String?, disponibilitaSpedire: Boolean?, prezzoSuperiore: Int?, prezzoMinore: Int?, numeroAnnunci: Int) {
 //
 //        val myCollection = this.database.collection("utente")
 //
@@ -515,7 +513,7 @@ open class UserLoginActivity : AppCompatActivity() {
 //
 //        val myRicerca = myCollectionRicerca.document(idRicerca)
 //
-//        myRicerca.update("titoloAnnuncio", titoloAnnuncio,"disponibilitaSpedire", disponibilitaSpedire, "prezzoSuperiore", prezzoSuperiore, "prezzoMinore", prezzoMinore, "numeroAnnunci", numeroAnnunci).await()
+//        myRicerca.update("titoloAnnuncio", titoloAnnuncio, "disponibilitaSpedire", disponibilitaSpedire, "prezzoSuperiore", prezzoSuperiore, "prezzoMinore", prezzoMinore, "numeroAnnunci", numeroAnnunci).await()
 //    }
 //
 //    //Questo metodo, avrá un voto nella recensione valido, per una maggiore usabilitá si aggiunge comunque il controllo del voto, compreso tra 1 e 5/
@@ -543,13 +541,11 @@ open class UserLoginActivity : AppCompatActivity() {
 //            )
 //
 //            return myCollectionRecensione.add(myRecensione).await().id
-//        }
-//        //se il voto, assegnato dal utente, non é valido...
-//        else
+//        } else //se il voto, assegnato dall'utente, non é valido...
 //            return null
 //    }
 //
-//    suspend fun salvaTransazioneSuFirestoreFirebase(idUtente: String, importo: Double, tipoTransazione: Boolean): String{
+//    suspend fun salvaTransazioneSuFirestoreFirebase(idUtente: String, importo: Double, tipoTransazione: Boolean): String {
 //
 //        val myCollection = this.database.collection("utente")
 //
@@ -570,15 +566,15 @@ open class UserLoginActivity : AppCompatActivity() {
 //        return myCollectionTransazioneUtente.add(myTransazione).await().id
 //    }
 //
-//    suspend fun acquistaAnnuncio(idUtente: String,myAnnuncio: Annuncio){
+//    suspend fun acquistaAnnuncio(idUtente: String, myAnnuncio: Annuncio) {
 //
-//        if(isAcquistabile(idUtente,myAnnuncio.getPrezzo())){
-//            salvaTransazioneSuFirestoreFirebase(idUtente,myAnnuncio.getPrezzo(),false)
+//        if(isAcquistabile(idUtente, myAnnuncio.getPrezzo())) {
+//            salvaTransazioneSuFirestoreFirebase(idUtente, myAnnuncio.getPrezzo(), false)
 //            myAnnuncio.setVenduto(idUtente)
 //        }
 //    }
 //
-//    suspend fun isAcquistabile(idUtente: String, prezzoAcquisto: Double) : Boolean{
+//    suspend fun isAcquistabile(idUtente: String, prezzoAcquisto: Double) : Boolean {
 //
 //        val myCollection = this.database.collection("utente")
 //
@@ -592,7 +588,7 @@ open class UserLoginActivity : AppCompatActivity() {
 //        val query = myCollectionTransazioni.get().await()
 //
 //        var saldoAccount = 0.0
-//        for(myTransazione in query.documents){
+//        for(myTransazione in query.documents) {
 //
 //            val tipo = myTransazione.get("tipo") as Boolean
 //
@@ -608,7 +604,7 @@ open class UserLoginActivity : AppCompatActivity() {
 //        return saldoAccount
 //    }
 //
-//    suspend fun inserisciAnnuncioPreferitoFirebaseFirestore(userId : String, annuncioId: String): String {
+//    suspend fun inserisciAnnuncioPreferitoFirebaseFirestore(userId: String, annuncioId: String): String {
 //
 //        val myCollection = this.database.collection("utente")
 //
@@ -633,7 +629,7 @@ open class UserLoginActivity : AppCompatActivity() {
 //        return idPreferito
 //    }
 //
-//    suspend fun eliminaAnnuncioPreferitoFirebaseFirestore(userId : String, elementoCarrelloId: String){
+//    suspend fun eliminaAnnuncioPreferitoFirebaseFirestore(userId: String, elementoCarrelloId: String) {
 //
 //        val myCollection = this.database.collection("utente")
 //
@@ -646,7 +642,7 @@ open class UserLoginActivity : AppCompatActivity() {
 //        myDocumentCarrello.delete().await()
 //    }
 //
-//    suspend fun recuperaAnnunciPreferitiFirebaseFirestore(userId : String): HashMap<String, Annuncio>? {
+//    suspend fun recuperaAnnunciPreferitiFirebaseFirestore(userId: String): HashMap<String, Annuncio>? {
 //
 //        val myCollectionUtente = this.database.collection("utente")
 //
@@ -663,7 +659,7 @@ open class UserLoginActivity : AppCompatActivity() {
 //        return null
 //    }
 //
-//    suspend fun recuperaRicercheSalvateFirebaseFirestore(userId: String): ArrayList<Ricerca>{
+//    suspend fun recuperaRicercheSalvateFirebaseFirestore(userId: String): ArrayList<Ricerca> {
 //
 //        val myCollection = this.database.collection("utente")
 //
@@ -672,8 +668,8 @@ open class UserLoginActivity : AppCompatActivity() {
 //        val myDocumentsRicerca = myDocumentUtente.collection("ricerca").get().await()
 //
 //        val myArrayList = ArrayList<Ricerca>()
-//        for(myRicerca in myDocumentsRicerca.documents){
-//            myArrayList.add(Ricerca(userId,myRicerca.get("idRicerca") as String, myRicerca.get("titoloAnnuncio") as String?, myRicerca.getBoolean("disponibilitaSpedire"), myRicerca.get("prezzoSuperiore") as Int?, myRicerca.get("prezzoMinore") as Int?, myRicerca.get("numeroAnnunci") as Int))
+//        for(myRicerca in myDocumentsRicerca.documents) {
+//            myArrayList.add(Ricerca(userId, myRicerca.get("idRicerca") as String, myRicerca.get("titoloAnnuncio") as String?, myRicerca.getBoolean("disponibilitaSpedire"), myRicerca.get("prezzoSuperiore") as Int?, myRicerca.get("prezzoMinore") as Int?, myRicerca.get("numeroAnnunci") as Int))
 //        }
 //
 //        return myArrayList
@@ -700,7 +696,7 @@ open class UserLoginActivity : AppCompatActivity() {
 //        myListenerAnnunciPreferiti = subscribeRealTimeDatabase(query, myAnnunciPreferiti, true)
 //    }
 //
-//    suspend fun inserisciAnnuncioCarrelloFirebaseFirestore(userId : String, annuncioId: String): String {
+//    suspend fun inserisciAnnuncioCarrelloFirebaseFirestore(userId: String, annuncioId: String): String {
 //
 //        val myCollection = this.database.collection("utente")
 //
@@ -718,7 +714,7 @@ open class UserLoginActivity : AppCompatActivity() {
 //        return myCollectionCarrello.add(myElementoCarrello).await().id
 //    }
 //
-//    suspend fun eliminaAnnuncioCarrelloFirebaseFirestore(userId : String, elementoCarrelloId: String){
+//    suspend fun eliminaAnnuncioCarrelloFirebaseFirestore(userId: String, elementoCarrelloId: String) {
 //
 //        val myCollection = this.database.collection("utente")
 //
@@ -731,7 +727,7 @@ open class UserLoginActivity : AppCompatActivity() {
 //        myDocumentCarrello.delete().await()
 //    }
 //
-//    suspend fun recuperaAnnunciCarrelloFirebaseFirestore(userId : String): HashMap<String, Annuncio>{
+//    suspend fun recuperaAnnunciCarrelloFirebaseFirestore(userId: String): HashMap<String, Annuncio> {
 //
 //        val myCollection = this.database.collection("utente")
 //

@@ -39,9 +39,6 @@ class CartFragment : Fragment() {
 
 
 
-
-
-
         return fragmentRootView //super.onCreateView(inflater, container, savedInstanceState)
     }
 
@@ -64,7 +61,7 @@ class CartFragment : Fragment() {
 
     }
 
-    suspend fun recuperaAnnunciCarrelloFirebaseFirestore(userId : String): HashMap<String, Annuncio>{
+    suspend fun recuperaAnnunciCarrelloFirebaseFirestore(userId: String): HashMap<String, Annuncio> {
 
         val myCollection = this.database.collection("utente")
 
@@ -72,7 +69,7 @@ class CartFragment : Fragment() {
 
         val myElementiCarrello = myDocument.collection("carrello").get().await()
 
-        if(myElementiCarrello.size()>0) {
+        if(myElementiCarrello.size() > 0) {
 
             val myCollectionAnnuncio = this.database.collection(Annuncio.nomeCollection)
             val myHashMap = HashMap<String, Annuncio>()

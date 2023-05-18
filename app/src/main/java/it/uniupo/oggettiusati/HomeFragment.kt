@@ -160,7 +160,7 @@ class HomeFragment : Fragment() {
 
         distanceSlider?.setLabelFormatter { value -> "$value km"; }
 
-        distanceSlider?.addOnSliderTouchListener(object :Slider.OnSliderTouchListener{
+        distanceSlider?.addOnSliderTouchListener(object : Slider.OnSliderTouchListener {
             override fun onStartTrackingTouch(slider: Slider) {
                 //...
             }
@@ -186,10 +186,10 @@ class HomeFragment : Fragment() {
 
         filterButton?.setOnClickListener {
             val filterLay = view?.findViewById<LinearLayout>(R.id.filterElements)
-            if(filterLay?.isVisible == false){
+            if(filterLay?.isVisible == false) {
                 filterLay.visibility = View.VISIBLE
-            }else{
-                if (filterLay != null) { filterLay.visibility = View.GONE } else { Log.w("d-filter","filterLay e' null") }
+            } else {
+                if (filterLay != null) { filterLay.visibility = View.GONE } else { Log.w("d-filter", "filterLay e' null") }
             }
         }
 
@@ -199,14 +199,14 @@ class HomeFragment : Fragment() {
     private fun definisciQuery(titoloAnnuncio: String?, disponibilitaSpedire: Boolean?, prezzoSuperiore: Int?, prezzoMinore: Int?): Query {
 
         //Quando ad un annuncio non è assegnato un acquirente, non vogliamo mostrare nella home degli annunci che sono già stati venduti.
-        var myQuery = myCollection.whereEqualTo("userIdAcquirente",null)
+        var myQuery = myCollection.whereEqualTo("userIdAcquirente", null)
 
         if(titoloAnnuncio != null)
             myQuery = myQuery.whereEqualTo("titolo", titoloAnnuncio)
         //siamo nel caso in cui deve essere compreso
         if(prezzoSuperiore != null && prezzoMinore != null)
             myQuery = myQuery.orderBy("prezzo").whereGreaterThan("prezzo", prezzoMinore).whereLessThan("prezzo", prezzoSuperiore)
-        else{
+        else {
             if(prezzoSuperiore != null)
                 myQuery = myQuery.orderBy("prezzo").whereGreaterThan("prezzo", prezzoSuperiore)
             else if(prezzoMinore != null)
@@ -222,7 +222,7 @@ class HomeFragment : Fragment() {
     //Ogni pagina, mostra 10 annunci alla volta, questo metodo mi ritorna 10 annunci alla volta, in base ai parametri specificati dal utente
     suspend fun recuperaAnnunciPerMostrarliNellaHome(numeroPagina: Int): HashMap<String, Annuncio>? {
 
-        if(numeroPagina==1){
+        if(numeroPagina == 1) {
 
             myListenerAnnunciHome?.remove()
 
@@ -232,37 +232,35 @@ class HomeFragment : Fragment() {
 
             myAnnunciHome = recuperaAnnunci(myDocumenti)
 
-            this.myListenerAnnunciHome = subscribeRealTimeDatabase(queryRisultato,myAnnunciHome,false)
+            this.myListenerAnnunciHome = subscribeRealTimeDatabase(queryRisultato, myAnnunciHome, false)
 
             return myAnnunciHome
-        }
-        else if(numeroPagina>1 && myAnnunciHome.isNotEmpty()){
+        } else if(numeroPagina>1 && myAnnunciHome.isNotEmpty()) {
 
             myListenerAnnunciHome?.remove()
 
             queryRisultato = queryRisultato.orderBy(FieldPath.documentId()).startAfter(ultimoAnnuncioId).limit(10)
 
-            this.myListenerAnnunciHome = subscribeRealTimeDatabase(queryRisultato,myAnnunciHome,false)
+            this.myListenerAnnunciHome = subscribeRealTimeDatabase(queryRisultato, myAnnunciHome, false)
 
             val myDocumenti = queryRisultato.get().await()
 
-            //Log.d("MOSTRA HOME LAST",ultimoAnnuncioId.toString())
+            //Log.d("MOSTRA HOME LAST", ultimoAnnuncioId.toString())
 
             myAnnunciHome = recuperaAnnunci(myDocumenti)
 
             return myAnnunciHome
-        }
-        else
+        } else
             return null
     }
 
     //Recupera gli annunci che contengono una sequernza/sottosequenza nel titolo del annuncio.
-    fun recuperaAnnunciTitolo(nomeAnnuncio: String?){
+    fun recuperaAnnunciTitolo(nomeAnnuncio: String?) {
 
         this.titoloAnnuncio = nomeAnnuncio
     }
 
-    fun subscribeRealTimeDatabase(query: Query, myAnnunci: HashMap<String,Annuncio>,preferiti: Boolean): ListenerRegistration {
+    fun subscribeRealTimeDatabase(query: Query, myAnnunci: HashMap<String, Annuncio>, preferiti: Boolean): ListenerRegistration {
 
         val  listenerRegistration = query.addSnapshotListener { snapshot, e ->
             if (e != null) {
@@ -278,21 +276,21 @@ class HomeFragment : Fragment() {
                 myAnnunci[a.getAnnuncioId()] = a
 
                 if(preferiti)
-                    Toast.makeText(activity, "Il documento ${a.getAnnuncioId()} è cambiato!", Toast.LENGTH_LONG).show()
-                else{
-                    val adapter = CustomAdapter(myAnnunciHome, R.layout.card_view_design)
-
-                    val recyclerVu = view?.findViewById<RecyclerView>(R.id.recyclerview)
-
-                    //setting the Adapter with the recyclerView
-                    recyclerVu?.adapter = adapter
+//                    Toast.makeText(activity, "Il documento ${a.getAnnuncioId()} è cambiato!", Toast.LENGTH_LONG).show()
+                else {
+//                    val adapter = CustomAdapter(myAnnunciHome, R.layout.card_view_design)
+//
+//                    val recyclerVu = view?.findViewById<RecyclerView>(R.id.recyclerview)
+//
+//                    //setting the Adapter with the recyclerView
+//                    recyclerVu?.adapter = adapter
                 }
 
-                //Log.d("CONTENUTO ARRAYLIST",myAnnunciPreferiti.toString())
+                //Log.d("CONTENUTO ARRAYLIST", myAnnunciPreferiti.toString())
             }
         }
 
-        //Log.d("CONTENUTO ARRAYLIST",myAnnunci.toString())
+        //Log.d("CONTENUTO ARRAYLIST", myAnnunci.toString())
 
         return listenerRegistration
     }
@@ -312,7 +310,7 @@ class HomeFragment : Fragment() {
         return myAnnunci
     }
 
-    suspend fun controllaStatoRicercheAnnunci(userId : String): Boolean {
+    suspend fun controllaStatoRicercheAnnunci(userId: String): Boolean {
 
         val myCollection = this.database.collection("utente")
 
@@ -322,7 +320,7 @@ class HomeFragment : Fragment() {
 
         val myDocumentiRicerca = myCollectionRicerca.get().await()
 
-        for(myDocumento in myDocumentiRicerca.documents){
+        for(myDocumento in myDocumentiRicerca.documents) {
 
             val titoloAnnuncio = myDocumento.get("titoloAnnuncio") as String?
             val disponibilitaSpedire = myDocumento.getBoolean("disponibilitaSpedire")
@@ -333,7 +331,7 @@ class HomeFragment : Fragment() {
 
             val numeroAnnunciRicerca = (myDocumento.get("numeroAnnunci") as Long).toInt()
 
-            val query = definisciQuery(titoloAnnuncio,disponibilitaSpedire,prezzoSuperiore,prezzoMinore)
+            val query = definisciQuery(titoloAnnuncio, disponibilitaSpedire, prezzoSuperiore, prezzoMinore)
 
             val numeroAnnunci = query.get().await().size()
 
@@ -347,8 +345,7 @@ class HomeFragment : Fragment() {
                 aggiornaRicerca(userId, myDocumento.id, titoloAnnuncio, disponibilitaSpedire, prezzoSuperiore, prezzoMinore, numeroAnnunci)
 
                 return true
-            }
-            else if(numeroAnnunci < numeroAnnunciRicerca) {
+            } else if(numeroAnnunci < numeroAnnunciRicerca) {
                 Toast.makeText(
                     activity,
                     "Il numero di annunci della ricerca ${myDocumento.id} sono diminuiti!",
@@ -363,7 +360,7 @@ class HomeFragment : Fragment() {
         return false
     }
 
-    private suspend fun aggiornaRicerca(userId: String, idRicerca: String, titoloAnnuncio: String?, disponibilitaSpedire: Boolean?, prezzoSuperiore: Int?, prezzoMinore: Int?, numeroAnnunci: Int){
+    private suspend fun aggiornaRicerca(userId: String, idRicerca: String, titoloAnnuncio: String?, disponibilitaSpedire: Boolean?, prezzoSuperiore: Int?, prezzoMinore: Int?, numeroAnnunci: Int) {
 
         val myCollection = this.database.collection("utente")
 
@@ -376,7 +373,7 @@ class HomeFragment : Fragment() {
         myRicerca.update("titoloAnnuncio", titoloAnnuncio,"disponibilitaSpedire", disponibilitaSpedire, "prezzoSuperiore", prezzoSuperiore, "prezzoMinore", prezzoMinore, "numeroAnnunci", numeroAnnunci).await()
     }
 
-    suspend fun recuperaAnnunciPreferitiFirebaseFirestore(userId : String): HashMap<String, Annuncio>? {
+    suspend fun recuperaAnnunciPreferitiFirebaseFirestore(userId: String): HashMap<String, Annuncio>? {
 
         val myCollectionUtente = this.database.collection("utente")
 

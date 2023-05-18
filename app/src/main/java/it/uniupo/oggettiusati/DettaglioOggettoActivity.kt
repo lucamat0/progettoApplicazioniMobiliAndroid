@@ -33,15 +33,16 @@ class DettaglioOggettoActivity : AppCompatActivity() {
         //--- Fine ci servono con amministratore o proprietario ---
 
         // 0 = difettoso, 1 = qualche lieve difetto, 2 = usato ma in perfette condizioni, 3 = nuovo
-        findViewById<TextView>(R.id.stato).text = if(myAnnuncio.getStato()==0) "Stato: difettoso" else if(myAnnuncio.getStato()==1) "Stato: qualche lieve difetto" else if(myAnnuncio.getStato()==2) "Stato: usato ma in perfette condizioni" else "Stato: nuovo"
-        findViewById<TextView>(R.id.spedizione).text = if(myAnnuncio.getDisponibilitaSpedire()) "Spedizione: Si" else "Spedizione: No"
+        findViewById<TextView>(R.id.stato).text = if(myAnnuncio.getStato() == 0) "Stato: difettoso" else if(myAnnuncio.getStato() == 1) "Stato: qualche lieve difetto" else if(myAnnuncio.getStato() == 2) "Stato: usato ma in perfette condizioni" else "Stato: nuovo"
+        val spediz = "Spedizione: ${if(myAnnuncio.getDisponibilitaSpedire()) "Si" else "No"}"
+        findViewById<TextView>(R.id.spedizione).text = spediz
 
         findViewById<Button>(R.id.aggiungi_carrello).setOnClickListener {
-            runBlocking { inserisciAnnuncioCarrelloFirebaseFirestore(auth.uid!!,myAnnuncio.getAnnuncioId()) }
+            runBlocking { inserisciAnnuncioCarrelloFirebaseFirestore(auth.uid!!, myAnnuncio.getAnnuncioId()) }
         }
     }
 
-    suspend fun inserisciAnnuncioCarrelloFirebaseFirestore(userId : String, annuncioId: String): String {
+    suspend fun inserisciAnnuncioCarrelloFirebaseFirestore(userId: String, annuncioId: String): String {
 
         val myCollection = this.database.collection("utente")
 

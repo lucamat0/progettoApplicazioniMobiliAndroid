@@ -10,19 +10,19 @@ import androidx.fragment.app.FragmentManager
 import androidx.lifecycle.Lifecycle
 import androidx.viewpager2.adapter.FragmentStateAdapter
 
-class ViewPagerAdapter(fragmentManager: FragmentManager, lifecycle: Lifecycle) :
+class ViewPagerAdapter(fragmentManager: FragmentManager, lifecycle: Lifecycle, private var numItem: Int) :
     FragmentStateAdapter(fragmentManager, lifecycle) {
 
     override fun getItemCount(): Int {
-        return 3
+        return numItem
     }
 
     override fun createFragment(position: Int): Fragment {
         return when (position) {
             0 -> HomeFragment()
             1 -> CartFragment()
-            else -> ChatFragment()
+            2 -> ChatFragment()
+            else -> FavoritesFragment()
         }
-        //return ChatFragment()
     }
 }

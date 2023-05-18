@@ -56,7 +56,7 @@
 
 
     <!--
-    btn_log_out.setOnClickListener{
+    btn_log_out.setOnClickListener {
     Toast.makeText(baseContext, "Click on signOUT btn.",
     Toast.LENGTH_SHORT).show()
 
