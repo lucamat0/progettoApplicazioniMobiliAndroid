@@ -41,7 +41,7 @@ val pageTitlesArray = arrayOf(
 open class UserLoginActivity : AppCompatActivity() {
 
     //--- Inizio informazioni per il collegamento con firebase firestore ---
-//    val auth = FirebaseAuth.getInstance()
+    val auth = FirebaseAuth.getInstance()
     val database = Firebase.firestore
 //    //--- Fine informazioni per il collegamento con firebase firestore ---
 //
@@ -69,7 +69,7 @@ open class UserLoginActivity : AppCompatActivity() {
 //    //--- Variabile utile per salvare utente, id ---
 //    //var userId: String = "userIdProva"
 //
-//    val userId = auth.currentUser!!.uid
+    val userId = auth.currentUser!!.uid
 //
 //    @SuppressLint("WrongViewCast", "MissingInflatedId")
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -85,6 +85,14 @@ open class UserLoginActivity : AppCompatActivity() {
             tab.text = pageTitlesArray[position]
         }.attach()
         //end fragments
+
+        //logica bottone logout
+        val logoutButton = findViewById<Button>(R.id.logout_activity)
+        logoutButton?.setOnClickListener {
+            Toast.makeText(this, "Uscita...", Toast.LENGTH_SHORT).show()
+            FirebaseAuth.getInstance().signOut()
+            startActivity(Intent(this, MainActivity::class.java))
+        }
 
         val fabAggiungiOggetto = findViewById<FloatingActionButton>(R.id.aggiungi_oggetto)
         fabAggiungiOggetto.setOnClickListener {
@@ -102,17 +110,21 @@ open class UserLoginActivity : AppCompatActivity() {
 //            controllaStatoRicercheAnnunci(userId)
 //        }
 //
-//        lateinit var username: String
-//        val userRef = database.collection("utente").document(userId)
-//        userRef.get().addOnSuccessListener { document ->
-//            if (document != null) {
-//                username = document.get("nome").toString()
-//            } else {
-//                Log.w("document error", "Error: document is null")
-//            }
-//
+        lateinit var username: String
+        val userRef = database.collection("utente").document(userId)
+        userRef.get().addOnSuccessListener { document ->
+            if (document != null) {
+                username = document.get("nome").toString()
+            } else {
+                Log.w("document error", "Error: document is null")
+            }
+
+            val usernameView = findViewById<TextView>(R.id.username)
+            val userText = "Ciao $username"
+            usernameView.text = userText
+
 //            Toast.makeText(this, "Benvenuto ${username}!", Toast.LENGTH_LONG).show()
-//        }
+        }
 //
 //
 //        //getting the recyclerView by its id

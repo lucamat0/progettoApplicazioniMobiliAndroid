@@ -148,12 +148,13 @@ class HomeFragment : Fragment() {
 
         //---
 
-        //logica bottone logout
-        val logoutButton = view?.findViewById<Button>(R.id.logout)
-        logoutButton?.setOnClickListener {
-            FirebaseAuth.getInstance().signOut()
-            startActivity(Intent(activity, MainActivity::class.java))
-        }
+//        //logica bottone logout
+//        val logoutButton = view?.findViewById<Button>(R.id.logout)
+//        logoutButton?.setOnClickListener {
+//            Toast.makeText(activity, "Uscita...", Toast.LENGTH_SHORT).show()
+//            FirebaseAuth.getInstance().signOut()
+//            startActivity(Intent(activity, MainActivity::class.java))
+//        }
 
         // --- Inizio metodi relativi ai filtri ---
         val distanceSlider = view?.findViewById<Slider>(R.id.distanceSlider)
