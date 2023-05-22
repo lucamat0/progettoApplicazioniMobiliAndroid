@@ -5,4 +5,12 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/recyclerviewUtenti"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        tools:itemCount="5"
+        tools:listitem="@layout/user_layout" />
+    />
+
 </FrameLayout>

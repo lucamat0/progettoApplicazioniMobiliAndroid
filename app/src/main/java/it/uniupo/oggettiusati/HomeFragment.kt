@@ -29,6 +29,7 @@ import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.tasks.await
+import java.util.ArrayList
 
 class HomeFragment : Fragment() {
     //--- Inizio informazioni per il collegamento con firebase firestore ---
@@ -86,13 +87,6 @@ class HomeFragment : Fragment() {
 
             Toast.makeText(activity, "Benvenuto ${username}!", Toast.LENGTH_LONG).show()
         }
-
-
-
-
-
-
-
 
         return fragmentRootView
 
@@ -261,6 +255,42 @@ class HomeFragment : Fragment() {
         this.titoloAnnuncio = nomeAnnuncio
     }
 
+
+    //Sospendo il metodo, per aspettare che la lista dei documenti sia stata recuperata e insirita nel arrayList
+    fun recuperaTuttiAnnunci() {
+
+        this.titoloAnnuncio = null
+        this.disponibilitaSpedire = null
+        this.prezzoSuperiore = null
+        this.prezzoMinore = null
+    }
+
+    //Fissano un limite inferiore
+    fun recuperaAnnunciPrezzoInferiore(prezzoMinore: Int){
+
+        this.prezzoMinore = prezzoMinore
+        this.prezzoSuperiore = null
+    }
+
+    //Fissano un limite superiore
+    fun recuperaAnnunciPrezzoSuperiore(prezzoSuperiore: Int) {
+
+        this.prezzoMinore = null
+        this.prezzoSuperiore = prezzoSuperiore
+    }
+
+    // Fissano un range in cui l'annuncio deve essere compreso tra il prezzo minore e quello maggiore.
+    fun recuperaAnnunciPrezzoRange(prezzoMinore: Int, prezzoSuperiore: Int){
+
+        this.prezzoMinore = prezzoMinore
+        this.prezzoSuperiore = prezzoSuperiore
+    }
+
+    //Ritorna gli annunci che rispettano la disponibilitá di spedire.
+    fun recuperaAnnunciDisponibilitaSpedire(disponibilitaSpedire: Boolean) {
+        this.disponibilitaSpedire = disponibilitaSpedire
+    }
+
     fun subscribeRealTimeDatabase(query: Query, myAnnunci: HashMap<String, Annuncio>, preferiti: Boolean): ListenerRegistration {
 
         val  listenerRegistration = query.addSnapshotListener { snapshot, e ->
@@ -374,7 +404,7 @@ class HomeFragment : Fragment() {
         myRicerca.update("titoloAnnuncio", titoloAnnuncio,"disponibilitaSpedire", disponibilitaSpedire, "prezzoSuperiore", prezzoSuperiore, "prezzoMinore", prezzoMinore, "numeroAnnunci", numeroAnnunci).await()
     }
 
-    suspend fun recuperaAnnunciPreferitiFirebaseFirestore(userId: String): HashMap<String, Annuncio>? {
+    suspend fun recuperaAnnunciPreferitiFirebaseFirestore(userId: String): HashMap<String, Annuncio> {
 
         val myCollectionUtente = this.database.collection("utente")
 
@@ -382,13 +412,13 @@ class HomeFragment : Fragment() {
 
         val myDocumentiPreferiti = myDocumentUtente.collection("preferito").get().await()
 
-        if(myDocumentiPreferiti.documents.size>0) {
+        if(myDocumentiPreferiti.documents.size > 0) {
 
             aggiornaListenerPreferiti(myDocumentiPreferiti)
 
             return myAnnunciPreferiti
         }
-        return null
+        return HashMap()
     }
 
     //Listener dei preferiti si aggiorna quando, inseriamo un nuovo elemento nei preferiti, oppure quando andiamo a recuperare i preferiti.
@@ -412,6 +442,67 @@ class HomeFragment : Fragment() {
         myListenerAnnunciPreferiti = subscribeRealTimeDatabase(query, myAnnunciPreferiti, true)
     }
 
+
+    suspend fun inserisciRicercaSuFirebaseFirestore(
+        idUtente: String,
+        titoloAnnuncio: String?, disponibilitaSpedire: Boolean?, prezzoSuperiore: Int?, prezzoMinore: Int?
+    ): String {
+
+        val myCollectionUtente = this.database.collection("utente")
+
+        val myDocumento = myCollectionUtente.document(idUtente)
+
+        val myCollectionRicerca = myDocumento.collection("ricerca")
+
+        //numero di documenti che corrisponde alla ricerca effettuata dal utente.
+        val numeroAnnunci = definisciQuery(titoloAnnuncio, disponibilitaSpedire, prezzoSuperiore, prezzoMinore).get().await().documents.size
+
+        val myRicerca = hashMapOf(
+            "titoloAnnuncio" to titoloAnnuncio,
+            "disponibilitaSpedire" to disponibilitaSpedire,
+            "prezzoSuperiore" to prezzoSuperiore,
+            "prezzoMinore" to prezzoMinore,
+            "numeroAnnunci" to numeroAnnunci
+        )
+
+        return myCollectionRicerca.add(myRicerca).await().id
+    }
+
+
+    //Devo recuperare annuncio
+    // --- Da fare --
+//
+//    public suspend fun recuperaAnnunciLocalizzazione(
+//        posizioneUtente: Location,
+//        distanzaMax: Int
+//    ): HashMap<String, Annuncio> {
+//
+//        var myHashMap = recuperaTuttiAnnunci()
+//
+//        var myAnnunci = HashMap<String, Annuncio>()
+//
+//        for ((key, value) in myHashMap) {
+//            if (value.distanzaMinore(posizioneUtente, distanzaMax))
+//                myAnnunci[key] = value
+//        }
+//
+//        return myAnnunci
+//    }
+//
+
+    // suspend fun eliminaRicercaFirebaseFirestore(userId : String, idRicerca: String){
+//
+//        val myCollection = this.database.collection("utente")
+//
+//        val myDocumento = myCollection.document(userId)
+//
+//        val myCollectionRicerca = myDocumento.collection("ricerca")
+//
+//        val myDocumentRicerca = myCollectionRicerca.document(idRicerca)
+//
+//        myDocumentRicerca.delete().await()
+//    }
+//
     fun documentoAnnuncioToObject(myDocumentoAnnuncio: DocumentSnapshot): Annuncio {
 
         val userIdAcquirente: String? = myDocumentoAnnuncio.get("userIdAcquirente") as String?
@@ -432,5 +523,4 @@ class HomeFragment : Fragment() {
             userIdAcquirente,
             myDocumentoAnnuncio.id)
     }
-
 }

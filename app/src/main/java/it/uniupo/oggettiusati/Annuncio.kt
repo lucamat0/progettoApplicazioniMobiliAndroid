@@ -9,6 +9,7 @@ import android.os.Parcel
 import android.os.Parcelable
 import android.util.Log
 import androidx.annotation.RequiresApi
+import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.firestore.GeoPoint
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
@@ -20,6 +21,8 @@ import java.io.File
 import java.lang.Math.*
 import java.nio.file.Paths
 import kotlin.random.Random
+
+val database = Firebase.firestore
 
 data class Annuncio(
 
@@ -221,8 +224,20 @@ data class Annuncio(
     }
 
     suspend fun setVenduto(userIdAcquirente: String) {
+        //aggiunta di un nuovo campo booleano che viene settato a true quando acquirente ha dato ok
+    }
+
+    suspend fun setRichiesta(){
         if(this.userIdAcquirente == null) {
             this.userIdAcquirente = userIdAcquirente
+
+            modificaAnnuncioSuFirebase()
+        }
+    }
+
+    suspend fun setEliminaRichiesta(){
+        if(this.userIdAcquirente != null){
+            this.userIdAcquirente = null
 
             modificaAnnuncioSuFirebase()
         }
@@ -275,6 +290,10 @@ data class Annuncio(
         return titolo
     }
 
+    fun getAcquirente(): String?{
+        return this.userIdAcquirente
+    }
+
     //Metodo che mi permette di tradurre la distanza in Km, date due coordinate composte da longitudine e latitudine
     private fun distanzaInKm(posizioneUtente: Location): Double {
 
@@ -319,6 +338,14 @@ data class Annuncio(
 
     fun getCategoria(): String {
         return categoria
+    }
+
+    fun isPreferito(userIdVisualizzatore: String): Boolean{
+        return false
+    }
+
+    fun isCarrello(userIdVisualizzatore: String): Boolean {
+        return false
     }
 
     override fun writeToParcel(parcel: Parcel, flags: Int) {

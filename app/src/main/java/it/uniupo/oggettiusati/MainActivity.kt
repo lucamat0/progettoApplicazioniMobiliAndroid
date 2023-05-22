@@ -115,6 +115,8 @@ class MainActivity : AppCompatActivity() {
                 if (utenteSospeso) {
                     Log.d("Sign in", "User is suspended")
                     Toast.makeText(baseContext, "Authentication failed: l'utente e' sospeso.", Toast.LENGTH_SHORT).show()
+                    if(auth.currentUser != null) FirebaseAuth.getInstance().signOut() //forzo l'uscita
+                    setContentView(R.layout.activity_main) //e mostro la ui di login
                 } else {
                     updateUI(auth.currentUser)
                 }

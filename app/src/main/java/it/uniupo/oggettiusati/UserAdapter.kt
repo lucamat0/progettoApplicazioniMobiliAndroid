@@ -12,7 +12,7 @@ import androidx.appcompat.view.menu.MenuView
 import androidx.recyclerview.widget.RecyclerView
 import com.google.firebase.auth.FirebaseAuth
 
-class UserAdapter(val userList: ArrayList<UserLoginActivity.Utente>): RecyclerView.Adapter<UserAdapter.UserViewHolder>() {
+class UserAdapter(val userList: ArrayList<ChatFragment.Utente>): RecyclerView.Adapter<UserAdapter.UserViewHolder>() {
 
     val auth = FirebaseAuth.getInstance()
 

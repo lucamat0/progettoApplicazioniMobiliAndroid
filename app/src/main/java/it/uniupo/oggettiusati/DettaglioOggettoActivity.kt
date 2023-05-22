@@ -59,4 +59,36 @@ class DettaglioOggettoActivity : AppCompatActivity() {
 
         return myCollectionCarrello.add(myElementoCarrello).await().id
     }
+
+    //Questo metodo, avrá un voto nella recensione valido, per una maggiore usabilitá si aggiunge comunque il controllo del voto, compreso tra 1 e 5/
+    suspend fun inserisciRecensioneSuFirebaseFirestore(
+        titoloRecensione: String,
+        descrizioneRecensione: String,
+        votoAlUtente: Int,
+        idUtenteRecensito: String
+    ): String? {
+
+        //se il voto del utente si trova tra 1 e 5 allora inserisci la recensione...
+        if(votoAlUtente in 1..5) {
+
+            val myCollectionUtente = this.database.collection("utente")
+
+            val myDocumento = myCollectionUtente.document(idUtenteRecensito)
+
+            val myCollectionRecensione = myDocumento.collection("recensione")
+
+            val myRecensione = hashMapOf(
+                "titoloRecensione" to titoloRecensione,
+                "descrizioneRecensione" to descrizioneRecensione,
+                "votoAlUtente" to votoAlUtente,
+                "idUtenteEspresso" to this.auth.uid
+            )
+
+            return myCollectionRecensione.add(myRecensione).await().id
+        }
+        //se il voto, assegnato dal utente, non é valido...
+        else
+            return null
+    }
+
 }

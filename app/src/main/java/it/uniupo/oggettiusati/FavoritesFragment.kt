@@ -20,6 +20,7 @@ import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.tasks.await
+import java.util.Date
 
 class FavoritesFragment : Fragment() {
 
@@ -44,8 +45,6 @@ class FavoritesFragment : Fragment() {
         val fragmentRootView = inflater.inflate(R.layout.fragment_favorites, container, false)
         //context: activity
         //view or fragmentRootView object to use to call findViewById(): fragmentRootView
-
-
 
         return fragmentRootView //super.onCreateView(inflater, container, savedInstanceState)
     }
@@ -177,4 +176,43 @@ class FavoritesFragment : Fragment() {
 
         return listenerRegistration
     }
+
+    suspend fun eliminaAnnuncioPreferitoFirebaseFirestore(userId : String, elementoCarrelloId: String){
+
+        val myCollection = this.database.collection("utente")
+
+        val myDocumento = myCollection.document(userId)
+
+        val myCollectionCarrello = myDocumento.collection("preferito")
+
+        val myDocumentCarrello = myCollectionCarrello.document(elementoCarrelloId)
+
+        myDocumentCarrello.delete().await()
+    }
+
+    suspend fun inserisciAnnuncioPreferitoFirebaseFirestore(userId : String, annuncioId: String): String {
+
+        val myCollection = this.database.collection("utente")
+
+        val myDocumento = myCollection.document(userId)
+
+        val myCollectionPreferito = myDocumento.collection("preferito")
+
+        val dataOraAttuale = Date().time
+
+        val myElementoPreferito = hashMapOf(
+            "annuncioId" to annuncioId,
+            "dataOraAttuale" to dataOraAttuale
+        )
+
+        val idPreferito = myCollectionPreferito.add(myElementoPreferito).await().id
+
+        val myDocumentiPreferiti = myCollectionPreferito.get().await()
+
+        if(myDocumentiPreferiti.documents.size>0)
+            aggiornaListenerPreferiti(myDocumentiPreferiti)
+
+        return idPreferito
+    }
+
 }
