@@ -47,7 +47,7 @@ data class Annuncio(
     //Viene utilizzata, per rappresentare la posizione geografica, metodi che mi gestiscono la posizione come latitudine e longitudine
     //Parametro NON obbligatorio, per il costruttore secondario.
     private var posizione: Location = Location("provider")
-): Parcelable {
+) : Parcelable {
 
     //collegamento con il mio database, variabile statica.
     companion object {
@@ -67,7 +67,7 @@ data class Annuncio(
     //--- Inizio variabili utili all'inserimento delle immagini sul cloud ---
     val storage = FirebaseStorage.getInstance()
 
-    lateinit var storageRef : StorageReference
+    lateinit var storageRef: StorageReference
     //--- Fine variabili utili all'inserimento delle immagini sul cloud ---
 
     private val database = Firebase.firestore
@@ -125,10 +125,10 @@ data class Annuncio(
     }
 
     //Funzione che mi permette di scrivere sul cloud, FireBase, i dati del singolo annuncio, passo anche la posizione dell'immagine che voglio caricare sul cloud.
-    suspend fun salvaAnnuncioSuFirebase(myImmagini: ArrayList<Uri>?){
-    //public suspend fun salvaAnnuncioSuFirebase(){
+    suspend fun salvaAnnuncioSuFirebase(myImmagini: ArrayList<Uri>?) {
+    //public suspend fun salvaAnnuncioSuFirebase() {
 
-            val geo = GeoPoint(posizione.latitude,posizione.longitude)
+            val geo = GeoPoint(posizione.latitude, posizione.longitude)
 
             this.timeStampInizioVendita = System.currentTimeMillis()
 
@@ -148,14 +148,14 @@ data class Annuncio(
 
             val myCollection = database.collection(nomeCollection)
 
-            //Log.d("DEBUG","Prima")
+            //Log.d("DEBUG", "Prima")
 
             val myDocument = myCollection.add(annuncio).await()
 
             //Log.d("DEBUG", "Dopo")
 
             this.annuncioId = myDocument.id
-            this.storageRef = storage.reference.child(annuncioId+"\\")
+            this.storageRef = storage.reference.child(annuncioId + "\\")
 
             Log.d("SALVA ANNUNCIO SU FIREBASE", annuncioId)
 
@@ -163,14 +163,14 @@ data class Annuncio(
                 caricaImmaginiSuFirebase(myImmagini)
     }
 
-    private suspend fun modificaAnnuncioSuFirebase(){
+    private suspend fun modificaAnnuncioSuFirebase() {
 
         val adRif = database.collection(nomeCollection).document(this.annuncioId)
 
-        adRif.update("userId",userId,"titolo",titolo,"descrizione",descrizione,"prezzo",prezzo,"stato",stato,"disponibilitaSpedire",disponibilitaSpedire,"categoria",categoria).await()
+        adRif.update("userId", userId, "titolo", titolo, "descrizione", descrizione, "prezzo", prezzo, "stato", stato, "disponibilitaSpedire", disponibilitaSpedire, "categoria", categoria).await()
     }
 
-    suspend fun eliminaAnnuncioDaFirebase(){
+    suspend fun eliminaAnnuncioDaFirebase() {
 
         val myCollection = database.collection(nomeCollection)
 
@@ -179,7 +179,7 @@ data class Annuncio(
         myDocument.delete().await()
     }
 
-    private fun caricaImmaginiSuFirebase(myImmagini: ArrayList<Uri>){
+    private fun caricaImmaginiSuFirebase(myImmagini: ArrayList<Uri>) {
 
         for(immagineUri in myImmagini) {
 
@@ -206,47 +206,47 @@ data class Annuncio(
         }
     }
 
-    @RequiresApi(Build.VERSION_CODES.O)
+
     suspend fun recuperaImmaginiSuFirebase(): ArrayList<Uri> {
 
-        var myListImmaginiRef = storageRef.listAll().await()
+        val myListImmaginiRef = storageRef.listAll().await()
 
         val myImmagini = ArrayList<Uri>()
 
-        for(item in myListImmaginiRef.items){
+        for(item in myListImmaginiRef.items) {
             myImmagini.add(item.downloadUrl.await())
         }
 
         return myImmagini
     }
 
-    suspend fun setVenduto(userIdAcquirente: String){
-        if(this.userIdAcquirente == null){
+    suspend fun setVenduto(userIdAcquirente: String) {
+        if(this.userIdAcquirente == null) {
             this.userIdAcquirente = userIdAcquirente
 
             modificaAnnuncioSuFirebase()
         }
     }
 
-    suspend fun setTitolo(newTitolo:String){
+    suspend fun setTitolo(newTitolo: String) {
         this.titolo = newTitolo
 
         modificaAnnuncioSuFirebase()
     }
 
-    suspend fun setDescrizione(newDescrizione:String){
+    suspend fun setDescrizione(newDescrizione: String) {
         this.descrizione = newDescrizione
 
         modificaAnnuncioSuFirebase()
     }
 
-    suspend fun setCategoria(newCategoria:String){
+    suspend fun setCategoria(newCategoria: String) {
         this.categoria = newCategoria
 
         modificaAnnuncioSuFirebase()
     }
 
-    suspend fun setPrezzo(newPrezzo: Double){
+    suspend fun setPrezzo(newPrezzo: Double) {
         this.prezzo = newPrezzo
 
         modificaAnnuncioSuFirebase()
@@ -255,12 +255,15 @@ data class Annuncio(
     fun getPrezzo(): Double {
         return prezzo
     }
+    fun getPrezzoToString(): String {
+        return String.format("%.2f", prezzo) + "€"
+    }
 
     fun getTimeStampInizioVendita(): Long? {
         return timeStampInizioVendita
     }
 
-    fun isVenduto(): Boolean{
+    fun isVenduto(): Boolean {
         return userIdAcquirente != null
     }
 
@@ -293,7 +296,7 @@ data class Annuncio(
     }
 
     //Mi ritorna true se l'annuncio, ha una distanza inferiore a quella massima.
-    fun distanzaMinore(posizioneUtente: Location, distanzaMax: Int): Boolean{
+    fun distanzaMinore(posizioneUtente: Location, distanzaMax: Int): Boolean {
         return  distanzaInKm(posizioneUtente) <= distanzaMax
     }
 

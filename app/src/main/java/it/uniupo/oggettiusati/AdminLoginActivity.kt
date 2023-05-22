@@ -21,10 +21,10 @@ class AdminLoginActivity : UserLoginActivity() {
         var username = ""
         val userRef = this.database.collection("utente").document(this.userId)
         userRef.get().addOnSuccessListener { document ->
-            if(document != null){
+            if(document != null) {
                 username = document.get("nome").toString()
             } else {
-                Log.w("document error","Error: document is null")
+                Log.w("document error", "Error: document is null")
             }
 
             Toast.makeText(this, "Benvenuto ${username}!", Toast.LENGTH_LONG).show()
@@ -40,7 +40,7 @@ class AdminLoginActivity : UserLoginActivity() {
     }
 
     //--- Deve poter eliminare utenti o sospenderli dalle attività ---
-    private suspend fun eliminaUtente(userId: String){
+    private suspend fun eliminaUtente(userId: String) {
 
         try {
             val myCollection = this.database.collection("utente")
@@ -59,21 +59,21 @@ class AdminLoginActivity : UserLoginActivity() {
             }.await()
 
             //myDocument.delete().await()
-        }catch (e: Exception){
-            Log.e("ERRORE ELIMINA UTENTE","Durante l'eliminazione del utente c'é stato un errore!", e)
+        } catch (e: Exception) {
+            Log.e("ERRORE ELIMINA UTENTE", "Durante l'eliminazione del utente c'é stato un errore!", e)
         }
 
     }
 
-    suspend fun sospendiUtente(userId: String){
+    suspend fun sospendiUtente(userId: String) {
 
         try {
             val myCollection = this.database.collection("utente")
 
             myCollection.document(userId).update("sospeso", true).await()
 
-        }catch (e: Exception){
-            Log.e("ERRORE SOSPENDI UTENTE","Durante la sospensione del utente c'é stato un errore!", e)
+        } catch (e: Exception) {
+            Log.e("ERRORE SOSPENDI UTENTE", "Durante la sospensione del utente c'é stato un errore!", e)
         }
     }
 
@@ -81,7 +81,7 @@ class AdminLoginActivity : UserLoginActivity() {
 
     //--- Accesso a dati statistici ---
 
-    suspend fun numeroOggettiInVendita(): Int{
+    suspend fun numeroOggettiInVendita(): Int {
         return try {
 
             val myCollection = this.database.collection(Annuncio.nomeCollection)
@@ -101,7 +101,7 @@ class AdminLoginActivity : UserLoginActivity() {
         }
     }
 
-    suspend fun numeroOggettiInVenditaPerSpecificoUtente(userId: String): Int{
+    suspend fun numeroOggettiInVenditaPerSpecificoUtente(userId: String): Int {
         return try {
 
             val myCollection = this.database.collection(Annuncio.nomeCollection)
@@ -121,12 +121,12 @@ class AdminLoginActivity : UserLoginActivity() {
         }
     }
 
-    private suspend fun numeroOggettiInVenditaPerRaggioDistanza(posizione: Location): Int{
+    private suspend fun numeroOggettiInVenditaPerRaggioDistanza(posizione: Location): Int {
         return try {
 
             val myCollection = this.database.collection(Annuncio.nomeCollection)
 
-            val query = myCollection.whereLessThanOrEqualTo("posizione",posizione)
+            val query = myCollection.whereLessThanOrEqualTo("posizione", posizione)
 
             val myDocuments = query.get().await()
 
@@ -151,25 +151,24 @@ class AdminLoginActivity : UserLoginActivity() {
 
         val myHashRecensioni = HashMap<String, Double>()
 
-        for (myDocumento in queryUtente.documents){
+        for (myDocumento in queryUtente.documents) {
 
             val queryRecensioni = myCollection.document(myDocumento.id).collection("recensione").get().await()
 
-            //Log.d("RECENSIONI CON VOTO PIÚ ALTO",myDocumento.id)
+            //Log.d("RECENSIONI CON VOTO PIÚ ALTO", myDocumento.id)
 
             val numeroRecensioni = queryRecensioni.documents.size
 
-            //Log.d("RECENSIONI CON VOTO PIÚ ALTO",numeroRecensioni.toString())
+            //Log.d("RECENSIONI CON VOTO PIÚ ALTO", numeroRecensioni.toString())
 
-            if(numeroRecensioni>0) {
+            if(numeroRecensioni > 0) {
                 var totalePunteggioRecensioni: Double = 0.0
                 for (myRecensioni in queryRecensioni.documents) {
                     totalePunteggioRecensioni += (myRecensioni.getLong("votoAlUtente") as Long).toDouble()
                 }
 
                 myHashRecensioni[myDocumento.id] = totalePunteggioRecensioni / numeroRecensioni
-            }
-            else{
+            } else {
                 myHashRecensioni[myDocumento.id] = 0.0
             }
         }
@@ -180,8 +179,7 @@ class AdminLoginActivity : UserLoginActivity() {
             //visto che non vogliamo considerare la chiave, utilizziamo _ per indicare il precedente valore, restituiamo solo il valore,
             //che viene dato in input alla funzione sortedByDescending, che lo considera per per l'ordinamento.
             return  myHashRecensioni.toList().sortedByDescending { (_, value) -> value }.toMap()
-        }
-        else
+        } else
             return myHashRecensioni
     }
 
@@ -195,7 +193,7 @@ class AdminLoginActivity : UserLoginActivity() {
 
         val numeroDocumenti = myDocuments.size()
 
-        if(numeroDocumenti>0) {
+        if(numeroDocumenti > 0) {
 
             var tempoTotale: Long = 0
             for (myDocument in myDocuments.documents) {
@@ -219,8 +217,7 @@ class AdminLoginActivity : UserLoginActivity() {
 
             //86400000 = numero di millisecondi per giorno.
             return tempoMedio.toDouble() / 86400000.toDouble()
-        }
-        else
+        } else
             return null
     }
 }

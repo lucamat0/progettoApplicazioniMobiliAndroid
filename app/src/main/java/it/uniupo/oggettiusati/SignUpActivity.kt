@@ -40,7 +40,7 @@ class SignUpActivity : AppCompatActivity() {
 
         buttonSignUp.setOnClickListener {
             if (email.text.toString().isNotEmpty() && password.text.toString().isNotEmpty()) {
-                Toast.makeText(this, "Email e password validi", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "Email e password non vuoti", Toast.LENGTH_SHORT).show()
 
                 //Almeno un: numero, lettera maiuscola, lettera minuscola, carattere speciale, no spazi bianchi, lunga almeno 8 caratteri. -> DA SCRIVERE IN MANIERA PIÚ EFFICENTE, SE POSSIBILE.
                 //Il numero di telefono é composto da 10 numeri
@@ -57,9 +57,11 @@ class SignUpActivity : AppCompatActivity() {
 
                             user = auth.currentUser!!
 
-                            // recupero Id utente appena memorizzato,
-                            // avendolo appena creato NON é possibile che sia null,
-                            // quindi lo specifico con !!
+                            //If the new account was created, the user is also signed in, use getCurrentUser() to get user info.
+                            //noi pero' vogliamo che esca ed esegua il login con le sue nuove credenziali
+                            if(auth.currentUser != null) FirebaseAuth.getInstance().signOut()
+
+                            // recupero Id utente appena memorizzato
                             val userId = user.uid
 
                             runBlocking {
@@ -72,12 +74,12 @@ class SignUpActivity : AppCompatActivity() {
                                         numeroDiTelefono.text.toString()
                                     ) == null
                                 ) {
-                                    //Se il documento non si é riuscito a creare bisogna eliminare utente
+                                    //Se non si é riuscito a creare il documento bisogna eliminare utente
                                     user.delete()
                                 }
                             }
-
                         } else {
+                            // If sign in fails, display a message to the user.
                             // La registrazione dell'utente non è andata a buon fine
                             Log.w("Creazione", "createUserWithEmail:failure", task.exception)
                             Toast.makeText(
@@ -86,21 +88,18 @@ class SignUpActivity : AppCompatActivity() {
                                 Toast.LENGTH_SHORT
                             ).show()
                         }
-
-
                     }
                 } else {
-                    // If sign in fails, display a message to the user.
                     Toast.makeText(
                         baseContext,
-                        "Authentication failed: weak password.",
+                        "Authentication error. Sign-up failed: weak password.",
                         Toast.LENGTH_SHORT
                     ).show()
                 }
             } else {
                 Toast.makeText(
                     baseContext,
-                    "Authentication failed: empty credentials.",
+                    "Authentication error. Sign-up failed: empty credentials.",
                     Toast.LENGTH_SHORT
                 ).show()
             }

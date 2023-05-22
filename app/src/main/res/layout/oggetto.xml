@@ -45,9 +45,17 @@
                 android:paddingHorizontal="10dp"/>
 
             <Button
+                android:id="@+id/aggiungi_carrello"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="Aggiungi al carrello"
+                />
+
+            <Button
+                android:id="@+id/aggiungi_preferiti"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Aggiungi ai preferiti"
                 />
 
             <TextView
