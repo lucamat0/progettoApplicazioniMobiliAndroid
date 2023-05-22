@@ -6,8 +6,6 @@ import android.net.Uri
 import android.os.Bundle
 import android.util.Log
 import android.view.View
-import android.widget.Button
-import android.widget.EditText
 import android.widget.ImageButton
 import android.widget.LinearLayout
 import android.widget.TextView
@@ -62,14 +60,16 @@ open class UserLoginActivity : AppCompatActivity() {
 
     val userId = auth.currentUser!!.uid
 
+
     @SuppressLint("WrongViewCast", "MissingInflatedId")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_user_logged)
 
+
         runBlocking {
 
-            recuperaAnnunciPerMostrarliNellaHome(1)
+            //recuperaAnnunciPerMostrarliNellaHome(1)
 
             recuperaAnnunciPreferitiFirebaseFirestore(userId)
 
@@ -89,6 +89,19 @@ open class UserLoginActivity : AppCompatActivity() {
         }
 
 
+        runBlocking {
+
+            val nomeCognomeUtenti = recuperaUtenti()
+
+            val recyclerViewUtenti = findViewById<RecyclerView>(R.id.recyclerviewUtenti)
+            recyclerViewUtenti.layoutManager = LinearLayoutManager(this@UserLoginActivity)
+
+            val adapterUtenti = UserAdapter(nomeCognomeUtenti)
+            recyclerViewUtenti.adapter = adapterUtenti
+        }
+
+
+/*
         //getting the recyclerView by its id
         val recyclerVu = findViewById<RecyclerView>(R.id.recyclerview)
 
@@ -126,13 +139,16 @@ open class UserLoginActivity : AppCompatActivity() {
 
         //setting the Adapter with the recyclerView
         recyclerVu.adapter = adapter
-
+*/
+        /*
         //logica bottone logout
         val logoutButton = findViewById<Button>(R.id.logout)
         logoutButton.setOnClickListener {
             FirebaseAuth.getInstance().signOut()
             startActivity(Intent(this, MainActivity::class.java))
         }
+
+         */
 
         // --- Inizio metodi relativi ai filtri ---
         val distanceSlider = findViewById<Slider>(R.id.distanceSlider)
@@ -173,6 +189,27 @@ open class UserLoginActivity : AppCompatActivity() {
         }
 
         // --- Fine metodi relativi ai filtri ---
+    }
+
+    private suspend fun recuperaUtenti(): ArrayList<Utente>{
+
+        val nomeCognome = ArrayList<Utente>()
+
+        val myDocumenti = database.collection("utente").get().await()
+
+        for(myDocumento in myDocumenti.documents){
+            nomeCognome.add(
+                Utente(myDocumento.id as String,
+                    myDocumento.get("nome") as String,
+                    myDocumento.get("cognome") as String,
+                    (myDocumento.getLong("amministratore") as Long).toInt(),
+                    myDocumento.get("numeroDiTelefono") as String,
+                    myDocumento.getBoolean("sospeso") as Boolean,
+                    myDocumento.getString("dataNascita") as String
+                ))
+        }
+
+        return nomeCognome
     }
 
     private fun selezionaImmagini(){
@@ -241,7 +278,7 @@ open class UserLoginActivity : AppCompatActivity() {
 
         return myQuery
     }
-
+/*
     //Ogni pagina, mostra 10 annunci alla volta, questo metodo mi ritorna 10 annunci alla volta, in base ai parametri specificati dal utente
     suspend fun recuperaAnnunciPerMostrarliNellaHome(numeroPagina: Int): HashMap<String, Annuncio>? {
 
@@ -278,7 +315,7 @@ open class UserLoginActivity : AppCompatActivity() {
         else
             return null
     }
-
+*/
     //Sospendo il metodo, per aspettare che la lista dei documenti sia stata recuperata e insirita nel arrayList
     fun recuperaTuttiAnnunci() {
 
@@ -358,6 +395,7 @@ open class UserLoginActivity : AppCompatActivity() {
 
                 if(preferiti)
                     Toast.makeText(this, "Il documento ${a.getAnnuncioId()} è cambiato!", Toast.LENGTH_LONG).show()
+                /*
                 else{
                     val adapter = CustomAdapter(myAnnunciHome)
 
@@ -366,7 +404,7 @@ open class UserLoginActivity : AppCompatActivity() {
                     //setting the Adapter with the recyclerView
                     recyclerVu.adapter = adapter
                 }
-
+                */
                 //Log.d("CONTENUTO ARRAYLIST",myAnnunciPreferiti.toString())
             }
         }
@@ -656,6 +694,7 @@ open class UserLoginActivity : AppCompatActivity() {
 
     //Listener dei preferiti si aggiorna quando, inseriamo un nuovo elemento nei preferiti, oppure quando andiamo a recuperare i preferiti.
     //Da qui, ogni modifica effettuata sugli annunci ci viene notificata, provvisoriamente con un Toast.
+
     private suspend fun aggiornaListenerPreferiti(myDocumentiPreferiti: QuerySnapshot) {
 
         val myListaId = mutableListOf<String>()
@@ -756,4 +795,7 @@ open class UserLoginActivity : AppCompatActivity() {
     }
 
     data class Ricerca(val userId: String, val idRicerca: String, val titoloAnnuncio: String?, val disponibilitaSpedire: Boolean?, val prezzoSuperiore: Int?, val prezzoMinore: Int?, val numeroAnnunci: Int)
+
+    data class Utente(val uid: String, val nome: String, val cognome: String, val amministratore: Int, val numeroDiTelefono: String, val sospeso: Boolean, val dataNascita: String)
+
 }

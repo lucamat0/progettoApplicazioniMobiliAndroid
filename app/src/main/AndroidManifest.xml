@@ -19,6 +19,7 @@
         <activity android:name=".SignUpActivity" />
         <activity android:name=".UserLoginActivity" />
         <activity android:name=".AdminLoginActivity" />
+        <activity android:name=".ChatActivity" />
         <activity
             android:name=".MainActivity"
             android:exported="true">
