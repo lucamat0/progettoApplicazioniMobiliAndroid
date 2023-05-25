@@ -344,8 +344,8 @@ data class Annuncio(
         return false
     }
 
-    fun isCarrello(userIdVisualizzatore: String): Boolean {
-        return false
+    fun isCarrello(): Boolean {
+        return userIdAcquirente != null
     }
 
     override fun writeToParcel(parcel: Parcel, flags: Int) {

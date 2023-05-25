@@ -1,5 +1,6 @@
 package it.uniupo.oggettiusati
 
+import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.util.Log
@@ -15,8 +16,10 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.*
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.tasks.await
 import java.util.*
+import kotlin.coroutines.coroutineContext
 
 val pageTitlesArray = arrayOf(
     "Home",
@@ -28,9 +31,52 @@ open class UserLoginActivity : AppCompatActivity() {
 
     //--- Inizio informazioni per il collegamento con firebase firestore ---
     val auth = FirebaseAuth.getInstance()
-    val database = Firebase.firestore
+
     //--- Fine informazioni per il collegamento con firebase firestore ---
+
     val userId = auth.currentUser!!.uid
+
+    companion object {
+
+        private var ultimoAnnuncio: String? = null
+
+        private val database = Firebase.firestore
+
+        fun recuperaAnnunci(myDocumenti: QuerySnapshot, home: Boolean): HashMap<String, Annuncio> {
+
+            //Inizializzo HashMap vuota, la chiave sarà il suo Id, l'elemento associato alla chiave sarà oggetto Annuncio.
+            val myAnnunci = HashMap<String, Annuncio>()
+
+            for (myDocumentoAnnuncio in myDocumenti.documents) {
+                myAnnunci[myDocumentoAnnuncio.id] = documentoAnnuncioToObject(myDocumentoAnnuncio)
+
+                if(home)
+                    ultimoAnnuncio = myDocumentoAnnuncio.id
+            }
+
+            return myAnnunci
+        }
+        private fun documentoAnnuncioToObject(myDocumentoAnnuncio: DocumentSnapshot): Annuncio {
+
+            val userIdAcquirente: String? = myDocumentoAnnuncio.get("userIdAcquirente") as String?
+
+            val timeStampFineVendita: Long? = myDocumentoAnnuncio.getLong("timeStampFineVendita")
+
+            return Annuncio(
+                myDocumentoAnnuncio.get("userId") as String,
+                myDocumentoAnnuncio.get("titolo") as String,
+                myDocumentoAnnuncio.get("descrizione") as String,
+                myDocumentoAnnuncio.get("prezzo") as Double,
+                (myDocumentoAnnuncio.getLong("stato") as Long).toInt(),
+                myDocumentoAnnuncio.getBoolean("disponibilitaSpedire") as Boolean,
+                myDocumentoAnnuncio.get("categoria") as String,
+                myDocumentoAnnuncio.getGeoPoint("posizione") as GeoPoint,
+                myDocumentoAnnuncio.getLong("timeStampInizioVendita") as Long,
+                timeStampFineVendita,
+                userIdAcquirente,
+                myDocumentoAnnuncio.id)
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -74,11 +120,17 @@ open class UserLoginActivity : AppCompatActivity() {
 
 //            Toast.makeText(this, "Benvenuto ${username}!", Toast.LENGTH_LONG).show()
         }
+
+        //-- Recupero gli annunci preferiti dell'utente --
+        runBlocking {
+            FavoritesFragment.recuperaAnnunciPreferitiFirebaseFirestore(auth.uid!!, this@UserLoginActivity)
+        }
+
     }
 
     suspend fun recuperaRicercheSalvateFirebaseFirestore(userId: String): ArrayList<Ricerca> {
 
-        val myCollection = this.database.collection("utente")
+        val myCollection = database.collection("utente")
 
         val myDocumentUtente = myCollection.document(userId)
 
