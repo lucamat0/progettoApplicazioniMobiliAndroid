@@ -168,7 +168,7 @@ class CartFragment : Fragment() {
             for (myElemento in myElementiCarrello.documents) {
 
                 val myDocumentAnnuncio =
-                    myCollectionAnnuncio.document((myElemento.get("annuncioId") as String)).get()
+                    myCollectionAnnuncio.document(myElemento.id).get()
                         .await()
 
                 val myAnnuncio = UserLoginActivity.documentoAnnuncioToObject(myDocumentAnnuncio)

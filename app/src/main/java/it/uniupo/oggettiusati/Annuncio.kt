@@ -74,8 +74,6 @@ data class Annuncio(
     lateinit var storageRef: StorageReference
     //--- Fine variabili utili all'inserimento delle immagini sul cloud ---
 
-    private val database = Firebase.firestore
-
     private lateinit var annuncioId: String
 
     private var userIdAcquirente: String? = null
@@ -173,7 +171,7 @@ data class Annuncio(
 
         val adRif = database.collection(nomeCollection).document(this.annuncioId)
 
-        adRif.update("userId", userId, "titolo", titolo, "descrizione", descrizione, "prezzo", prezzo, "stato", stato, "disponibilitaSpedire", disponibilitaSpedire, "categoria", categoria).await()
+        adRif.update("userId", userId, "titolo", titolo, "descrizione", descrizione, "prezzo", prezzo, "stato", stato, "disponibilitaSpedire", disponibilitaSpedire, "categoria", categoria, "venduto", venduto, "userIdAcquirente", userIdAcquirente, "timeStampFineVendita", timeStampFineVendita).await()
     }
 
     suspend fun eliminaAnnuncioDaFirebase() {
@@ -226,18 +224,15 @@ data class Annuncio(
         return myImmagini
     }
 
-    suspend fun setVenduto(/*userIdAcquirente: String*/) {
+    suspend fun setVenduto() {
         //aggiunta di un nuovo campo booleano che viene settato a true quando acquirente ha dato ok
-        if(this.userIdAcquirente != null && this.isVenduto() != false){
+        if(this.userIdAcquirente != null){
             this.venduto = true
+            this.timeStampFineVendita = System.currentTimeMillis()
 
             modificaAnnuncioSuFirebase()
         }
-        else{
-            //
-
-            CartFragment.eliminaAnnuncioCarrelloFirebaseFirestore(userId, this.annuncioId)
-        }
+        //Errore, dove si informa che non è stata avanzata nessuna richiesta
     }
 
     suspend fun setRichiesta(userIdAcquirente: String){
@@ -248,7 +243,7 @@ data class Annuncio(
         }
         else{
             //richiesta già inoltrata, da qualcunaltro, comunicalo e rimuovilo dal carrello
-            CartFragment.eliminaAnnuncioCarrelloFirebaseFirestore(userId, this.annuncioId)
+            CartFragment.eliminaAnnuncioCarrelloFirebaseFirestore(userIdAcquirente, this.annuncioId)
         }
     }
 
@@ -381,14 +376,6 @@ data class Annuncio(
     fun getCategoria(): String {
         return categoria
     }
-
-//    fun isPreferito(userIdVisualizzatore: String): Boolean{
-//        return false
-//    }
-
-//    fun isCarrello(userIdVisualizzatore: String): Boolean {
-//        return false
-//    }
 
     override fun writeToParcel(parcel: Parcel, flags: Int) {
         parcel.writeString(userId)

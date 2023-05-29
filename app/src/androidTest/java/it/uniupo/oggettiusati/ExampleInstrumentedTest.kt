@@ -2,6 +2,7 @@ package it.uniupo.oggettiusati
 
 import android.location.Location
 import androidx.fragment.app.testing.FragmentScenario
+import androidx.fragment.app.testing.launchFragment
 import androidx.fragment.app.testing.launchFragmentInContainer
 import androidx.test.core.app.ActivityScenario
 import androidx.test.platform.app.InstrumentationRegistry
@@ -73,7 +74,7 @@ class ExampleInstrumentedTest {
     lateinit var myAnnunci : ArrayList <Annuncio>
     val database = Firebase.firestore
 
-    private lateinit var scenarioCartFragment: FragmentScenario<CartFragment>
+    //private lateinit var scenarioCartFragment: FragmentScenario<CartFragment>
     private lateinit var scenarioHomeFragment: FragmentScenario<HomeFragment>
 
     @Before fun testSalvaAnnunciUtentiFirebaseFirestoreInizializzaFragment(): Unit = runBlocking{
@@ -272,11 +273,11 @@ class ExampleInstrumentedTest {
         for(myAnnuncio in myAnnunci)
             myAnnuncio.salvaAnnuncioSuFirebase(null)
 
-        scenarioCartFragment = launchFragmentInContainer()
-        scenarioHomeFragment = launchFragmentInContainer()
+        //scenarioCartFragment = launchFragmentInContainer()
+        scenarioHomeFragment = launchFragment<HomeFragment>()
 
     }
-/*
+
     @After fun testEliminaAnnunciUtentiFirebaseFirestore():Unit = runBlocking{
 
         for(myAnnuncio in myAnnunci)
@@ -289,7 +290,6 @@ class ExampleInstrumentedTest {
         myCollectionUtente.document("tim.bernerslee").delete().await()
     }
 
- */
     /*
 
     @Test fun testRicercaAnnuncioFirebaseFirestore(){
@@ -636,7 +636,6 @@ class ExampleInstrumentedTest {
     --- Nel caso in cui io ho un parametro di ricarca, es. prezzo superiore, il metodo non mi ritorna HashMap giusto per la pagina 2,
     numeri di elementi ritornati sbagliati ---
     */
-/*
     @Test fun testRecuperaAnnunciNonVendutiPerMostrarliNellaHome(): Unit = runBlocking {
 
         val a = Annuncio(
@@ -681,7 +680,6 @@ class ExampleInstrumentedTest {
         //val scenarioUserLoginActivity = ActivityScenario.launch(UserLoginActivity::class.java)
 
         //--- Fine Inserimento dati su Firestore Firebase ---
-        //scenarioUserLoginActivity.onActivity { activity ->
         scenarioHomeFragment.onFragment { fragment ->
             runBlocking {
 
@@ -732,7 +730,10 @@ class ExampleInstrumentedTest {
             }
         }
     }
-*/
+
+
+   // }
+
 /*
     //--- Inizio test sulla funzione che mi recupera gli elementi con prezzo inferiore a X ---
     @Test fun testRecuperaAnnunciPerPrezzoInferioreNonVendutiFirebaseFirestore(){
