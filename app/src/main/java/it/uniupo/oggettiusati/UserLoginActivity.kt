@@ -30,11 +30,8 @@ val pageTitlesArray = arrayOf(
 open class UserLoginActivity : AppCompatActivity() {
 
     //--- Inizio informazioni per il collegamento con firebase firestore ---
-    val auth = FirebaseAuth.getInstance()
-
+    private val auth = FirebaseAuth.getInstance()
     //--- Fine informazioni per il collegamento con firebase firestore ---
-
-    val userId = auth.currentUser!!.uid
 
     companion object {
 
@@ -100,6 +97,24 @@ open class UserLoginActivity : AppCompatActivity() {
         }
     }
 
+    //--- Inizio metodo da spostare nel fragment che visualizza i miei annunci ---
+    suspend fun recuperaMieiAnnunci(userId: String): HashMap<String, Annuncio> {
+
+        val documentoAnnunci = database.collection(Annuncio.nomeCollection).whereEqualTo("userId", userId).get().await()
+
+        val myAnnunci = HashMap<String, Annuncio>()
+
+        for(myDocumento in documentoAnnunci.documents){
+            val myAnnuncio = UserLoginActivity.documentoAnnuncioToObject(myDocumento)
+
+            myAnnunci[myAnnuncio.getAnnuncioId()] = myAnnuncio
+        }
+
+        return myAnnunci
+    }
+
+    //--- Fine metodo da spostare nel fragment che visualizza i miei annunci ---
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_user_logged)
@@ -128,7 +143,7 @@ open class UserLoginActivity : AppCompatActivity() {
         }
         
         lateinit var username: String
-        val userRef = database.collection("utente").document(userId)
+        val userRef = database.collection("utente").document(auth.uid!!)
         userRef.get().addOnSuccessListener { document ->
             if (document != null) {
                 username = document.get("nome").toString()

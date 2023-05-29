@@ -4,6 +4,7 @@ import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.view.View
 import android.widget.Button
+import android.widget.LinearLayout
 import android.widget.TextView
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FieldPath
@@ -38,10 +39,10 @@ class DettaglioOggettoActivity : AppCompatActivity() {
         if(myAnnuncio.isProprietario(auth.uid.toString())) { //l'annuncio appartiene all'utente autenticato:
             findViewById<Button>(R.id.visualizza_recensioni_venditore).visibility = View.GONE //Must be one of: View.VISIBLE, View.INVISIBLE, View.GONE
             // non e' possibile inserirlo nei preferiti ne metterlo nel carrello per acquistarlo
-            findViewById<Button>(R.id.layout_aggiungi).visibility = View.GONE
+            findViewById<LinearLayout>(R.id.layout_aggiungi).visibility = View.GONE
 
             if(myAnnuncio.getRichiesta()) {
-                findViewById<Button>(R.id.layout_richiesta).visibility = View.VISIBLE
+                findViewById<LinearLayout>(R.id.layout_richiesta).visibility = View.VISIBLE
                 findViewById<Button>(R.id.visualizza_recensioni_acquirente).setOnClickListener {
                     //startActivity(Recensioni.kt)
                 }
