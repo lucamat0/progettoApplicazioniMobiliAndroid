@@ -42,24 +42,7 @@
                     android:textStyle="bold"
                     android:gravity="center"
                     android:paddingVertical="10dp"/>
-<!--                <TextView-->
-<!--                    android:id="@+id/categoria"-->
-<!--                    android:layout_width="wrap_content"-->
-<!--                    android:layout_height="wrap_content"-->
-<!--                    android:layout_marginStart="10dp"-->
-<!--                    android:layout_marginLeft="15dp"-->
-<!--                    android:text="Categoria"-->
-<!--                    android:textSize="20sp"-->
-<!--                    android:textStyle="bold"/>-->
-<!--                <TextView-->
-<!--                    android:id="@+id/localizzazione"-->
-<!--                    android:layout_width="wrap_content"-->
-<!--                    android:layout_height="wrap_content"-->
-<!--                    android:layout_marginStart="10dp"-->
-<!--                    android:layout_marginLeft="15dp"-->
-<!--                    android:text="Posizione"-->
-<!--                    android:textSize="20sp"-->
-<!--                    android:textStyle="bold"/>-->
+
 
             </LinearLayout>
 
@@ -80,57 +63,41 @@
                     android:paddingHorizontal="5dp"
                     android:paddingVertical="10dp"/>
 
+                <ImageButton
+                    android:id="@+id/rimuovi"
+                    android:layout_width="60dp"
+                    android:layout_height="60dp"
+                    android:layout_margin="5dp"
+                    android:src="@drawable/baseline_delete_50"
+                    android:backgroundTint="@color/teal_200"
+
+                />
+
+                <ImageButton
+                    android:id="@+id/richiedi_oggetto"
+                    android:layout_width="60dp"
+                    android:layout_height="60dp"
+                    android:layout_margin="5dp"
+                    android:src="@drawable/baseline_shopping_cart_checkout_50"
+                    android:backgroundTint="@color/teal_200"
+
+                />
                 <ImageView
-                    android:id="@+id/avviso_richiesta"
+                    android:id="@+id/richiesta_inviata"
                     android:layout_width="60dp"
                     android:layout_height="60dp"
                     android:layout_marginVertical="5dp"
                     android:layout_marginStart="20dp"
                     android:layout_marginEnd="5dp"
-                    android:src="@drawable/baseline_notifications_50"
+                    android:src="@drawable/baseline_send_24"
                     android:background="@color/teal_200"
                     android:visibility="gone"
 
-                    />
-
-<!--                <Spinner-->
-<!--                    android:id="@+id/stato"-->
-<!--                    android:layout_width="wrap_content"-->
-<!--                    android:layout_height="wrap_content"-->
-<!--                    android:entries="@array/statoOggetto"-->
-<!--                    android:layout_gravity="center"-->
-<!--                    />-->
-<!--                <LinearLayout-->
-<!--                    android:layout_width="wrap_content"-->
-<!--                    android:layout_height="wrap_content"-->
-<!--                    android:orientation="vertical"-->
-
-<!--                    >-->
-<!--                    <TextView-->
-<!--                        android:id="@+id/descrizioneSpedizione"-->
-<!--                        android:layout_width="wrap_content"-->
-<!--                        android:layout_height="wrap_content"-->
-<!--                        android:text="No spedizione"-->
-<!--                        android:textColor="@color/black"/>-->
-<!--                    <Switch-->
-<!--                        android:layout_width="wrap_content"-->
-<!--                        android:layout_height="wrap_content"-->
-<!--                        android:checked="false"-->
-<!--                        android:paddingVertical="10dp"-->
-<!--                        android:contentDescription="spedizione"-->
-<!--                        android:layout_gravity="center"-->
-<!--                        android:enabled="true"/>-->
-<!--                </LinearLayout>-->
+                />
 
             </LinearLayout>
 
         </LinearLayout>
-
-
-        
-
-        
-        
         
 
     </LinearLayout>

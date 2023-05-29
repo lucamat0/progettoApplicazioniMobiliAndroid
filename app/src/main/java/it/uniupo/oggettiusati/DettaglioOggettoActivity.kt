@@ -2,6 +2,7 @@ package it.uniupo.oggettiusati
 
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.view.View
 import android.widget.Button
 import android.widget.TextView
 import com.google.firebase.auth.FirebaseAuth
@@ -34,9 +35,69 @@ class DettaglioOggettoActivity : AppCompatActivity() {
         val spediz = "Spedizione: ${if(myAnnuncio.getDisponibilitaSpedire()) "Si" else "No"}"
         findViewById<TextView>(R.id.spedizione).text = spediz
 
-        findViewById<Button>(R.id.aggiungi_carrello).setOnClickListener {
+        if(myAnnuncio.isProprietario(auth.uid.toString())) { //l'annuncio appartiene all'utente autenticato:
+            findViewById<Button>(R.id.visualizza_recensioni_venditore).visibility = View.GONE //Must be one of: View.VISIBLE, View.INVISIBLE, View.GONE
+            // non e' possibile inserirlo nei preferiti ne metterlo nel carrello per acquistarlo
+            findViewById<Button>(R.id.layout_aggiungi).visibility = View.GONE
+
+            if(myAnnuncio.getRichiesta()) {
+                findViewById<Button>(R.id.layout_richiesta).visibility = View.VISIBLE
+                findViewById<Button>(R.id.visualizza_recensioni_acquirente).setOnClickListener {
+                    //startActivity(Recensioni.kt)
+                }
+
+                findViewById<Button>(R.id.accetta).setOnClickListener {
+                    val idAcquirente = myAnnuncio.getAcquirente()
+                    if(idAcquirente != null) {
+                        runBlocking {
+                            myAnnuncio.setVenduto(/*idAcquirente*/)
+                        }
+                    }
+                    findViewById<Button>(R.id.layout_richiesta).visibility = View.GONE
+                }
+
+                findViewById<Button>(R.id.rifiuta).setOnClickListener {
+                    runBlocking { myAnnuncio.setEliminaRichiesta(auth.uid.toString()) }
+                    findViewById<Button>(R.id.layout_richiesta).visibility = View.GONE
+                }
+            }
+
+            // creare funzione e aggiungerlo anche per admin
+            findViewById<Button>(R.id.modifica_oggetto).setOnClickListener {
+                runBlocking {
+                    //startActivity(Modifica.kt)
+                }
+            }
+        } else {
+            // inserire nell'else del controllo proprietario
+            // aggiungere
+            // visualizza recensioni venditore
+            // controllare se gia' nel carrello e
+            //                     nei preferiti
+
+            findViewById<Button>(R.id.visualizza_recensioni_venditore).setOnClickListener {
+                runBlocking {
+                    //startActivity(Recensioni.kt)
+                }
+            }
+
             runBlocking {
-                CartFragment.inserisciAnnuncioCarrelloFirebaseFirestore(auth.uid!!, myAnnuncio.getAnnuncioId())
+                if(isPreferito(auth.uid.toString(), myAnnuncio.getAnnuncioId())){
+                    findViewById<Button>(R.id.aggiungi_preferiti).visibility = View.GONE
+                } else {
+                    findViewById<Button>(R.id.aggiungi_preferiti).setOnClickListener {
+                        runBlocking {
+                            //inserisci oggetto nei preferiti
+                        }
+                    }
+                }
+                if(isCarrello(auth.uid.toString(), myAnnuncio.getAnnuncioId())){
+                    findViewById<Button>(R.id.aggiungi_carrello).visibility = View.GONE
+                } else {
+                    findViewById<Button>(R.id.aggiungi_carrello).setOnClickListener {
+                        runBlocking { CartFragment.inserisciAnnuncioCarrelloFirebaseFirestore(auth.uid!!, myAnnuncio.getAnnuncioId()) }
+                    }
+                }
             }
         }
     }
@@ -60,4 +121,5 @@ class DettaglioOggettoActivity : AppCompatActivity() {
                 return true
         return false
     }
+
 }

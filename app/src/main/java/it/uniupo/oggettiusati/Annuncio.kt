@@ -226,7 +226,7 @@ data class Annuncio(
         return myImmagini
     }
 
-    suspend fun setVenduto(userIdAcquirente: String) {
+    suspend fun setVenduto(/*userIdAcquirente: String*/) {
         //aggiunta di un nuovo campo booleano che viene settato a true quando acquirente ha dato ok
         if(this.userIdAcquirente != null && this.isVenduto() != false){
             this.venduto = true
@@ -316,8 +316,7 @@ data class Annuncio(
     fun getPrezzo(): Double{
         return prezzo
     }
-
-    fun getPrezzoToString(): String{
+    fun getPrezzoToString(): String {
         return String.format("%.2f", prezzo) + "€"
     }
 
@@ -362,6 +361,7 @@ data class Annuncio(
         return  distanzaInKm(posizioneUtente) <= distanzaMax
     }
 
+
     override fun toString(): String {
         return "Annuncio(userId='$userId', titolo='$titolo', descrizione='$descrizione', prezzo=$prezzo, stato=$stato, disponibilitaSpedire=$disponibilitaSpedire, categoria='$categoria', posizione=$posizione, annuncioId='$annuncioId')"
     }
@@ -381,6 +381,14 @@ data class Annuncio(
     fun getCategoria(): String {
         return categoria
     }
+
+//    fun isPreferito(userIdVisualizzatore: String): Boolean{
+//        return false
+//    }
+
+//    fun isCarrello(userIdVisualizzatore: String): Boolean {
+//        return false
+//    }
 
     override fun writeToParcel(parcel: Parcel, flags: Int) {
         parcel.writeString(userId)

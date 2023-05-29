@@ -62,9 +62,9 @@ class FavoritesFragment : Fragment() {
 
                 val myCollectionAnnuncio = database.collection(Annuncio.nomeCollection)
 
-                val query = myCollectionAnnuncio.whereIn(FieldPath.documentId(), myListaId)
+                val queryPreferiti = myCollectionAnnuncio.whereIn(FieldPath.documentId(), myListaId)
 
-                myAnnunciPreferiti = UserLoginActivity.recuperaAnnunci(query.get().await(), false);
+                myAnnunciPreferiti = UserLoginActivity.recuperaAnnunci(queryPreferiti.get().await(), false);
 
                 //Rimuovo, il possibile listener che avevo inserito precedentemnte, per definirne uno nuovo,
                 //sulla base dei possibili nuovi elementi
@@ -72,7 +72,7 @@ class FavoritesFragment : Fragment() {
 
                 isFirstTime = true
 
-                listenerPreferiti = query.addSnapshotListener { snapshot, e ->
+                listenerPreferiti = queryPreferiti.addSnapshotListener { snapshot, e ->
                     if (e != null) {
                         Log.w("Query", "Listen failed.", e)
                         return@addSnapshotListener
@@ -114,7 +114,7 @@ class FavoritesFragment : Fragment() {
 
             myCollectionPreferito.add(myElementoPreferito).await()
 
-            recuperaAnnunciPreferitiFirebaseFirestore(userId, context!!)
+            recuperaAnnunciPreferitiFirebaseFirestore(userId, context)
         }
 
         suspend fun eliminaAnnuncioPreferitoFirebaseFirestore(userId : String, elementoCarrelloId: String, context: Context){
@@ -129,7 +129,7 @@ class FavoritesFragment : Fragment() {
 
             myDocumentCarrello.delete().await()
 
-            recuperaAnnunciPreferitiFirebaseFirestore(userId, context!!)
+            recuperaAnnunciPreferitiFirebaseFirestore(userId, context)
         }
     }
 
