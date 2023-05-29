@@ -243,7 +243,7 @@ data class Annuncio(
         }
         else{
             //richiesta già inoltrata, da qualcunaltro, comunicalo e rimuovilo dal carrello
-            CartFragment.eliminaAnnuncioCarrelloFirebaseFirestore(userId, this.annuncioId)
+            CartFragment.eliminaAnnuncioCarrelloFirebaseFirestore(userIdAcquirente, this.annuncioId)
         }
     }
 
