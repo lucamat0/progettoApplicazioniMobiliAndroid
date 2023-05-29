@@ -1,4 +1,4 @@
-package it.uniupo.oggettiusati
+package it.uniupo.oggettiusati.chat
 
 class Messaggio {
 

@@ -1,6 +1,5 @@
-package it.uniupo.oggettiusati
+package it.uniupo.oggettiusati.adapter
 
-import android.content.Context
 import android.content.Intent
 import android.os.BadParcelableException
 import android.util.Log
@@ -8,9 +7,11 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
-import androidx.appcompat.view.menu.MenuView
 import androidx.recyclerview.widget.RecyclerView
 import com.google.firebase.auth.FirebaseAuth
+import it.uniupo.oggettiusati.R
+import it.uniupo.oggettiusati.chat.ChatActivity
+import it.uniupo.oggettiusati.fragment.ChatFragment
 
 class UserAdapter(val userList: ArrayList<ChatFragment.Utente>): RecyclerView.Adapter<UserAdapter.UserViewHolder>() {
 

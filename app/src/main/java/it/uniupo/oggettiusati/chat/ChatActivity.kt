@@ -1,21 +1,15 @@
-package it.uniupo.oggettiusati
+package it.uniupo.oggettiusati.chat
 
-import android.content.Intent
-import android.content.res.Configuration
 import android.os.Bundle
-import android.os.Message
-import android.os.PersistableBundle
 import android.widget.EditText
-import android.widget.ImageButton
 import android.widget.ImageView
-import android.widget.LinearLayout
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.*
-import com.google.firebase.firestore.ktx.firestore
-import com.google.firebase.ktx.Firebase
+import it.uniupo.oggettiusati.R
+import it.uniupo.oggettiusati.adapter.MessageAdapter
 
 class ChatActivity: AppCompatActivity() {
 

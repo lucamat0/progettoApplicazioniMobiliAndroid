@@ -1,10 +1,9 @@
-package it.uniupo.oggettiusati
+package it.uniupo.oggettiusati.fragment
 
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.EditText
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -12,19 +11,14 @@ import androidx.recyclerview.widget.RecyclerView
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
+import it.uniupo.oggettiusati.R
+import it.uniupo.oggettiusati.adapter.UserAdapter
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.tasks.await
-import java.util.Date
 
 class ChatFragment : Fragment() {
 
-    val auth = FirebaseAuth.getInstance()
-    val database = Firebase.firestore
-
-//    override fun onCreate(savedInstanceState: Bundle?) {
-//        super.onCreate(savedInstanceState)
-//        //...
-//    }
+    private val database = Firebase.firestore
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -34,9 +28,6 @@ class ChatFragment : Fragment() {
         val fragmentRootView = inflater.inflate(R.layout.fragment_chat, container, false)
         //context: activity
         //view or fragmentRootView object to use to call findViewById(): fragmentRootView
-
-
-
         return fragmentRootView //super.onCreateView(inflater, container, savedInstanceState)
     }
 
@@ -60,12 +51,12 @@ class ChatFragment : Fragment() {
 
     private suspend fun recuperaUtenti(): ArrayList<Utente>{
 
-        val nomeCognome = ArrayList<Utente>()
+        val myUtenti = ArrayList<Utente>()
 
         val myDocumenti = database.collection("utente").get().await()
 
         for(myDocumento in myDocumenti.documents){
-            nomeCognome.add(
+            myUtenti.add(
                 Utente(myDocumento.id as String,
                     myDocumento.get("nome") as String,
                     myDocumento.get("cognome") as String,
@@ -73,12 +64,12 @@ class ChatFragment : Fragment() {
                     myDocumento.get("numeroDiTelefono") as String,
                     myDocumento.getBoolean("sospeso") as Boolean,
                     myDocumento.getString("dataNascita") as String
-                ))
+                )
+            )
         }
 
-        return nomeCognome
+        return myUtenti
     }
 
     data class Utente(val uid: String, val nome: String, val cognome: String, val amministratore: Int, val numeroDiTelefono: String, val sospeso: Boolean, val dataNascita: String)
-
 }

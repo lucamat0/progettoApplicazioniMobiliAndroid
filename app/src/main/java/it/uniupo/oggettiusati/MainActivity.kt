@@ -17,6 +17,8 @@ import com.google.firebase.ktx.Firebase
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.tasks.await
 
 
 class MainActivity : AppCompatActivity() {
@@ -31,7 +33,7 @@ class MainActivity : AppCompatActivity() {
         auth = FirebaseAuth.getInstance()
         database = Firebase.firestore
 
-        if(auth.currentUser == null) {
+        if (auth.currentUser == null) {
             setContentView(R.layout.activity_main)
 
             val emailView = findViewById<EditText>(R.id.email)
@@ -74,54 +76,61 @@ class MainActivity : AppCompatActivity() {
      * @param [password] password as String used to perform authentication (try to login)
      *
      */
+    //Da guardare!!!
     private fun checkCredentialsAndLogin(email: String, password: String) {
-        if(email.isNotEmpty() && password.isNotEmpty() && email.isNotBlank() && password.isNotBlank()) {
+        if (email.isNotEmpty() && password.isNotEmpty() && email.isNotBlank() && password.isNotBlank()) {
             auth.signInWithEmailAndPassword(email, password)
                 .addOnCompleteListener(this) { task ->
                     if (task.isSuccessful) {
                         // Sign in success, update UI with the signed-in user's information
                         Log.d("Sign in", "user signed in")
 
-                        val user = auth.currentUser
+                        runBlocking {
 
-                        val userID = user?.uid
+                            val user = auth.currentUser
 
-                        checkSuspendedAndLogin(userID)
+                            val userId = user!!.uid
+
+                            login(userId)
+                        }
                     } else {
                         // If sign in fails, display a message to the user.
-                        Log.w("Sign in", "sign in failed ", task.exception)
-                        Toast.makeText(baseContext, "Authentication failed: incorrect credentials.", Toast.LENGTH_SHORT).show()
+                        Log.w("Sign in", "Sign in failed ", task.exception)
+
+                        Toast.makeText(
+                            baseContext,
+                            "Authentication failed: incorrect credentials.",
+                            Toast.LENGTH_SHORT
+                        ).show()
                     }
                 }
         } else {
-            Toast.makeText(this, "Authentication failed: credenziali vuote.", Toast.LENGTH_LONG).show()
+            Toast.makeText(this, "Authentication failed: credenziali vuote.", Toast.LENGTH_LONG)
+                .show()
         }
     }
 
-    private fun checkSuspendedAndLogin(userId: String?) {
-        val userRef: DocumentReference
-        var utenteSospeso = true
-        if(userId != null) {
-            userRef = database.collection("utente").document(userId)
-            userRef.get().addOnSuccessListener { document ->
-                if (document != null) {
-                    if(document.get("amministratore").toString().equals("1")) {
-                        utenteSospeso = false //non diamo la possibilita' di avere l'amministratore sospeso (ne di sospendersi)
-                    } else {
-                        utenteSospeso = document.get("sospeso") == true
-                    }
-                } else { Log.w("document error", "Error: document is null") }
+    private suspend fun login(userId: String){
 
-                if (utenteSospeso) {
-                    Log.d("Sign in", "User is suspended")
-                    Toast.makeText(baseContext, "Authentication failed: l'utente e' sospeso.", Toast.LENGTH_SHORT).show()
-                    if(auth.currentUser != null) FirebaseAuth.getInstance().signOut() //forzo l'uscita
-                    setContentView(R.layout.activity_main) //e mostro la ui di login
-                } else {
-                    updateUI(auth.currentUser)
-                }
-            }
+        //se l'utente non è sospeso e neanche elimianato...
+        if (!isSuspendDelete(userId))
+            updateUI(userId)
+        else{
+            Log.d("Sign in", "User is suspended or deleted")
+
+            Toast.makeText(baseContext, "Authentication failed: l'utente e' sospeso.", Toast.LENGTH_SHORT).show()
+
+            FirebaseAuth.getInstance().signOut() //forzo l'uscita
+
+            setContentView(R.layout.activity_main) //e mostro la ui di login
         }
+    }
+
+    private suspend fun isSuspendDelete(userId: String): Boolean {
+
+        val myDocumentUtente = database.collection("utente").document(userId).get().await()
+
+        return myDocumentUtente.getBoolean("sospeso")!! && myDocumentUtente.getBoolean("eliminato")!!
     }
 
     /**
@@ -130,51 +139,44 @@ class MainActivity : AppCompatActivity() {
      * This function check if user is admin and loads the corrispondent Activity
      *
      */
+    private fun updateUI(userId: String) {
 
-    private fun updateUI(user: FirebaseUser?) {
-        if (user == null) {
-            Log.w("debug-login", "Errore: utente vuoto")
-        } else {
-            val userID = user.uid
-            lateinit var isAdmin: String
-            val userRef = database.collection("utente").document(userID)
+        val userCollection = database.collection("utente").document(userId)
 
-            userRef.get().addOnSuccessListener { document ->
+        userCollection.get().addOnSuccessListener { document ->
                 if (document != null) {
-                    isAdmin = document.get("amministratore").toString()
-                    if (isAdmin.equals("0")) {
-                        Toast.makeText(this, "Caricamento...", Toast.LENGTH_SHORT).show()
-                        val i = Intent(this, UserLoginActivity::class.java)
-                        i.putExtra("userId", userID)
-                        startActivity(i)
-                        finish()
-                    } else if (isAdmin.equals("1")) {
-                        Toast.makeText(this, "Caricamento...", Toast.LENGTH_SHORT).show()
-                        val i = Intent(this, AdminLoginActivity::class.java)
-                        i.putExtra("userId", userID)
-                        startActivity(i)
-                    } else {
-                        //Toast.makeText(this, "Errore: isAdmin vale ${isAdmin}", Toast.LENGTH_LONG).show()
-                        Log.w("admin field error", "Errore: isAdmin vale ${isAdmin}")
+                    when (document.get("amministratore").toString()) {
+                        "0" -> {
+                            Toast.makeText(this, "Caricamento...", Toast.LENGTH_SHORT).show()
+                            startActivity(Intent(this, UserLoginActivity::class.java))
+                            finish()
+                        }
+                        "1" -> {
+                            Toast.makeText(this, "Caricamento...", Toast.LENGTH_SHORT).show()
+
+                            startActivity(Intent(this, AdminLoginActivity::class.java))
+                        }
+                        else -> {
+                            //Toast.makeText(this, "Errore: isAdmin vale ${isAdmin}", Toast.LENGTH_LONG).show()
+                            Log.w("admin field error", "Errore: isAdmin vale ${userId}")
+                        }
                     }
                 } else {
                     Log.w("document error", "Error: document is null")
                 }
             }
-        }
     }
 
     public override fun onStart() {
         super.onStart()
-        // Check if user is signed in (non-null) and update UI accordingly.
-        val user = auth.currentUser
-        if(user != null) {
-            checkSuspendedAndLogin(user.uid)
 
-//            FirebaseAuth.getInstance().signOut() //provvisiorio per testare il login
-            //startActivity(Intent(this, LoginActivity::class.java))
-        } else {
-            Toast.makeText(this, "Utente non loggato al momento", Toast.LENGTH_SHORT).show()
+        runBlocking {
+            // Check if user is signed in (non-null) and update UI accordingly.
+            val userId = auth.currentUser?.uid
+            if (userId != null)
+                login(userId)
+            else
+                Toast.makeText(this@MainActivity, "Utente non loggato al momento", Toast.LENGTH_SHORT).show()
         }
     }
 

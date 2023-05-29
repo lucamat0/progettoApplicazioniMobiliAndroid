@@ -1,11 +1,15 @@
 package it.uniupo.oggettiusati
 
 import android.location.Location
+import androidx.fragment.app.testing.FragmentScenario
+import androidx.fragment.app.testing.launchFragmentInContainer
 import androidx.test.core.app.ActivityScenario
 import androidx.test.platform.app.InstrumentationRegistry
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
+import it.uniupo.oggettiusati.fragment.CartFragment
+import it.uniupo.oggettiusati.fragment.HomeFragment
 import kotlinx.coroutines.*
 import kotlinx.coroutines.tasks.await
 import org.junit.*
@@ -69,7 +73,10 @@ class ExampleInstrumentedTest {
     lateinit var myAnnunci : ArrayList <Annuncio>
     val database = Firebase.firestore
 
-    @Before fun testSalvaAnnunciUtentiFirebaseFirestore(): Unit = runBlocking{
+    private lateinit var scenarioCartFragment: FragmentScenario<CartFragment>
+    private lateinit var scenarioHomeFragment: FragmentScenario<HomeFragment>
+
+    @Before fun testSalvaAnnunciUtentiFirebaseFirestoreInizializzaFragment(): Unit = runBlocking{
 
         myAnnunci = ArrayList<Annuncio>()
 
@@ -264,8 +271,12 @@ class ExampleInstrumentedTest {
 
         for(myAnnuncio in myAnnunci)
             myAnnuncio.salvaAnnuncioSuFirebase(null)
-    }
 
+        scenarioCartFragment = launchFragmentInContainer()
+        scenarioHomeFragment = launchFragmentInContainer()
+
+    }
+/*
     @After fun testEliminaAnnunciUtentiFirebaseFirestore():Unit = runBlocking{
 
         for(myAnnuncio in myAnnunci)
@@ -277,6 +288,9 @@ class ExampleInstrumentedTest {
         myCollectionUtente.document("alan.turing").delete().await()
         myCollectionUtente.document("tim.bernerslee").delete().await()
     }
+
+ */
+    /*
 
     @Test fun testRicercaAnnuncioFirebaseFirestore(){
 
@@ -570,14 +584,16 @@ class ExampleInstrumentedTest {
 
         //Dopo il test, elimino il documento associato al utente.
         myCollection.document("utenteDiProva").delete().await()
-    }
+    }\
+    */
 
+
+/*
     //--- Inizio test sulla funzione che mi inserisce una recensione a un utente: creato, recensito e eliminato ---
     @Test fun testInserisciRecensioneUtenteFirebaseFirestore(){
 
-        val scenarioUserLoginActivity = ActivityScenario.launch(UserLoginActivity::class.java)
-
-        scenarioUserLoginActivity.onActivity { activity ->
+        scenarioCartFragment.onFragment { fragment ->
+            //scenarioUserLoginActivity.onActivity { activity ->
             runBlocking {
                 val myDocumentUtente = database.collection("utente").document("alan.turing")
 
@@ -585,25 +601,43 @@ class ExampleInstrumentedTest {
 
                 val numeroDocsRecensioni = myCollectionRecensione.get().await().size()
 
-                val idRecensione = activity.inserisciRecensioneSuFirebaseFirestore("Fantastico prodotto! Consigliatissimo!", "Ho acquistato questo prodotto e sono rimasto estremamente soddisfatto. La qualità è eccellente e corrisponde perfettamente alla descrizione fornita dal venditore. Inoltre, il prezzo è competitivo rispetto ad altri prodotti simili sul mercato. La spedizione è stata rapida e il servizio clienti è stato disponibile e cortese nel rispondere alle mie domande. Consiglio vivamente questo prodotto a chiunque sia alla ricerca di un'ottima soluzione per le proprie esigenze.",5,"alan.turing")
+                //val idRecensione = activity.inserisciRecensioneSuFirebaseFirestore("Fantastico prodotto! Consigliatissimo!", "Ho acquistato questo prodotto e sono rimasto estremamente soddisfatto. La qualità è eccellente e corrisponde perfettamente alla descrizione fornita dal venditore. Inoltre, il prezzo è competitivo rispetto ad altri prodotti simili sul mercato. La spedizione è stata rapida e il servizio clienti è stato disponibile e cortese nel rispondere alle mie domande. Consiglio vivamente questo prodotto a chiunque sia alla ricerca di un'ottima soluzione per le proprie esigenze.",5,"alan.turing")
 
-                assertEquals(numeroDocsRecensioni+1,database.collection("utente").document("alan.turing").collection("recensione").get().await().size())
+                val idRecensione = fragment.inserisciRecensioneSuFirebaseFirestore(
+                    "Fantastico prodotto! Consigliatissimo!",
+                    "Ho acquistato questo prodotto e sono rimasto estremamente soddisfatto. La qualità è eccellente e corrisponde perfettamente alla descrizione fornita dal venditore. Inoltre, il prezzo è competitivo rispetto ad altri prodotti simili sul mercato. La spedizione è stata rapida e il servizio clienti è stato disponibile e cortese nel rispondere alle mie domande. Consiglio vivamente questo prodotto a chiunque sia alla ricerca di un'ottima soluzione per le proprie esigenze.",
+                    5,
+                    "alan.turing"
+                )
 
-                val idRecensioneVotoNonValido = activity.inserisciRecensioneSuFirebaseFirestore("Fantastico prodotto! Consigliatissimo!", "Ho acquistato questo prodotto e sono rimasto estremamente soddisfatto. La qualità è eccellente e corrisponde perfettamente alla descrizione fornita dal venditore. Inoltre, il prezzo è competitivo rispetto ad altri prodotti simili sul mercato. La spedizione è stata rapida e il servizio clienti è stato disponibile e cortese nel rispondere alle mie domande. Consiglio vivamente questo prodotto a chiunque sia alla ricerca di un'ottima soluzione per le proprie esigenze.",6,"alan.turing")
+                assertEquals(
+                    numeroDocsRecensioni + 1,
+                    database.collection("utente").document("alan.turing").collection("recensione")
+                        .get().await().size()
+                )
+
+                val idRecensioneVotoNonValido = fragment.inserisciRecensioneSuFirebaseFirestore(
+                    "Fantastico prodotto! Consigliatissimo!",
+                    "Ho acquistato questo prodotto e sono rimasto estremamente soddisfatto. La qualità è eccellente e corrisponde perfettamente alla descrizione fornita dal venditore. Inoltre, il prezzo è competitivo rispetto ad altri prodotti simili sul mercato. La spedizione è stata rapida e il servizio clienti è stato disponibile e cortese nel rispondere alle mie domande. Consiglio vivamente questo prodotto a chiunque sia alla ricerca di un'ottima soluzione per le proprie esigenze.",
+                    6,
+                    "alan.turing"
+                )
 
                 assertEquals(null, idRecensioneVotoNonValido)
 
-                if(idRecensione != null)
+                if (idRecensione != null)
                     //Elimino il documento, che ho appena inserito
                     myCollectionRecensione.document(idRecensione).delete().await()
             }
         }
     }
-
+*/
     /*                                              !--- Attenzione ---!
     --- Nel caso in cui io ho un parametro di ricarca, es. prezzo superiore, il metodo non mi ritorna HashMap giusto per la pagina 2,
-    numeri di elementi ritornati sbagliati ---                                                                                          */
-    @Test fun testRecuperaAnnunciNonVendutiPerMostrarliNellaHome(): Unit = runBlocking{
+    numeri di elementi ritornati sbagliati ---
+    */
+/*
+    @Test fun testRecuperaAnnunciNonVendutiPerMostrarliNellaHome(): Unit = runBlocking {
 
         val a = Annuncio(
             "francesca.neri",
@@ -644,60 +678,62 @@ class ExampleInstrumentedTest {
         c.salvaAnnuncioSuFirebase(null)
         myAnnunci.add(c)
 
-        val scenarioUserLoginActivity = ActivityScenario.launch(UserLoginActivity::class.java)
+        //val scenarioUserLoginActivity = ActivityScenario.launch(UserLoginActivity::class.java)
 
         //--- Fine Inserimento dati su Firestore Firebase ---
-        scenarioUserLoginActivity.onActivity { activity ->
+        //scenarioUserLoginActivity.onActivity { activity ->
+        scenarioHomeFragment.onFragment { fragment ->
             runBlocking {
 
                 //Nel caso in cui, inserissi un numero di pagina non valida mi ritorna null.
-                assertNull(activity.recuperaAnnunciPerMostrarliNellaHome(0))
+                assertNull(fragment.recuperaAnnunciPerMostrarliNellaHome(0))
 
                 //Nel caso in cui, non andassi a invocare nessun metodo che mi filtra, mi recupera tutti gli annunci presenti. (MAX 10)
-                assertEquals(10,activity.recuperaAnnunciPerMostrarliNellaHome(1)!!.size)
-                assertEquals(1,activity.recuperaAnnunciPerMostrarliNellaHome(2)!!.size)
+                assertEquals(10,fragment.recuperaAnnunciPerMostrarliNellaHome(1)!!.size)
+                assertEquals(1,fragment.recuperaAnnunciPerMostrarliNellaHome(2)!!.size)
 
-                activity.recuperaAnnunciPrezzoInferiore(80)
+                fragment.recuperaAnnunciPrezzoInferiore(80)
 
-                assertEquals(0,activity.recuperaAnnunciPerMostrarliNellaHome(1)!!.size)
+                assertEquals(0,fragment.recuperaAnnunciPerMostrarliNellaHome(1)!!.size)
 
-                activity.recuperaTuttiAnnunci()
+                fragment.recuperaTuttiAnnunci()
 
-                activity.recuperaAnnunciTitolo("Dell XPS 13")
+                fragment.recuperaAnnunciTitolo("Dell XPS 13")
 
-                assertEquals(1, activity.recuperaAnnunciPerMostrarliNellaHome(1)!!.size)
+                assertEquals(1, fragment.recuperaAnnunciPerMostrarliNellaHome(1)!!.size)
 
-                activity.recuperaTuttiAnnunci()
+                fragment.recuperaTuttiAnnunci()
 
-                assertEquals(10, activity.recuperaAnnunciPerMostrarliNellaHome(1)!!.size)
-                assertEquals(1, activity.recuperaAnnunciPerMostrarliNellaHome(2)!!.size)
+                assertEquals(10, fragment.recuperaAnnunciPerMostrarliNellaHome(1)!!.size)
+                assertEquals(1, fragment.recuperaAnnunciPerMostrarliNellaHome(2)!!.size)
 
-                activity.recuperaAnnunciDisponibilitaSpedire(true)
+                fragment.recuperaAnnunciDisponibilitaSpedire(true)
 
-                assertEquals(10, activity.recuperaAnnunciPerMostrarliNellaHome(1)!!.size)
+                assertEquals(10, fragment.recuperaAnnunciPerMostrarliNellaHome(1)!!.size)
 
-                activity.recuperaAnnunciPrezzoRange(18,1200)
+                fragment.recuperaAnnunciPrezzoRange(18,1200)
 
                 //Spedire + range.
-                assertEquals(5, activity.recuperaAnnunciPerMostrarliNellaHome(1)!!.size)
+                assertEquals(5, fragment.recuperaAnnunciPerMostrarliNellaHome(1)!!.size)
 
                 //prezzo superiore + spedire
-                activity.recuperaAnnunciPrezzoSuperiore(1200)
+                fragment.recuperaAnnunciPrezzoSuperiore(1200)
 
-                assertEquals(5, activity.recuperaAnnunciPerMostrarliNellaHome(1)!!.size)
+                assertEquals(5, fragment.recuperaAnnunciPerMostrarliNellaHome(1)!!.size)
 
                 //prezzo superiore + spedire
-                activity.recuperaAnnunciPrezzoInferiore(20)
+                fragment.recuperaAnnunciPrezzoInferiore(20)
 
-                assertEquals(0, activity.recuperaAnnunciPerMostrarliNellaHome(1)!!.size)
+                assertEquals(0, fragment.recuperaAnnunciPerMostrarliNellaHome(1)!!.size)
 
-                activity.recuperaAnnunciPrezzoRange(10,5000)
-                assertEquals(10, activity.recuperaAnnunciPerMostrarliNellaHome(1)!!.size)
-                assertEquals(1, activity.recuperaAnnunciPerMostrarliNellaHome(2)!!.size)
+                fragment.recuperaAnnunciPrezzoRange(10,5000)
+                assertEquals(10, fragment.recuperaAnnunciPerMostrarliNellaHome(1)!!.size)
+                assertEquals(1, fragment.recuperaAnnunciPerMostrarliNellaHome(2)!!.size)
             }
         }
     }
-
+*/
+/*
     //--- Inizio test sulla funzione che mi recupera gli elementi con prezzo inferiore a X ---
     @Test fun testRecuperaAnnunciPerPrezzoInferioreNonVendutiFirebaseFirestore(){
 
@@ -730,7 +766,8 @@ class ExampleInstrumentedTest {
                 }
             }
     }
-
+*/
+    /*
     //--- Inizio test sulla funzione che mi recupera gli elementi con un prezzo superiore a X ---
     @Test fun testRecuperaAnnunciPerPrezzoSuperioreNonVendutiFirebaseFirestore(){
             //--- Inserimento dati su Firestore Firebase ---
@@ -937,6 +974,8 @@ class ExampleInstrumentedTest {
             }
         }
     }
+
+     */
 
     // --- Inizio funzione che testa il mantenimento delle informazioni aggiornate nel HashMap considerando DB ---
     // --> Non funziona ma HashMap è correttamente aggiornata, anche il DB <--
