@@ -17,20 +17,6 @@ class AdminLoginActivity : UserLoginActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_admin_logged)
 
-        /*
-        var username = ""
-        val userRef = this.database.collection("utente").document(this.userId)
-        userRef.get().addOnSuccessListener { document ->
-            if(document != null) {
-                username = document.get("nome").toString()
-            } else {
-                Log.w("document error", "Error: document is null")
-            }
-
-            Toast.makeText(this, "Benvenuto ${username}!", Toast.LENGTH_LONG).show()
-        }
-         */
-
         val logoutButton = findViewById<Button>(R.id.logout)
 
         logoutButton.setOnClickListener {
@@ -41,40 +27,15 @@ class AdminLoginActivity : UserLoginActivity() {
 
     //--- Deve poter eliminare utenti o sospenderli dalle attività ---
     private suspend fun eliminaUtente(userId: String) {
-
-        try {
-            val myCollection = database.collection("utente")
-
-            val myDocument = myCollection.document(userId)
-
-            myDocument.delete().addOnCompleteListener { task ->
-                if (task.isSuccessful) {
-                    Log.d("ELIMINAZIONE UTENTE", "Documento eliminato con successo")
-
-                    //this.auth.currentUser!!.delete()
-
-                } else {
-                    Log.e("ELIMINAZIONE UTENTE", "Errore durante l'eliminazione del documento", task.exception)
-                }
-            }.await()
-
-            //myDocument.delete().await()
-        } catch (e: Exception) {
-            Log.e("ERRORE ELIMINA UTENTE", "Durante l'eliminazione del utente c'é stato un errore!", e)
-        }
-
+        database.collection("utente").document(userId).update("eliminato", true).await()
     }
 
     suspend fun sospendiUtente(userId: String) {
+        database.collection("utente").document(userId).update("sospeso", true).await()
+    }
 
-        try {
-            val myCollection = database.collection("utente")
-
-            myCollection.document(userId).update("sospeso", true).await()
-
-        } catch (e: Exception) {
-            Log.e("ERRORE SOSPENDI UTENTE", "Durante la sospensione del utente c'é stato un errore!", e)
-        }
+    suspend fun attivaUtente(userId: String){
+        database.collection("utente").document(userId).update("sospeso", false).await()
     }
 
     //--- Fine eliminazione e sospensione utente ---
@@ -82,8 +43,6 @@ class AdminLoginActivity : UserLoginActivity() {
     //--- Accesso a dati statistici ---
 
     suspend fun numeroOggettiInVendita(): Int {
-        return try {
-
             val myCollection = database.collection(Annuncio.nomeCollection)
 
             val query = myCollection.whereEqualTo("userIdAcquirente", null)
@@ -91,18 +50,9 @@ class AdminLoginActivity : UserLoginActivity() {
             val myDocuments = query.get().await()
 
             return myDocuments.size()
-
-        } catch (e: Exception) {
-            Log.e(
-                "ERRORE NUMERO OGGETTI IN VENDITA",
-                "Durante il recupero del numero degli oggetti in vendita c'é stato un errore!",
-                e
-            )
-        }
     }
 
     suspend fun numeroOggettiInVenditaPerSpecificoUtente(userId: String): Int {
-        return try {
 
             val myCollection = database.collection(Annuncio.nomeCollection)
 
@@ -111,18 +61,10 @@ class AdminLoginActivity : UserLoginActivity() {
             val myDocuments = query.get().await()
 
             return myDocuments.size()
-
-        } catch (e: Exception) {
-            Log.e(
-                "ERRORE NUMERO OGGETTI IN VENDITA X SPECIFICO UTENTE",
-                "Durante il recupero del numero degli oggetti in vendita c'é stato un errore!",
-                e
-            )
-        }
     }
 
+    //??? la gestione dellla posizione è corretta? secondo me no!!!
     private suspend fun numeroOggettiInVenditaPerRaggioDistanza(posizione: Location): Int {
-        return try {
 
             val myCollection = database.collection(Annuncio.nomeCollection)
 
@@ -131,14 +73,6 @@ class AdminLoginActivity : UserLoginActivity() {
             val myDocuments = query.get().await()
 
             return myDocuments.size()
-
-        } catch (e: Exception) {
-            Log.e(
-                "ERRORE NUMERO OGGETTI IN VENDITA X SPECIFICO UTENTE",
-                "Durante il recupero del numero degli oggetti in vendita c'é stato un errore!",
-                e
-            )
-        }
     }
 
     //Nel caso in cui non ci fosse nessuna recensione non rientra nella lista, una maniera efficente per farlo???

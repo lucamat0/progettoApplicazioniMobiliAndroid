@@ -1,14 +1,14 @@
-package it.uniupo.oggettiusati
+package it.uniupo.oggettiusati.adapter
 
 import android.content.Context
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
-import androidx.appcompat.view.menu.MenuView.ItemView
 import androidx.recyclerview.widget.RecyclerView
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.ktx.Firebase
+import it.uniupo.oggettiusati.chat.Messaggio
+import it.uniupo.oggettiusati.R
 
 class MessageAdapter(val context: Context, val myMessaggi: ArrayList<Messaggio>):
     RecyclerView.Adapter<RecyclerView.ViewHolder>() {

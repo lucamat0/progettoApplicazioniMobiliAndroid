@@ -16,6 +16,7 @@ import com.google.firebase.ktx.Firebase
 import com.google.firebase.storage.FileDownloadTask
 import com.google.firebase.storage.FirebaseStorage
 import com.google.firebase.storage.StorageReference
+import it.uniupo.oggettiusati.fragment.CartFragment
 import kotlinx.coroutines.tasks.await
 import java.io.File
 import java.lang.Math.*
@@ -82,6 +83,8 @@ data class Annuncio(
     private var timeStampInizioVendita: Long? = null
 
     private var timeStampFineVendita: Long? = null
+
+    private var venduto: Boolean = false
 
         constructor(parcel: Parcel) : this(
             parcel.readString() ?: "",
@@ -225,61 +228,101 @@ data class Annuncio(
 
     suspend fun setVenduto(userIdAcquirente: String) {
         //aggiunta di un nuovo campo booleano che viene settato a true quando acquirente ha dato ok
+        if(this.userIdAcquirente != null && this.isVenduto() != false){
+            this.venduto = true
+
+            modificaAnnuncioSuFirebase()
+        }
+        else{
+            //
+
+            CartFragment.eliminaAnnuncioCarrelloFirebaseFirestore(userId, this.annuncioId)
+        }
     }
 
-    suspend fun setRichiesta(){
+    suspend fun setRichiesta(userIdAcquirente: String){
         if(this.userIdAcquirente == null) {
             this.userIdAcquirente = userIdAcquirente
 
             modificaAnnuncioSuFirebase()
         }
+        else{
+            //richiesta già inoltrata, da qualcunaltro, comunicalo e rimuovilo dal carrello
+            CartFragment.eliminaAnnuncioCarrelloFirebaseFirestore(userId, this.annuncioId)
+        }
     }
 
-    suspend fun setEliminaRichiesta(){
-        if(this.userIdAcquirente != null){
+    //ti controlla se è stata effettuata la richiesta da qualcuno
+    fun getRichiesta(): Boolean{
+        return this.userIdAcquirente != null
+    }
+
+    //ti controlla se userId è del proprietario del annuncio
+    fun isProprietario(userId: String): Boolean{
+        return userId == this.userId
+    }
+
+    fun isVenduto(): Boolean {
+        return userIdAcquirente != null && venduto
+    }
+
+    suspend fun setEliminaRichiesta(userId: String){
+        if(this.userIdAcquirente != null && isProprietario(userId)){
+
+            //Nel momento in cui il proprietario non accetta la vendita, il credito viene riaccreditato al utente.
+            CartFragment.salvaTransazioneSuFirestoreFirebase(this.userIdAcquirente!!, this.prezzo, true)
+
+            CartFragment.eliminaAnnuncioCarrelloFirebaseFirestore(this.userIdAcquirente!!,this.annuncioId)
+
             this.userIdAcquirente = null
+
+            modificaAnnuncioSuFirebase()
+        }
+        //non sono il proprietario o/e non c'è stata nessuna richiesta
+    }
+
+    suspend fun setTitolo(newTitolo: String, userId: String) {
+        if(isProprietario(userId)) {
+            this.titolo = newTitolo
 
             modificaAnnuncioSuFirebase()
         }
     }
 
-    suspend fun setTitolo(newTitolo: String) {
-        this.titolo = newTitolo
+    suspend fun setDescrizione(newDescrizione: String, userId: String) {
+        if(isProprietario(userId)) {
+            this.descrizione = newDescrizione
 
-        modificaAnnuncioSuFirebase()
+            modificaAnnuncioSuFirebase()
+        }
     }
 
-    suspend fun setDescrizione(newDescrizione: String) {
-        this.descrizione = newDescrizione
+    suspend fun setCategoria(newCategoria: String, userId: String) {
+        if(isProprietario(userId)) {
+            this.categoria = newCategoria
 
-        modificaAnnuncioSuFirebase()
+            modificaAnnuncioSuFirebase()
+        }
     }
 
-    suspend fun setCategoria(newCategoria: String) {
-        this.categoria = newCategoria
+    suspend fun setPrezzo(newPrezzo: Double, userId: String) {
+        if(isProprietario(userId)) {
+            this.prezzo = newPrezzo
 
-        modificaAnnuncioSuFirebase()
+            modificaAnnuncioSuFirebase()
+        }
     }
 
-    suspend fun setPrezzo(newPrezzo: Double) {
-        this.prezzo = newPrezzo
-
-        modificaAnnuncioSuFirebase()
-    }
-
-    fun getPrezzo(): Double {
+    fun getPrezzo(): Double{
         return prezzo
     }
-    fun getPrezzoToString(): String {
+
+    fun getPrezzoToString(): String{
         return String.format("%.2f", prezzo) + "€"
     }
 
     fun getTimeStampInizioVendita(): Long? {
         return timeStampInizioVendita
-    }
-
-    fun isVenduto(): Boolean {
-        return userIdAcquirente != null
     }
 
     fun getAnnuncioId(): String {
@@ -319,7 +362,6 @@ data class Annuncio(
         return  distanzaInKm(posizioneUtente) <= distanzaMax
     }
 
-
     override fun toString(): String {
         return "Annuncio(userId='$userId', titolo='$titolo', descrizione='$descrizione', prezzo=$prezzo, stato=$stato, disponibilitaSpedire=$disponibilitaSpedire, categoria='$categoria', posizione=$posizione, annuncioId='$annuncioId')"
     }
@@ -338,14 +380,6 @@ data class Annuncio(
 
     fun getCategoria(): String {
         return categoria
-    }
-
-    fun isPreferito(userIdVisualizzatore: String): Boolean{
-        return false
-    }
-
-    fun isCarrello(): Boolean {
-        return userIdAcquirente != null
     }
 
     override fun writeToParcel(parcel: Parcel, flags: Int) {

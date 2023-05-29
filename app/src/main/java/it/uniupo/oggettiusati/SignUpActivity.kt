@@ -59,7 +59,8 @@ class SignUpActivity : AppCompatActivity() {
 
                             //If the new account was created, the user is also signed in, use getCurrentUser() to get user info.
                             //noi pero' vogliamo che esca ed esegua il login con le sue nuove credenziali
-                            if(auth.currentUser != null) FirebaseAuth.getInstance().signOut()
+                            if(auth.currentUser != null)
+                                FirebaseAuth.getInstance().signOut()
 
                             // recupero Id utente appena memorizzato
                             val userId = user.uid
@@ -127,7 +128,8 @@ class SignUpActivity : AppCompatActivity() {
                 "dataNascita" to dataNascita,
                 "numeroDiTelefono" to numeroDiTelefono,
                 "amministratore" to 0,
-                "sospeso" to false
+                "sospeso" to false,
+                "eliminato" to false
             )
 
             val inserimentoDatiUtente =

@@ -1,4 +1,4 @@
-package it.uniupo.oggettiusati
+package it.uniupo.oggettiusati.fragment
 
 import android.content.Context
 import android.os.Bundle
@@ -11,15 +11,14 @@ import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FieldPath
-import com.google.firebase.firestore.GeoPoint
 import com.google.firebase.firestore.ListenerRegistration
-import com.google.firebase.firestore.Query
-import com.google.firebase.firestore.QuerySnapshot
-import com.google.firebase.firestore.auth.User
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
+import it.uniupo.oggettiusati.Annuncio
+import it.uniupo.oggettiusati.adapter.CustomAdapter
+import it.uniupo.oggettiusati.R
+import it.uniupo.oggettiusati.UserLoginActivity
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.tasks.await
 import java.util.Date

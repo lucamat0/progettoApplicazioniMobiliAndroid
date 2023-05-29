@@ -1,25 +1,22 @@
-package it.uniupo.oggettiusati
+package it.uniupo.oggettiusati.adapter
 
-import android.content.Context
 import android.content.Intent
-import android.graphics.BitmapFactory
 import android.os.BadParcelableException
-import android.os.Build
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Button
 import android.widget.ImageButton
 import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
-import androidx.annotation.RequiresApi
 import androidx.cardview.widget.CardView
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
+import it.uniupo.oggettiusati.Annuncio
+import it.uniupo.oggettiusati.DettaglioOggettoActivity
+import it.uniupo.oggettiusati.R
 import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.tasks.await
 
 class CustomAdapter(private val myArrayList: HashMap<String, Annuncio>, val layout: Int) : RecyclerView.Adapter<CustomAdapter.ViewHolder>() {
 
