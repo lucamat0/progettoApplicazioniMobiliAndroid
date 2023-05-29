@@ -173,7 +173,7 @@ data class Annuncio(
 
         val adRif = database.collection(nomeCollection).document(this.annuncioId)
 
-        adRif.update("userId", userId, "titolo", titolo, "descrizione", descrizione, "prezzo", prezzo, "stato", stato, "disponibilitaSpedire", disponibilitaSpedire, "categoria", categoria).await()
+        adRif.update("userId", userId, "titolo", titolo, "descrizione", descrizione, "prezzo", prezzo, "stato", stato, "disponibilitaSpedire", disponibilitaSpedire, "categoria", categoria, "venduto", venduto).await()
     }
 
     suspend fun eliminaAnnuncioDaFirebase() {
