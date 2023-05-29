@@ -54,7 +54,7 @@ class CartFragment : Fragment() {
             //this creates a vertical layout Manager
             recyclerVu?.layoutManager = LinearLayoutManager(activity)
             //this will pass the ArrayList to our Adapter
-            val adapter = CustomAdapter(recuperaAnnunciCarrelloFirebaseFirestore(auth.uid!!), R.layout.card_view_remove_design)
+            val adapter = CustomAdapter(recuperaAnnunciCarrelloFirebaseFirestore(auth.uid!!), R.layout.card_view_remove_buy_design)
             //setting the Adapter with the recyclerView
             recyclerVu?.adapter = adapter
         }

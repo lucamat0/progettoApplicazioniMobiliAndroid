@@ -160,7 +160,7 @@ class FavoritesFragment : Fragment() {
                 if(preferiti)
                     //Toast.makeText(activity, "Il documento ${a.getAnnuncioId()} è cambiato!", Toast.LENGTH_LONG).show()
                 else {
-//                    val adapter = CustomAdapter(myAnnunciHome, R.layout.card_view_remove_design)
+//                    val adapter = CustomAdapter(myAnnunciHome, R.layout.card_view_remove_buy_design)
 //
 //                    val recyclerVu = view?.findViewById<RecyclerView>(R.id.recyclerview)
 //

@@ -227,6 +227,10 @@ data class Annuncio(
         //aggiunta di un nuovo campo booleano che viene settato a true quando acquirente ha dato ok
     }
 
+    fun getRichiesta(): Boolean{
+        return userIdAcquirente != null
+    }
+
     suspend fun setRichiesta(){
         if(this.userIdAcquirente == null) {
             this.userIdAcquirente = userIdAcquirente
@@ -292,6 +296,10 @@ data class Annuncio(
 
     fun getAcquirente(): String?{
         return this.userIdAcquirente
+    }
+
+    fun getProprietario(): String{
+        return userId
     }
 
     //Metodo che mi permette di tradurre la distanza in Km, date due coordinate composte da longitudine e latitudine
