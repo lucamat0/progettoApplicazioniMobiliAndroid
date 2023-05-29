@@ -7,6 +7,7 @@ import android.widget.Button
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
 import androidx.viewpager2.widget.ViewPager2
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.android.material.tabs.TabLayout
@@ -27,6 +28,15 @@ val pageTitlesArray = arrayOf(
     "Chat",
     "Preferiti",
 )
+
+private val tabIcons :IntArray= intArrayOf(
+    R.drawable.baseline_home_50,
+    R.drawable.baseline_shopping_cart_50,
+    R.drawable.baseline_chat_bubble_50,
+    R.drawable.baseline_star_50,
+    R.drawable.baseline_person_50
+)
+
 open class UserLoginActivity : AppCompatActivity() {
 
     //--- Inizio informazioni per il collegamento con firebase firestore ---
@@ -106,11 +116,12 @@ open class UserLoginActivity : AppCompatActivity() {
 
         //fragments
         val viewPager = findViewById<ViewPager2>(R.id.viewPager)
-        viewPager.adapter = ViewPagerAdapter(supportFragmentManager, lifecycle, pageTitlesArray.size)
+        viewPager.adapter = ViewPagerAdapter(supportFragmentManager, lifecycle, tabIcons.size)
 
         val tabLayout = findViewById<TabLayout>(R.id.tabLayout)
         TabLayoutMediator(tabLayout, viewPager) { tab, position ->
-            tab.text = pageTitlesArray[position]
+            //tab.text = pageTitlesArray[position]
+            tab.icon = ContextCompat.getDrawable(this, tabIcons[position])
         }.attach()
         //end fragments
 

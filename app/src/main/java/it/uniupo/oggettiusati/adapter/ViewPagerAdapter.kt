@@ -13,6 +13,7 @@ import it.uniupo.oggettiusati.fragment.CartFragment
 import it.uniupo.oggettiusati.fragment.ChatFragment
 import it.uniupo.oggettiusati.fragment.FavoritesFragment
 import it.uniupo.oggettiusati.fragment.HomeFragment
+import it.uniupo.oggettiusati.fragment.OwnerObjecsFragment
 
 class ViewPagerAdapter(fragmentManager: FragmentManager, lifecycle: Lifecycle, private var numItem: Int) :
     FragmentStateAdapter(fragmentManager, lifecycle) {
@@ -26,7 +27,8 @@ class ViewPagerAdapter(fragmentManager: FragmentManager, lifecycle: Lifecycle, p
             0 -> HomeFragment()
             1 -> CartFragment()
             2 -> ChatFragment()
-            else -> FavoritesFragment()
+            3 -> FavoritesFragment()
+            else -> OwnerObjecsFragment()
         }
     }
 }

@@ -1,5 +1,6 @@
 package it.uniupo.oggettiusati
 
+import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.view.View
@@ -89,13 +90,18 @@ class DettaglioOggettoActivity : AppCompatActivity() {
                         runBlocking {
                             //inserisci oggetto nei preferiti
                         }
+                        findViewById<Button>(R.id.aggiungi_preferiti).visibility = View.GONE
                     }
                 }
                 if(isCarrello(auth.uid.toString(), myAnnuncio.getAnnuncioId())){
                     findViewById<Button>(R.id.aggiungi_carrello).visibility = View.GONE
                 } else {
                     findViewById<Button>(R.id.aggiungi_carrello).setOnClickListener {
-                        runBlocking { CartFragment.inserisciAnnuncioCarrelloFirebaseFirestore(auth.uid!!, myAnnuncio.getAnnuncioId()) }
+                        runBlocking {
+                            CartFragment.inserisciAnnuncioCarrelloFirebaseFirestore(auth.uid!!, myAnnuncio.getAnnuncioId())
+                            startActivity(Intent(this@DettaglioOggettoActivity, UserLoginActivity::class.java))
+                        }
+                        findViewById<Button>(R.id.aggiungi_carrello).visibility = View.GONE
                     }
                 }
             }
