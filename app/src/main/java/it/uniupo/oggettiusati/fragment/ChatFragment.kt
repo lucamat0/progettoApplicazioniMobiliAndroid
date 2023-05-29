@@ -57,7 +57,7 @@ class ChatFragment : Fragment() {
 
         for(myDocumento in myDocumenti.documents){
             myUtenti.add(
-                Utente(myDocumento.id as String,
+                Utente(myDocumento.id /*as String*/,
                     myDocumento.get("nome") as String,
                     myDocumento.get("cognome") as String,
                     (myDocumento.getLong("amministratore") as Long).toInt(),

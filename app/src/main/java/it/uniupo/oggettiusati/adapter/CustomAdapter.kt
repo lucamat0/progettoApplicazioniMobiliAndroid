@@ -76,7 +76,7 @@ class CustomAdapter(private val myArrayList: HashMap<String, Annuncio>, val layo
                     if(holder.btnRequest != null) {
                         holder.btnRequest.setOnClickListener {
                             runBlocking {
-                                myAnnuncio[position].second.setRichiesta()
+                                myAnnuncio[position].second.setRichiesta(auth.uid.toString())
                             }
                             uiRequestFromCurrentUser(holder)
                         }
@@ -91,7 +91,7 @@ class CustomAdapter(private val myArrayList: HashMap<String, Annuncio>, val layo
                 }
             } else if(layout == R.layout.card_view_design){
                 if(myAnnuncio[position].second.getRichiesta()) { //equivalente a and
-                    if(myAnnuncio[position].second.getProprietario().equals(auth.uid)){
+                    if(myAnnuncio[position].second.isProprietario(auth.uid.toString())){
                         holder.imgNotification?.visibility = View.VISIBLE
                     }
                 }

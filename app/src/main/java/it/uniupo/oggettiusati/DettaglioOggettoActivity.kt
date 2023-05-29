@@ -35,7 +35,7 @@ class DettaglioOggettoActivity : AppCompatActivity() {
         val spediz = "Spedizione: ${if(myAnnuncio.getDisponibilitaSpedire()) "Si" else "No"}"
         findViewById<TextView>(R.id.spedizione).text = spediz
 
-        if(myAnnuncio.getProprietario().equals(auth.uid)) { //l'annuncio appartiene all'utente autenticato:
+        if(myAnnuncio.isProprietario(auth.uid.toString())) { //l'annuncio appartiene all'utente autenticato:
             findViewById<Button>(R.id.visualizza_recensioni_venditore).visibility = View.GONE //Must be one of: View.VISIBLE, View.INVISIBLE, View.GONE
             // non e' possibile inserirlo nei preferiti ne metterlo nel carrello per acquistarlo
             findViewById<Button>(R.id.layout_aggiungi).visibility = View.GONE
@@ -50,14 +50,14 @@ class DettaglioOggettoActivity : AppCompatActivity() {
                     val idAcquirente = myAnnuncio.getAcquirente()
                     if(idAcquirente != null) {
                         runBlocking {
-                            myAnnuncio.setVenduto(idAcquirente)
+                            myAnnuncio.setVenduto(/*idAcquirente*/)
                         }
                     }
                     findViewById<Button>(R.id.layout_richiesta).visibility = View.GONE
                 }
 
                 findViewById<Button>(R.id.rifiuta).setOnClickListener {
-                    runBlocking { myAnnuncio.setEliminaRichiesta() }
+                    runBlocking { myAnnuncio.setEliminaRichiesta(auth.uid.toString()) }
                     findViewById<Button>(R.id.layout_richiesta).visibility = View.GONE
                 }
             }
@@ -82,22 +82,22 @@ class DettaglioOggettoActivity : AppCompatActivity() {
             }
 
             runBlocking {
-//                if(isPreferito(auth.uid, myAnnuncio.getAnnuncioId())){
-//                    findViewById<Button>(R.id.aggiungi_preferiti).visibility = View.GONE
-//                } else {
-//                    findViewById<Button>(R.id.aggiungi_preferiti).setOnClickListener {
-//                        runBlocking {
-//                            //inserisci oggetto nei preferiti
-//                        }
-//                    }
-//                }
-//                if(isCarrello(auth.uid, myAnnuncio.getAnnuncioId())){
-//                    findViewById<Button>(R.id.aggiungi_carrello).visibility = View.GONE
-//                } else {
-//                    findViewById<Button>(R.id.aggiungi_carrello).setOnClickListener {
-//                        runBlocking { CartFragment.inserisciAnnuncioCarrelloFirebaseFirestore(auth.uid!!, myAnnuncio.getAnnuncioId()) }
-//                    }
-//                }
+                if(isPreferito(auth.uid.toString(), myAnnuncio.getAnnuncioId())){
+                    findViewById<Button>(R.id.aggiungi_preferiti).visibility = View.GONE
+                } else {
+                    findViewById<Button>(R.id.aggiungi_preferiti).setOnClickListener {
+                        runBlocking {
+                            //inserisci oggetto nei preferiti
+                        }
+                    }
+                }
+                if(isCarrello(auth.uid.toString(), myAnnuncio.getAnnuncioId())){
+                    findViewById<Button>(R.id.aggiungi_carrello).visibility = View.GONE
+                } else {
+                    findViewById<Button>(R.id.aggiungi_carrello).setOnClickListener {
+                        runBlocking { CartFragment.inserisciAnnuncioCarrelloFirebaseFirestore(auth.uid!!, myAnnuncio.getAnnuncioId()) }
+                    }
+                }
             }
         }
     }
