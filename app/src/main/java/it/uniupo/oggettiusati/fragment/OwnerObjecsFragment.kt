@@ -7,11 +7,20 @@ import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.ktx.firestore
+import com.google.firebase.ktx.Firebase
+import it.uniupo.oggettiusati.Annuncio
 import it.uniupo.oggettiusati.R
+import it.uniupo.oggettiusati.UserLoginActivity
 import it.uniupo.oggettiusati.adapter.CustomAdapter
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.tasks.await
+import java.util.HashMap
 
 class OwnerObjecsFragment : Fragment() {
+    private val database = Firebase.firestore
+    private val auth = FirebaseAuth.getInstance()
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -34,7 +43,7 @@ class OwnerObjecsFragment : Fragment() {
             recyclerVu?.layoutManager = LinearLayoutManager(activity)
 
             //Ogni volta che il mio fragment viene messo in primo piano recupero i miei annunci preferiti
-            val annunciProprietario = FavoritesFragment.recuperaAnnunciPreferitiFirebaseFirestore(auth.uid!!, activity!!)
+            val annunciProprietario = recuperaMieiAnnunci(auth.uid!!)
 
             //this will pass the ArrayList to our Adapter
             val adapter = CustomAdapter(annunciProprietario, R.layout.card_view_design)
@@ -43,5 +52,23 @@ class OwnerObjecsFragment : Fragment() {
             recyclerVu?.adapter = adapter
         }
     }
+
+    //--- Inizio metodo da spostare nel fragment che visualizza i miei annunci ---
+    suspend fun recuperaMieiAnnunci(userId: String): HashMap<String, Annuncio> {
+
+        val documentoAnnunci = database.collection(Annuncio.nomeCollection).whereEqualTo("userId", userId).get().await()
+
+        val myAnnunci = HashMap<String, Annuncio>()
+
+        for(myDocumento in documentoAnnunci.documents){
+            val myAnnuncio = UserLoginActivity.documentoAnnuncioToObject(myDocumento)
+
+            myAnnunci[myAnnuncio.getAnnuncioId()] = myAnnuncio
+        }
+
+        return myAnnunci
+    }
+
+    //--- Fine metodo da spostare nel fragment che visualizza i miei annunci ---
 
 }

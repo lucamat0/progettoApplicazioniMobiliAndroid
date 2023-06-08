@@ -18,6 +18,7 @@ import kotlinx.coroutines.tasks.await
 
 class ChatFragment : Fragment() {
 
+    private val auth = FirebaseAuth.getInstance()
     private val database = Firebase.firestore
 
     override fun onCreateView(
@@ -53,8 +54,7 @@ class ChatFragment : Fragment() {
 
         val myUtenti = ArrayList<Utente>()
 
-        val myDocumenti = database.collection("utente").get().await()
-
+        val myDocumenti = database.collection("utente")/*.whereNotEqualTo("userId", auth.uid)*/.get().await()
         for(myDocumento in myDocumenti.documents){
             myUtenti.add(
                 Utente(myDocumento.id /*as String*/,

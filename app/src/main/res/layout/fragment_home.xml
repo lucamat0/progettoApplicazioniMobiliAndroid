@@ -49,16 +49,30 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Abilita/disabilita filtri: "
+                android:textSize="30sp"
+                android:textStyle="bold"
+                android:layout_gravity="center"
+                />
+            <TextView
+                android:id="@+id/titolo_distanza"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Distanza"
+                android:textSize="25sp"
+
                 />
 
             <LinearLayout
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal">
+                android:orientation="horizontal"
+                android:gravity="center">
 
                 <CheckBox
+                    android:id="@+id/select_distance"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:checked="false"
                     />
 
                 <com.google.android.material.slider.Slider
@@ -70,66 +84,188 @@
                     android:valueFrom="1"
                     android:valueTo="100"
                     android:stepSize="1"
+                    android:enabled="false"
                     />
             </LinearLayout>
             <TextView
                 android:id="@+id/maxDistance"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Distanza max: 3 km"
+                android:text="Distanza max: ... km"
                 android:layout_gravity="end"
-                android:layout_marginBottom="30dp"
+
+                android:textSize="20sp"
+                android:layout_marginRight="5dp"
+                android:enabled="false"
                 />
+            <com.google.android.material.divider.MaterialDivider
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:dividerColor="@color/grey"
+                app:dividerThickness="1dp"
+                />
+
+            <TextView
+                android:id="@+id/titolo_prezzo"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Prezzo"
+                android:textSize="25sp"
+                />
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center">
+                <RadioGroup
+                    android:id="@+id/rGroup_prezzo"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    >
+
+                    <RadioButton
+                        android:id="@+id/prezzo_range"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="range"
+                        android:textSize="20sp"
+                        android:layout_marginEnd="15dp"
+                        android:checked="true"
+                        />
+                    <RadioButton
+                        android:id="@+id/prezzo_min"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textSize="20sp"
+                        android:text="min"
+                        android:layout_marginStart="15dp"
+                        android:checked="false"/>
+                    <RadioButton
+                        android:id="@+id/prezzo_max"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textSize="20sp"
+                        android:text="max"
+                        android:layout_marginStart="15dp"
+                        android:checked="false"/>
+
+                </RadioGroup>
+
+            </LinearLayout>
 
             <LinearLayout
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal">
+                android:orientation="horizontal"
+                android:gravity="center">
 
                 <CheckBox
+                    android:id="@+id/select_price"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:checked="false"
                     />
 
                 <com.google.android.material.slider.RangeSlider
-                    android:id="@+id/priceSlider"
+                    android:id="@+id/price_range_slider"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:valueFrom="0.0"
-                    android:valueTo="300.0"
+                    android:valueTo="400.0"
                     app:values="@array/initial_slider_values"
                     android:stepSize="10.0"
-                    android:layout_margin="5dp"/>
+                    android:layout_margin="5dp"
+                    android:enabled="false"
+                    android:visibility="visible"/>
+
+                <com.google.android.material.slider.Slider
+                    android:id="@+id/price_min_slider"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_margin="5dp"
+                    android:value="1000"
+                    android:valueFrom="0"
+                    android:valueTo="3000"
+                    android:stepSize="10"
+                    android:enabled="false"
+                    android:visibility="gone"
+                    app:trackColorActive="@color/purple_200"
+                    app:trackColorInactive="@color/purple_500"
+                    />
+                <!-- with app:trackColorActive, app:trackColorInactive the attribute android:enabled="false" not works properly        -->
+
+                <com.google.android.material.slider.Slider
+                    android:id="@+id/price_max_slider"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_margin="5dp"
+                    android:value="10"
+                    android:valueFrom="0"
+                    android:valueTo="3000"
+                    android:stepSize="10"
+                    android:enabled="false"
+                    android:visibility="gone"
+
+                    />
 
             </LinearLayout>
             <TextView
                 android:id="@+id/priceRange"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Fascia di prezzo: 3€ - 30€"
+                android:text="Fascia di prezzo: ...€ - ...€"
                 android:layout_gravity="end"
-                android:layout_marginBottom="30dp"
+
+                android:textSize="20sp"
+                android:layout_marginRight="5dp"
+                android:enabled="false"
+                />
+
+            <com.google.android.material.divider.MaterialDivider
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:dividerColor="@color/grey"
+                app:dividerThickness="1dp"
+                />
+
+            <TextView
+                android:id="@+id/titolo_spedizione"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Spedizione"
+                android:textSize="25sp"
                 />
 
             <LinearLayout
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal">
+                android:orientation="horizontal"
+                android:gravity="center">
 
                 <CheckBox
+                    android:id="@+id/select_shipping"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     />
 
                 <androidx.appcompat.widget.SwitchCompat
+                    android:id="@+id/shipping_switch"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_gravity="center"
-                    android:text="Spedizione: "/>
+                    android:text="Spedizione: "
+                    android:enabled="false"
+                    android:checked="false"/>
 
             </LinearLayout>
 
-
+            <Button
+                android:id="@+id/salva_ricerca"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Salva parametri Ricerca"
+                android:layout_gravity="center"/>
         </LinearLayout>
 
         <ScrollView

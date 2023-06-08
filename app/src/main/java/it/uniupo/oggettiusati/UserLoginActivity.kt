@@ -3,6 +3,9 @@ package it.uniupo.oggettiusati
 import android.content.Intent
 import android.os.Bundle
 import android.util.Log
+import android.view.Menu
+import android.view.MenuInflater
+import android.view.MenuItem
 import android.widget.Button
 import android.widget.TextView
 import android.widget.Toast
@@ -39,15 +42,13 @@ private val tabIcons :IntArray= intArrayOf(
 
 open class UserLoginActivity : AppCompatActivity() {
 
-    //--- Inizio informazioni per il collegamento con firebase firestore ---
-    private val auth = FirebaseAuth.getInstance()
-    //--- Fine informazioni per il collegamento con firebase firestore ---
-
     companion object {
 
         private var ultimoAnnuncio: String? = null
 
         private val database = Firebase.firestore
+
+        private val auth = FirebaseAuth.getInstance()
 
         fun recuperaAnnunci(myDocumenti: QuerySnapshot, home: Boolean): HashMap<String, Annuncio> {
 
@@ -87,7 +88,7 @@ open class UserLoginActivity : AppCompatActivity() {
         fun definisciQuery(titoloAnnuncio: String?, disponibilitaSpedire: Boolean?, prezzoSuperiore: Int?, prezzoMinore: Int?): Query {
 
             //Quando ad un annuncio non è assegnato un acquirente, non vogliamo mostrare nella home degli annunci che sono già stati venduti.
-            var myQuery = database.collection(Annuncio.nomeCollection).whereEqualTo("userIdAcquirente", null)
+            var myQuery = database.collection(Annuncio.nomeCollection).orderBy("userId").whereNotEqualTo("userId", auth.uid).whereEqualTo("userIdAcquirente", null)
 
             if(titoloAnnuncio != null)
                 myQuery = myQuery.whereEqualTo("titolo", titoloAnnuncio)
@@ -107,27 +108,13 @@ open class UserLoginActivity : AppCompatActivity() {
         }
     }
 
-    //--- Inizio metodo da spostare nel fragment che visualizza i miei annunci ---
-    suspend fun recuperaMieiAnnunci(userId: String): HashMap<String, Annuncio> {
 
-        val documentoAnnunci = database.collection(Annuncio.nomeCollection).whereEqualTo("userId", userId).get().await()
-
-        val myAnnunci = HashMap<String, Annuncio>()
-
-        for(myDocumento in documentoAnnunci.documents){
-            val myAnnuncio = UserLoginActivity.documentoAnnuncioToObject(myDocumento)
-
-            myAnnunci[myAnnuncio.getAnnuncioId()] = myAnnuncio
-        }
-
-        return myAnnunci
-    }
-
-    //--- Fine metodo da spostare nel fragment che visualizza i miei annunci ---
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_user_logged)
+
+        supportActionBar?.setDisplayShowTitleEnabled(false)
 
         //fragments
         val viewPager = findViewById<ViewPager2>(R.id.viewPager)
@@ -172,6 +159,27 @@ open class UserLoginActivity : AppCompatActivity() {
         //-- Recupero gli annunci preferiti dell'utente --
         runBlocking {
             recuperaRicercheSalvateFirebaseFirestore(auth.uid!!)
+        }
+    }
+
+    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
+//        return super.onCreateOptionsMenu(menu)
+        val inflater: MenuInflater = menuInflater
+        inflater.inflate(R.menu.menu, menu)
+        return true
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        return when (item.itemId) {
+            R.id.logout_menu -> {
+                Toast.makeText(this, "Uscita...", Toast.LENGTH_SHORT).show()
+                FirebaseAuth.getInstance().signOut()
+                startActivity(Intent(this, MainActivity::class.java))
+                true
+            }
+            else -> {
+                super.onOptionsItemSelected(item)
+            }
         }
     }
 

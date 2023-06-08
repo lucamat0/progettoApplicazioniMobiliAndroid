@@ -28,6 +28,8 @@ class SignUpActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_signup)
 
+        supportActionBar?.setDisplayShowTitleEnabled(false)
+
         // -- SignUp Activity --
         val nome = findViewById<EditText>(R.id.nome)
         val cognome = findViewById<EditText>(R.id.cognome)
@@ -129,7 +131,8 @@ class SignUpActivity : AppCompatActivity() {
                 "numeroDiTelefono" to numeroDiTelefono,
                 "amministratore" to 0,
                 "sospeso" to false,
-                "eliminato" to false
+                "eliminato" to false,
+                "userId" to auth.uid
             )
 
             val inserimentoDatiUtente =

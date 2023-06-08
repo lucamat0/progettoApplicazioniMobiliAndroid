@@ -93,6 +93,9 @@ class CustomAdapter(private val myArrayList: HashMap<String, Annuncio>, val layo
                 if(myAnnuncio[position].second.getRichiesta()) { //equivalente a and
                     if(myAnnuncio[position].second.isProprietario(auth.uid.toString())){
                         holder.imgNotification?.visibility = View.VISIBLE
+                        if(myAnnuncio[position].second.isVenduto()){
+                            holder.imgNotification?.setImageResource(R.drawable.baseline_sell_50)
+                        }
                     }
                 }
             }

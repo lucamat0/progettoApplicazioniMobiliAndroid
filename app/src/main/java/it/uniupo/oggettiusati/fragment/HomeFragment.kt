@@ -6,11 +6,15 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.CheckBox
 import android.widget.EditText
 import android.widget.ImageButton
 import android.widget.LinearLayout
+import android.widget.RadioButton
+import android.widget.RadioGroup
 import android.widget.TextView
 import android.widget.Toast
+import androidx.appcompat.widget.SwitchCompat
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -52,6 +56,7 @@ class HomeFragment : Fragment() {
     private var disponibilitaSpedire: Boolean? = null
     private var prezzoSuperiore: Int? = null
     private var prezzoMinore: Int? = null
+    private var distanzaMax: Int? = null
 
     private var ultimoAnnuncioId: String? = null
 
@@ -93,7 +98,10 @@ class HomeFragment : Fragment() {
         runBlocking {
 
             //Recupero tutti gli annunci, preferiti, per la notifica.
-            FavoritesFragment.recuperaAnnunciPreferitiFirebaseFirestore(auth.uid!!, activity!!)
+            FavoritesFragment.recuperaAnnunciPreferitiFirebaseFirestore(
+                auth.uid!!,
+                requireActivity()
+            )
 
             recuperaAnnunciPerMostrarliNellaHome(1)
 
@@ -107,13 +115,103 @@ class HomeFragment : Fragment() {
             recyclerVu?.adapter = adapter
         }
 
+        val distanceSlider = view?.findViewById<Slider>(R.id.distanceSlider)
+//        distanceSlider?.isEnabled = false
+        val testoDistanza = view?.findViewById<TextView>(R.id.maxDistance)
+
+        var updTxt = "Distanza max: ${distanceSlider?.value}km"
+        testoDistanza?.text = updTxt
+
+        val testoPrezzo = view?.findViewById<TextView>(R.id.priceRange)
+        val radioGroupPrezzo = view?.findViewById<RadioGroup>(R.id.rGroup_prezzo)!!
+        setEnabledRadioGroup(radioGroupPrezzo, false)
+
+
+        val priceSlider = view?.findViewById<RangeSlider>(R.id.price_range_slider)
+        val selezionePrezzo = requireView().findViewById<CheckBox>(R.id.select_price)
+        val prezzoMin = view?.findViewById<Slider>(R.id.price_min_slider)
+        val prezzoMax = view?.findViewById<Slider>(R.id.price_max_slider)
+
+        updTxt = "Fascia di prezzo: ${priceSlider!!.values[0]}€ - ${priceSlider.values[1]}€"
+        testoPrezzo?.text = updTxt
+
+        prezzoMin?.setLabelFormatter { value -> "$value €"; }
+
+        prezzoMin?.addOnSliderTouchListener(object : Slider.OnSliderTouchListener {
+            override fun onStartTrackingTouch(slider: Slider) {}
+            override fun onStopTrackingTouch(slider: Slider) {
+                updTxt = "Prezzo min: ${prezzoMin.value}€"
+                testoPrezzo?.text = updTxt
+            }
+        })
+
+        prezzoMax?.setLabelFormatter { value -> "$value €"; }
+
+        prezzoMax?.addOnSliderTouchListener(object : Slider.OnSliderTouchListener {
+            override fun onStartTrackingTouch(slider: Slider) {}
+            override fun onStopTrackingTouch(slider: Slider) {
+                updTxt = "Prezzo max: ${prezzoMax.value}€"
+                testoPrezzo?.text = updTxt
+            }
+        })
+
+        selezionePrezzo.setOnClickListener {
+            togglePrezzo(radioGroupPrezzo, priceSlider, prezzoMin, prezzoMax, selezionePrezzo.isChecked)
+            testoPrezzo?.isEnabled = selezionePrezzo.isChecked
+        }
+
+        val idPrezzoRange = R.id.prezzo_range
+        val idPrezzoMin = R.id.prezzo_min
+        val idPrezzoMax = R.id.prezzo_max
+        val filtraPrezzoRange = requireView().findViewById<RadioButton>(idPrezzoRange)
+        val filtraPrezzoMin = requireView().findViewById<RadioButton>(idPrezzoMin)
+        val filtraPrezzoMax = requireView().findViewById<RadioButton>(idPrezzoMax)
+        filtraPrezzoRange.isChecked = true
+
+        filtraPrezzoRange.setOnClickListener {
+            enableFirstSliderPrezzo(priceSlider, prezzoMin, prezzoMax)
+             updTxt = "Fascia di prezzo: ${priceSlider.values[0]}€ - ${priceSlider.values[1]}€"
+            testoPrezzo?.text = updTxt
+        }
+        filtraPrezzoMin.setOnClickListener {
+            enableFirstSliderPrezzo(prezzoMin, priceSlider, prezzoMax)
+             updTxt = "Prezzo min: ${prezzoMin?.value}€"
+            testoPrezzo?.text = updTxt
+        }
+        filtraPrezzoMax.setOnClickListener {
+            enableFirstSliderPrezzo(prezzoMax, priceSlider, prezzoMin)
+             updTxt = "Prezzo max: ${prezzoMax?.value}€"
+            testoPrezzo?.text = updTxt
+        }
 
         //---
 
-        val buttonRicercaTitolo = view?.findViewById<ImageButton>(R.id.searchButton)
+        val buttonRicerca = view?.findViewById<ImageButton>(R.id.searchButton)
         val casellaRicerca = view?.findViewById<EditText>(R.id.search)
+        val selezionaDistanza = view?.findViewById<CheckBox>(R.id.select_distance)
 
-        buttonRicercaTitolo?.setOnClickListener {
+        val selezionaSpedizione = view?.findViewById<CheckBox>(R.id.select_shipping)
+        val shippingSwitch = view?.findViewById<SwitchCompat>(R.id.shipping_switch)
+        shippingSwitch?.isChecked = false
+
+        listOf(
+            selezionaDistanza,
+            selezionaSpedizione,
+            selezionePrezzo
+        ).forEach {
+            it?.isChecked = false
+        }
+
+        selezionaDistanza?.setOnClickListener {
+            distanceSlider?.isEnabled = selezionaDistanza.isChecked
+            testoDistanza?.isEnabled = selezionaDistanza.isChecked
+        }
+
+        selezionaSpedizione?.setOnClickListener {
+            shippingSwitch?.isEnabled = selezionaSpedizione.isChecked
+        }
+
+        buttonRicerca?.setOnClickListener {
 
             val recuperaTitolo = casellaRicerca?.text.toString()
 
@@ -121,6 +219,36 @@ class HomeFragment : Fragment() {
                 recuperaAnnunciTitolo(null)
             else
                 recuperaAnnunciTitolo(recuperaTitolo)
+
+            if (selezionaDistanza!!.isChecked)
+                distanzaMax = distanceSlider?.value?.toInt()
+            else
+                distanzaMax = null
+
+            if(selezionePrezzo.isChecked) {
+                when (radioGroupPrezzo.checkedRadioButtonId) {
+                    idPrezzoRange -> {
+                        prezzoSuperiore = priceSlider.values[0].toInt()
+                        prezzoMinore = priceSlider.values[1].toInt()
+                    }
+                    idPrezzoMin -> {
+                        prezzoSuperiore = null
+                        prezzoMinore = prezzoMin?.value?.toInt()
+                    }
+                    idPrezzoMax ->{
+                        prezzoSuperiore = prezzoMax?.value?.toInt()
+                        prezzoMinore = null
+                    }
+                }
+            } else {
+                prezzoSuperiore = null
+                prezzoMinore = null
+            }
+
+            if(selezionaSpedizione!!.isChecked)
+                disponibilitaSpedire = shippingSwitch?.isChecked
+            else
+                disponibilitaSpedire = null
 
             runBlocking {
                 recuperaAnnunciPerMostrarliNellaHome(1)
@@ -143,7 +271,7 @@ class HomeFragment : Fragment() {
 //        }
 
         // --- Inizio metodi relativi ai filtri ---
-        val distanceSlider = view?.findViewById<Slider>(R.id.distanceSlider)
+
 
         distanceSlider?.setLabelFormatter { value -> "$value km"; }
 
@@ -153,20 +281,16 @@ class HomeFragment : Fragment() {
             }
 
             override fun onStopTrackingTouch(slider: Slider) {
-                val distanceEditText = view?.findViewById<TextView>(R.id.maxDistance)
-                val updTxt = "Distanza max: ${distanceSlider.value}km"
-                distanceEditText?.text = updTxt
+                updTxt = "Distanza max: ${distanceSlider.value}km"
+                testoDistanza?.text = updTxt
             }
         })
 
+        priceSlider.setLabelFormatter { value -> "${value.toInt()} €"; }
 
-        val priceSlider = view?.findViewById<RangeSlider>(R.id.priceSlider)
-        priceSlider?.setLabelFormatter { value -> "${value.toInt()} €"; }
-
-        priceSlider?.addOnChangeListener { _, _, _ ->
-            val priceEditText = view?.findViewById<TextView>(R.id.priceRange)
-            val updTxt = "Fascia di prezzo: ${priceSlider.values[0]}€ - ${priceSlider.values[1]}€"
-            priceEditText?.text = updTxt
+        priceSlider.addOnChangeListener { _, _, _ ->
+             updTxt = "Fascia di prezzo: ${priceSlider.values[0]}€ - ${priceSlider.values[1]}€"
+            testoPrezzo?.text = updTxt
         }
 
         val filterButton = view?.findViewById<ImageButton>(R.id.filters)
@@ -183,6 +307,25 @@ class HomeFragment : Fragment() {
         Toast.makeText(activity, "Sei nella sezione home", Toast.LENGTH_SHORT).show()
     }
 
+    private fun enableFirstSliderPrezzo(firstSlider: View?, secondSlider: View?, thirdSlider: View?) {
+        firstSlider?.visibility = View.VISIBLE
+        listOf(secondSlider, thirdSlider).forEach {
+            it?.visibility = View.GONE
+        }
+    }
+
+    private fun togglePrezzo(radioGroupPrezzo: RadioGroup, rangeSliderPrezzo: View?, sliderMinPrezzo: View?, sliderMaxPrezzo: View?, enabled :Boolean) {
+        setEnabledRadioGroup(radioGroupPrezzo, enabled)
+        listOf(rangeSliderPrezzo, sliderMinPrezzo, sliderMaxPrezzo).forEach {
+            it?.isEnabled = enabled
+        }
+    }
+
+    private fun setEnabledRadioGroup(radioGroup: RadioGroup, enabled: Boolean) {
+        for (i in 0 until radioGroup.childCount) {
+            (radioGroup.getChildAt(i)).isEnabled = enabled
+        }
+    }
 
 
     //Ogni pagina, mostra 10 annunci alla volta, questo metodo mi ritorna 10 annunci alla volta, in base ai parametri specificati dal utente
@@ -308,12 +451,12 @@ class HomeFragment : Fragment() {
     }
 
     //--- ATTENZIONE: Non implementato il mostrare solo 10 annunci! ---
-    public suspend fun recuperaAnnunciLocalizzazione(
+    suspend fun recuperaAnnunciLocalizzazione(
         posizioneUtente: Location,
         distanzaMax: Int
     ): HashMap<String, Annuncio> {
 
-        var myAnnunci = HashMap<String, Annuncio>()
+        val myAnnunci = HashMap<String, Annuncio>()
 
         //Recupero il documento e creo Annuncio, utilizzo il metodo per capire se la distanza è rispettata
         for (myDocument in queryRisultato.get().await().documents) {

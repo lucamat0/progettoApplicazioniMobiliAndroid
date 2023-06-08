@@ -30,6 +30,8 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+        supportActionBar?.setDisplayShowTitleEnabled(false)
+
         auth = FirebaseAuth.getInstance()
         database = Firebase.firestore
 

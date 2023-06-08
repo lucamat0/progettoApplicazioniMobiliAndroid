@@ -142,6 +142,13 @@
                 android:text="modifica oggetto"
                 android:visibility="gone"
                 />
+            <Button
+                android:id="@+id/elimina_oggetto"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="elimina oggetto"
+                android:visibility="gone"
+                />
 
             <TextView
                 android:id="@+id/spedizione"

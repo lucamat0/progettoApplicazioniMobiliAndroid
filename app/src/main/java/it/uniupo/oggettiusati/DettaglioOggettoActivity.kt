@@ -1,5 +1,6 @@
 package it.uniupo.oggettiusati
 
+import android.content.DialogInterface
 import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
@@ -7,6 +8,7 @@ import android.view.View
 import android.widget.Button
 import android.widget.LinearLayout
 import android.widget.TextView
+import androidx.appcompat.app.AlertDialog
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FieldPath
 import com.google.firebase.firestore.ktx.firestore
@@ -24,6 +26,8 @@ class DettaglioOggettoActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.oggetto)
+
+        supportActionBar?.setDisplayShowTitleEnabled(false)
 
         val myAnnuncio: Annuncio = intent.getParcelableExtra<Annuncio>("annuncio")!!
 
@@ -55,19 +59,39 @@ class DettaglioOggettoActivity : AppCompatActivity() {
                             myAnnuncio.setVenduto(/*idAcquirente*/)
                         }
                     }
-                    findViewById<Button>(R.id.layout_richiesta).visibility = View.GONE
+                    findViewById<LinearLayout>(R.id.layout_richiesta).visibility = View.GONE
                 }
 
                 findViewById<Button>(R.id.rifiuta).setOnClickListener {
                     runBlocking { myAnnuncio.setEliminaRichiesta(auth.uid.toString()) }
                     findViewById<Button>(R.id.layout_richiesta).visibility = View.GONE
                 }
-            }
+            } else { //se non c'è una richiesta e sono il proprietario/admin posso modificare ed eliminare l'oggetto
+                findViewById<Button>(R.id.modifica_oggetto).visibility = View.VISIBLE
+                // creare funzione e aggiungerlo anche per admin
+                findViewById<Button>(R.id.modifica_oggetto).setOnClickListener {
+                    runBlocking {
+                        //startActivity(Modifica.kt)
+                    }
+                }
 
-            // creare funzione e aggiungerlo anche per admin
-            findViewById<Button>(R.id.modifica_oggetto).setOnClickListener {
-                runBlocking {
-                    //startActivity(Modifica.kt)
+                findViewById<Button>(R.id.elimina_oggetto).visibility = View.VISIBLE
+                // creare funzione e aggiungerlo anche per admin
+                findViewById<Button>(R.id.elimina_oggetto).setOnClickListener {
+
+                    AlertDialog.Builder(this)
+                        .setTitle("Attenzione")
+                        .setMessage("Sei sicuro di voler eliminare l'oggetto?")
+                        .setPositiveButton("Si") { dialog :DialogInterface, _:Int ->
+                            dialog.dismiss()
+                            runBlocking {
+//                                eliminaAnnuncioFirebase()
+                            }
+                        }
+                        .setNegativeButton("No") { dialog :DialogInterface, _:Int ->
+                            dialog.dismiss()
+                        }
+                        .show()
                 }
             }
         } else {
@@ -94,6 +118,7 @@ class DettaglioOggettoActivity : AppCompatActivity() {
                         findViewById<Button>(R.id.aggiungi_preferiti).visibility = View.GONE
                     }
                 }
+
                 if(isCarrello(auth.uid.toString(), myAnnuncio.getAnnuncioId())){
                     findViewById<Button>(R.id.aggiungi_carrello).visibility = View.GONE
                 } else {
