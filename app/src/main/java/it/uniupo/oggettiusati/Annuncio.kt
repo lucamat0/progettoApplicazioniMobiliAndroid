@@ -147,7 +147,8 @@ data class Annuncio(
                 "posizione" to geo,
                 "timeStampInizioVendita" to timeStampInizioVendita,
                 "timeStampFineVendita" to timeStampFineVendita,
-                "userIdAcquirente" to userIdAcquirente
+                "userIdAcquirente" to userIdAcquirente,
+                "venduto" to false
             )
 
             val myCollection = database.collection(nomeCollection)

@@ -20,7 +20,6 @@ import com.google.firebase.firestore.*
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 import it.uniupo.oggettiusati.adapter.ViewPagerAdapter
-import it.uniupo.oggettiusati.fragment.FavoritesFragment
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.tasks.await
 import java.util.*
@@ -50,12 +49,12 @@ open class UserLoginActivity : AppCompatActivity() {
 
         private val auth = FirebaseAuth.getInstance()
 
-        fun recuperaAnnunci(myDocumenti: QuerySnapshot, home: Boolean): HashMap<String, Annuncio> {
+        fun recuperaAnnunci(myDocumenti: Set<DocumentSnapshot>, home: Boolean): HashMap<String, Annuncio> {
 
             //Inizializzo HashMap vuota, la chiave sarà il suo Id, l'elemento associato alla chiave sarà oggetto Annuncio.
             val myAnnunci = HashMap<String, Annuncio>()
 
-            for (myDocumentoAnnuncio in myDocumenti.documents) {
+            for (myDocumentoAnnuncio in myDocumenti) {
                 myAnnunci[myDocumentoAnnuncio.id] = documentoAnnuncioToObject(myDocumentoAnnuncio)
 
                 if(home)
@@ -85,26 +84,32 @@ open class UserLoginActivity : AppCompatActivity() {
                 myDocumentoAnnuncio.id)
         }
 
-        fun definisciQuery(titoloAnnuncio: String?, disponibilitaSpedire: Boolean?, prezzoSuperiore: Int?, prezzoMinore: Int?): Query {
+        suspend fun definisciQuery(titoloAnnuncio: String?, disponibilitaSpedire: Boolean?, prezzoInferiore: Int?, prezzoSuperiore: Int?): Set<DocumentSnapshot> {
 
-            //Quando ad un annuncio non è assegnato un acquirente, non vogliamo mostrare nella home degli annunci che sono già stati venduti.
-            var myQuery = database.collection(Annuncio.nomeCollection).orderBy("userId").whereNotEqualTo("userId", auth.uid).whereEqualTo("userIdAcquirente", null)
+            var myDocumentiFiltrati = database.collection(Annuncio.nomeCollection).whereNotEqualTo("userId", auth.currentUser?.uid).get().await().documents.toSet()
+/*
+            myDocumentiFiltrati.forEach { myDocumento ->
+                Log.d("Uguale", (myDocumento.get("userId") as String).equals(auth.currentUser!!.uid).toString()+ "[ "+ myDocumento.get("userId")+"] [${auth.currentUser!!.uid}] "+myDocumento.get("titolo") + "${myDocumentiFiltrati.size}")
+            }
+
+            Log.d("UserId", auth.currentUser!!.uid)
+*/
 
             if(titoloAnnuncio != null)
-                myQuery = myQuery.whereEqualTo("titolo", titoloAnnuncio)
+                myDocumentiFiltrati = database.collection(Annuncio.nomeCollection).whereEqualTo("titolo", titoloAnnuncio).get().await().documents.intersect(myDocumentiFiltrati)
             //siamo nel caso in cui deve essere compreso
-            if(prezzoSuperiore != null && prezzoMinore != null)
-                myQuery = myQuery.orderBy("prezzo").whereGreaterThan("prezzo", prezzoMinore).whereLessThan("prezzo", prezzoSuperiore)
+            if(prezzoSuperiore != null && prezzoInferiore != null)
+                myDocumentiFiltrati =  database.collection(Annuncio.nomeCollection).orderBy("prezzo").whereGreaterThan("prezzo", prezzoInferiore!!).whereLessThan("prezzo", prezzoSuperiore!!).get().await().documents.intersect(myDocumentiFiltrati)
             else {
-                if(prezzoSuperiore != null)
-                    myQuery = myQuery.orderBy("prezzo").whereGreaterThan("prezzo", prezzoSuperiore)
-                else if(prezzoMinore != null)
-                    myQuery = myQuery.orderBy("prezzo").whereLessThan("prezzo", prezzoMinore)
+                if(prezzoInferiore != null)
+                    myDocumentiFiltrati =  database.collection(Annuncio.nomeCollection).orderBy("prezzo").whereGreaterThan("prezzo", prezzoInferiore!!).get().await().documents.intersect(myDocumentiFiltrati)
+                else if(prezzoSuperiore != null)
+                    myDocumentiFiltrati =  database.collection(Annuncio.nomeCollection).orderBy("prezzo").whereLessThan("prezzo", prezzoSuperiore!!).get().await().documents.intersect(myDocumentiFiltrati)
             }
             if(disponibilitaSpedire != null)
-                myQuery = myQuery.whereEqualTo("disponibilitaSpedire", disponibilitaSpedire)
+                myDocumentiFiltrati = database.collection(Annuncio.nomeCollection).whereEqualTo("disponibilitaSpedire", disponibilitaSpedire).get().await().documents.intersect(myDocumentiFiltrati)
 
-            return myQuery
+            return myDocumentiFiltrati
         }
     }
 
@@ -222,7 +227,7 @@ open class UserLoginActivity : AppCompatActivity() {
 
             val query = definisciQuery(titoloAnnuncio, disponibilitaSpedire, prezzoSuperiore, prezzoMinore)
 
-            val numeroAnnunci = query.get().await().size()
+            val numeroAnnunci = query.size
 
             if( numeroAnnunci > numeroAnnunciRicerca) {
                 Toast.makeText(

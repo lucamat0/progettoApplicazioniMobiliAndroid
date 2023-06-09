@@ -64,7 +64,7 @@ class FavoritesFragment : Fragment() {
 
                 val queryPreferiti = myCollectionAnnuncio.whereIn(FieldPath.documentId(), myListaId)
 
-                myAnnunciPreferiti = UserLoginActivity.recuperaAnnunci(queryPreferiti.get().await(), false);
+                myAnnunciPreferiti = UserLoginActivity.recuperaAnnunci(queryPreferiti.get().await().documents.toSet(), false);
 
                 //Rimuovo, il possibile listener che avevo inserito precedentemnte, per definirne uno nuovo,
                 //sulla base dei possibili nuovi elementi
@@ -156,7 +156,7 @@ class FavoritesFragment : Fragment() {
             recyclerVu?.layoutManager = LinearLayoutManager(activity)
 
             //Ogni volta che il mio fragment viene messo in primo piano recupero i miei annunci preferiti
-            myAnnunciPreferiti = recuperaAnnunciPreferitiFirebaseFirestore(auth.uid!!, activity!!)
+            myAnnunciPreferiti = recuperaAnnunciPreferitiFirebaseFirestore(auth.uid!!, requireActivity())
 
             //this will pass the ArrayList to our Adapter
             val adapter = CustomAdapter(myAnnunciPreferiti, R.layout.card_view_remove_design)

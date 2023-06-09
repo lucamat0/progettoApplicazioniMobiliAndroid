@@ -23,11 +23,7 @@ import com.google.android.material.slider.RangeSlider
 import com.google.android.material.slider.Slider
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.DocumentSnapshot
-import com.google.firebase.firestore.FieldPath
-import com.google.firebase.firestore.GeoPoint
 import com.google.firebase.firestore.ListenerRegistration
-import com.google.firebase.firestore.Query
-import com.google.firebase.firestore.QuerySnapshot
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 import it.uniupo.oggettiusati.Annuncio
@@ -36,7 +32,6 @@ import it.uniupo.oggettiusati.R
 import it.uniupo.oggettiusati.UserLoginActivity
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.tasks.await
-import java.net.UnknownServiceException
 
 class HomeFragment : Fragment() {
 
@@ -46,19 +41,14 @@ class HomeFragment : Fragment() {
 
     //HashMap che mi memorizza gli annunci che devo mostrare, a seconda della pagina in cui mi trovo mi vengono mostrati i 10 elementi
     var myAnnunciHome = HashMap<String, Annuncio>()
-    var myListenerAnnunciHome: ListenerRegistration? = null
+    var myListenerAnnunciHome: MutableList<ListenerRegistration> = mutableListOf()
 
-    //Vado a specificare su che collection lavoro
-    private var queryRisultato: Query = this.database.collection(Annuncio.nomeCollection)
 
     //--- Variabili utili per filtrare gli annunci ---
     private var titoloAnnuncio: String? = null
     private var disponibilitaSpedire: Boolean? = null
     private var prezzoSuperiore: Int? = null
     private var prezzoMinore: Int? = null
-    private var distanzaMax: Int? = null
-
-    private var ultimoAnnuncioId: String? = null
 
     //--- Variabile utile per salvare utente, id ---
     //var userId: String = "userIdProva"
@@ -72,7 +62,6 @@ class HomeFragment : Fragment() {
     ): View? {
         // Inflate the layout for this fragment
         val fragmentRootView = inflater.inflate(R.layout.fragment_home, container, false)
-
 
         lateinit var username: String
         val userRef = database.collection("utente").document(userId)
@@ -103,7 +92,7 @@ class HomeFragment : Fragment() {
                 requireActivity()
             )
 
-            recuperaAnnunciPerMostrarliNellaHome(1)
+            recuperaAnnunciPerMostrarliNellaHome()
 
             //getting the recyclerView by its id
             val recyclerVu = view?.findViewById<RecyclerView>(R.id.recyclerview)
@@ -220,38 +209,41 @@ class HomeFragment : Fragment() {
             else
                 recuperaAnnunciTitolo(recuperaTitolo)
 
-            if (selezionaDistanza!!.isChecked)
-                distanzaMax = distanceSlider?.value?.toInt()
-            else
-                distanzaMax = null
-
             if(selezionePrezzo.isChecked) {
                 when (radioGroupPrezzo.checkedRadioButtonId) {
-                    idPrezzoRange -> {
-                        prezzoSuperiore = priceSlider.values[0].toInt()
-                        prezzoMinore = priceSlider.values[1].toInt()
-                    }
-                    idPrezzoMin -> {
-                        prezzoSuperiore = null
-                        prezzoMinore = prezzoMin?.value?.toInt()
-                    }
-                    idPrezzoMax ->{
-                        prezzoSuperiore = prezzoMax?.value?.toInt()
-                        prezzoMinore = null
-                    }
+                    idPrezzoRange -> recuperaAnnunciPrezzoRange(priceSlider.values[1].toInt(), priceSlider.values[0].toInt())
+                    idPrezzoMin -> recuperaAnnunciPrezzoSuperiore(prezzoMin?.value?.toInt()!!)
+                    idPrezzoMax -> recuperaAnnunciPrezzoInferiore(prezzoMax?.value?.toInt()!!)
                 }
-            } else {
-                prezzoSuperiore = null
-                prezzoMinore = null
             }
+            else
+                recuperaAnnunciPrezzoRange(null, null)
 
             if(selezionaSpedizione!!.isChecked)
-                disponibilitaSpedire = shippingSwitch?.isChecked
+                recuperaAnnunciDisponibilitaSpedire(shippingSwitch?.isChecked!!)
             else
-                disponibilitaSpedire = null
+                recuperaAnnunciDisponibilitaSpedire(null)
 
             runBlocking {
-                recuperaAnnunciPerMostrarliNellaHome(1)
+
+                //-- Location simulata x test ---
+                var posizioneUtente: Location = Location("provider")
+                posizioneUtente.latitude = 44.922
+                posizioneUtente.longitude = 8.617
+
+                if (selezionaDistanza!!.isChecked) {
+
+                    myAnnunciHome = recuperaAnnunciPerMostrarliNellaHome()
+
+                    myAnnunciHome = recuperaAnnunciLocalizzazione(
+                        posizioneUtente,
+                        distanceSlider?.value?.toInt()!!,
+                        myAnnunciHome
+                    )
+                }
+                else
+                    myAnnunciHome = recuperaAnnunciPerMostrarliNellaHome()
+
 
                 val adapterRicerca = CustomAdapter(myAnnunciHome, R.layout.card_view_design)
                 val recyclerVu = view?.findViewById<RecyclerView>(R.id.recyclerview)
@@ -329,38 +321,22 @@ class HomeFragment : Fragment() {
 
 
     //Ogni pagina, mostra 10 annunci alla volta, questo metodo mi ritorna 10 annunci alla volta, in base ai parametri specificati dal utente
-    suspend fun recuperaAnnunciPerMostrarliNellaHome(numeroPagina: Int): HashMap<String, Annuncio>? {
+    suspend fun recuperaAnnunciPerMostrarliNellaHome(): HashMap<String, Annuncio> {
 
-        if(numeroPagina == 1) {
+            //-- Recupero i riferimenti ai miei documenti --
+            val myDocumentiRef = UserLoginActivity.definisciQuery(this.titoloAnnuncio, this.disponibilitaSpedire, this.prezzoSuperiore, this.prezzoMinore)
 
-            this.myListenerAnnunciHome?.remove()
+            //-- Trasmormo il riferimento ai documenti in Annunci --
+            this.myAnnunciHome = UserLoginActivity.recuperaAnnunci(myDocumentiRef, true)
 
-            this.queryRisultato = UserLoginActivity.definisciQuery(this.titoloAnnuncio, this.disponibilitaSpedire, this.prezzoSuperiore, this.prezzoMinore)
+            //-- Elimino i listener per i documenti che avevo precedentemente nella home --
+            for(myListenerPrecedente in myListenerAnnunciHome)
+                myListenerPrecedente.remove()
 
-            val myDocumenti = this.queryRisultato.orderBy(FieldPath.documentId()).limit(10).get().await()
-
-            this.myAnnunciHome = UserLoginActivity.recuperaAnnunci(myDocumenti, true)
-
-            //this.myListenerAnnunciHome = subscribeRealTimeDatabase(queryRisultato, myAnnunciHome, false)
-
-            this.myListenerAnnunciHome = subscribeRealTimeDatabase(this.queryRisultato, this.myAnnunciHome)
+            //-- Definisco i nuovi listener, per i documenti che ho ora nella Home --
+            this.myListenerAnnunciHome = subscribeRealTimeDatabase(myDocumentiRef, myAnnunciHome)
 
             return myAnnunciHome
-        } else if(numeroPagina>1 && myAnnunciHome.isNotEmpty()) {
-
-            this.myListenerAnnunciHome?.remove()
-
-            this.queryRisultato = this.queryRisultato.orderBy(FieldPath.documentId()).startAfter(this.ultimoAnnuncioId).limit(10)
-
-            val myDocumenti = this.queryRisultato.get().await()
-
-            this.myAnnunciHome = UserLoginActivity.recuperaAnnunci(myDocumenti, true)
-
-            this.myListenerAnnunciHome = subscribeRealTimeDatabase(this.queryRisultato, this.myAnnunciHome)
-
-            return this.myAnnunciHome
-        } else
-            return null
     }
 
     //Recupera gli annunci che contengono una sequernza/sottosequenza nel titolo del annuncio.
@@ -377,6 +353,7 @@ class HomeFragment : Fragment() {
         this.disponibilitaSpedire = null
         this.prezzoSuperiore = null
         this.prezzoMinore = null
+        this.disponibilitaSpedire = null
     }
 
     //Fissano un limite inferiore
@@ -394,35 +371,43 @@ class HomeFragment : Fragment() {
     }
 
     // Fissano un range in cui l'annuncio deve essere compreso tra il prezzo minore e quello maggiore.
-    fun recuperaAnnunciPrezzoRange(prezzoMinore: Int, prezzoSuperiore: Int){
+    fun recuperaAnnunciPrezzoRange(prezzoMinore: Int?, prezzoSuperiore: Int?){
 
         this.prezzoMinore = prezzoMinore
         this.prezzoSuperiore = prezzoSuperiore
     }
 
     //Ritorna gli annunci che rispettano la disponibilitá di spedire.
-    fun recuperaAnnunciDisponibilitaSpedire(disponibilitaSpedire: Boolean) {
+    fun recuperaAnnunciDisponibilitaSpedire(disponibilitaSpedire: Boolean?) {
         this.disponibilitaSpedire = disponibilitaSpedire
     }
 
+    fun subscribeRealTimeDatabase(
+        myDocumentiRef: Set<DocumentSnapshot>,
+        myAnnunciHome: HashMap<String, Annuncio>
+    ): MutableList<ListenerRegistration> {
 
-    fun subscribeRealTimeDatabase(query: Query, myAnnunci: HashMap<String, Annuncio>): ListenerRegistration {
+        var myListener: MutableList<ListenerRegistration> = mutableListOf()
 
-        val  listenerRegistration = query.addSnapshotListener { snapshot, e ->
-            if (e != null) {
-                Log.w("Query", "Listen failed.", e)
-                return@addSnapshotListener
+        for(myDocumentoRef in myDocumentiRef){
+                myListener.add(myDocumentoRef.reference.addSnapshotListener{ snapshot, exception ->
+
+                        if (exception != null) {
+
+                            Log.e("Errore subscribeRealTimeDatabase", exception.toString())
+                            // Gestisci l'errore
+                            return@addSnapshotListener
+                        }
+                        if (snapshot != null && snapshot.exists()) {
+                            // Il documento è stato modificato, sostituiscilo !
+                            myAnnunciHome[snapshot.id] = UserLoginActivity.documentoAnnuncioToObject(snapshot)
+                        }
+                    }
+                )
             }
-            for (myDocumentoAnnuncio in snapshot!!.documentChanges) {
-
-                val a = UserLoginActivity.documentoAnnuncioToObject(myDocumentoAnnuncio.document)
-
-                //tengo in memoria, i 10 annunci, sempre aggiornati!
-                myAnnunci[a.getAnnuncioId()] = a
-            }
-        }
-        return listenerRegistration
+        return myListener
     }
+
 
     //--- Mi notifica quando il numero di annunci, che rispettano i criteri cambia ---
     suspend fun inserisciRicercaSuFirebaseFirestore(
@@ -437,7 +422,7 @@ class HomeFragment : Fragment() {
         val myCollectionRicerca = myDocumento.collection("ricerca")
 
         //numero di documenti che corrisponde alla ricerca effettuata dal utente.
-        val numeroAnnunci = UserLoginActivity.definisciQuery(titoloAnnuncio, disponibilitaSpedire, prezzoSuperiore, prezzoMinore).get().await().documents.size
+        val numeroAnnunci = UserLoginActivity.definisciQuery(titoloAnnuncio, disponibilitaSpedire, prezzoSuperiore, prezzoMinore).size
 
         val myRicerca = hashMapOf(
             "titoloAnnuncio" to titoloAnnuncio,
@@ -450,24 +435,21 @@ class HomeFragment : Fragment() {
         return myCollectionRicerca.add(myRicerca).await().id
     }
 
-    //--- ATTENZIONE: Non implementato il mostrare solo 10 annunci! ---
-    suspend fun recuperaAnnunciLocalizzazione(
+    fun recuperaAnnunciLocalizzazione(
         posizioneUtente: Location,
-        distanzaMax: Int
+        distanzaMax: Int,
+        myAnnunciDaFiltrare: HashMap<String, Annuncio>
     ): HashMap<String, Annuncio> {
 
-        val myAnnunci = HashMap<String, Annuncio>()
+        val myAnnunciFiltrati = HashMap<String, Annuncio>()
 
         //Recupero il documento e creo Annuncio, utilizzo il metodo per capire se la distanza è rispettata
-        for (myDocument in queryRisultato.get().await().documents) {
-
-            val myAnnuncio = UserLoginActivity.documentoAnnuncioToObject(myDocument)
-
+        for (myAnnuncio in myAnnunciDaFiltrare.values) {
             if (myAnnuncio.distanzaMinore(posizioneUtente, distanzaMax))
-                myAnnunci[myAnnuncio.getAnnuncioId()] = myAnnuncio
+                myAnnunciFiltrati[myAnnuncio.getAnnuncioId()] = myAnnuncio
         }
 
-        return myAnnunci
+        return myAnnunciFiltrati
     }
 
 
