@@ -64,7 +64,7 @@ class FavoritesFragment : Fragment() {
 
                 val queryPreferiti = myCollectionAnnuncio.whereIn(FieldPath.documentId(), myListaId)
 
-                myAnnunciPreferiti = UserLoginActivity.recuperaAnnunci(queryPreferiti.get().await().documents.toSet(), false);
+                myAnnunciPreferiti = UserLoginActivity.recuperaAnnunci(queryPreferiti.get().await().documents.toSet());
 
                 //Rimuovo, il possibile listener che avevo inserito precedentemnte, per definirne uno nuovo,
                 //sulla base dei possibili nuovi elementi

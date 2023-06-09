@@ -4,10 +4,12 @@ import android.content.DialogInterface
 import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.util.Log
 import android.view.View
 import android.widget.Button
 import android.widget.LinearLayout
 import android.widget.TextView
+import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FieldPath
@@ -41,8 +43,17 @@ class DettaglioOggettoActivity : AppCompatActivity() {
         val spediz = "Spedizione: ${if(myAnnuncio.getDisponibilitaSpedire()) "Si" else "No"}"
         findViewById<TextView>(R.id.spedizione).text = spediz
 
+        val btnRecensioniVenditore = findViewById<Button>(R.id.visualizza_recensioni_venditore)
+        Log.d("testStampa", "dettaglio oggetto oncreate eseguito")
+        btnRecensioniVenditore.setOnClickListener {
+            Log.d("testStampa", "Bottone recensioni venditore cliccato")
+            startActivity(Intent(this, UserLoginActivity::class.java))
+        }
+
+        btnRecensioniVenditore.setOnClickListener { Toast.makeText(this, "Bottone cliccato",Toast.LENGTH_SHORT).show() }
+
         if(myAnnuncio.isProprietario(auth.uid.toString())) { //l'annuncio appartiene all'utente autenticato:
-            findViewById<Button>(R.id.visualizza_recensioni_venditore).visibility = View.GONE //Must be one of: View.VISIBLE, View.INVISIBLE, View.GONE
+            btnRecensioniVenditore.visibility = View.GONE //Must be one of: View.VISIBLE, View.INVISIBLE, View.GONE
             // non e' possibile inserirlo nei preferiti ne metterlo nel carrello per acquistarlo
             findViewById<LinearLayout>(R.id.layout_aggiungi).visibility = View.GONE
 

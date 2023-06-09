@@ -2,6 +2,7 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
     <item
         android:id="@+id/logout_menu"
-        android:icon="@drawable/baseline_logout_50"
         android:title="Logout"/>
+    <!--  android:icon="@drawable/baseline_logout_50"
+    app:showAsAction="always"-->
 </menu>

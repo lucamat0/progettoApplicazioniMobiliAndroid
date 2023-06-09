@@ -6,6 +6,7 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Button
 import android.widget.CheckBox
 import android.widget.EditText
 import android.widget.ImageButton
@@ -48,12 +49,34 @@ class HomeFragment : Fragment() {
     private var titoloAnnuncio: String? = null
     private var disponibilitaSpedire: Boolean? = null
     private var prezzoSuperiore: Int? = null
-    private var prezzoMinore: Int? = null
+    private var prezzoInferiore: Int? = null
 
     //--- Variabile utile per salvare utente, id ---
     //var userId: String = "userIdProva"
 
     val userId = auth.currentUser!!.uid
+
+    companion object {
+
+        fun recuperaAnnunciLocalizzazione(
+            posizioneUtente: Location,
+            distanzaMax: Int,
+            myAnnunciDaFiltrare: HashMap<String, Annuncio>
+        ): HashMap<String, Annuncio> {
+
+            val myAnnunciFiltrati = HashMap<String, Annuncio>()
+
+            //Recupero il documento e creo Annuncio, utilizzo il metodo per capire se la distanza è rispettata
+            for (myAnnuncio in myAnnunciDaFiltrare.values) {
+                if (myAnnuncio.distanzaMinore(posizioneUtente, distanzaMax))
+                    Log.d("test","annuncio vicino")
+                    myAnnunciFiltrati[myAnnuncio.getAnnuncioId()] = myAnnuncio
+            }
+
+            return myAnnunciFiltrati
+        }
+
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -200,9 +223,10 @@ class HomeFragment : Fragment() {
             shippingSwitch?.isEnabled = selezionaSpedizione.isChecked
         }
 
+        val recuperaTitolo = casellaRicerca?.text.toString()
         buttonRicerca?.setOnClickListener {
 
-            val recuperaTitolo = casellaRicerca?.text.toString()
+
 
             if(recuperaTitolo.isEmpty())
                 recuperaAnnunciTitolo(null)
@@ -296,6 +320,56 @@ class HomeFragment : Fragment() {
             }
         }
 
+        //salva ricerca
+        val btnSalvaRicerca = activity?.findViewById<Button>(R.id.salva_ricerca)
+
+        btnSalvaRicerca?.setOnClickListener {
+            runBlocking {
+                val distMax :Int?
+
+                if(recuperaTitolo.isEmpty())
+                    titoloAnnuncio = null
+                else
+                    titoloAnnuncio = casellaRicerca?.text.toString()
+
+                if (selezionaDistanza!!.isChecked)
+                    distMax = distanceSlider?.value?.toInt()
+                else
+                    distMax = null
+                if(selezionePrezzo.isChecked) {
+                    when (radioGroupPrezzo.checkedRadioButtonId) {
+                        idPrezzoRange -> {
+                            prezzoSuperiore = priceSlider.values[1].toInt()
+                            prezzoInferiore =  priceSlider . values [0].toInt()
+                        }
+                        idPrezzoMin -> {
+                            prezzoSuperiore = null
+                            prezzoInferiore = prezzoMin?.value?.toInt()!!
+                        }
+                        idPrezzoMax -> {
+                            prezzoSuperiore = prezzoMax?.value?.toInt()
+                            prezzoInferiore = null
+                        }
+                    }
+                }
+                else {
+                    prezzoSuperiore = null
+                    prezzoInferiore = null
+                }
+
+                if(selezionaSpedizione!!.isChecked)
+                    disponibilitaSpedire = shippingSwitch?.isChecked
+                else
+                    disponibilitaSpedire = null
+
+                var posizioneUtente: Location = Location("provider")
+                posizioneUtente.latitude = 44.922
+                posizioneUtente.longitude = 8.617
+
+                inserisciRicercaSuFirebaseFirestore(auth.uid!!, titoloAnnuncio, disponibilitaSpedire, prezzoSuperiore, prezzoInferiore, distMax, posizioneUtente)
+            }
+        }
+
         Toast.makeText(activity, "Sei nella sezione home", Toast.LENGTH_SHORT).show()
     }
 
@@ -324,10 +398,10 @@ class HomeFragment : Fragment() {
     suspend fun recuperaAnnunciPerMostrarliNellaHome(): HashMap<String, Annuncio> {
 
             //-- Recupero i riferimenti ai miei documenti --
-            val myDocumentiRef = UserLoginActivity.definisciQuery(this.titoloAnnuncio, this.disponibilitaSpedire, this.prezzoSuperiore, this.prezzoMinore)
+            val myDocumentiRef = UserLoginActivity.definisciQuery(this.titoloAnnuncio, this.disponibilitaSpedire, this.prezzoSuperiore, this.prezzoInferiore)
 
             //-- Trasmormo il riferimento ai documenti in Annunci --
-            this.myAnnunciHome = UserLoginActivity.recuperaAnnunci(myDocumentiRef, true)
+            this.myAnnunciHome = UserLoginActivity.recuperaAnnunci(myDocumentiRef)
 
             //-- Elimino i listener per i documenti che avevo precedentemente nella home --
             for(myListenerPrecedente in myListenerAnnunciHome)
@@ -352,28 +426,28 @@ class HomeFragment : Fragment() {
         this.titoloAnnuncio = null
         this.disponibilitaSpedire = null
         this.prezzoSuperiore = null
-        this.prezzoMinore = null
+        this.prezzoInferiore = null
         this.disponibilitaSpedire = null
     }
 
     //Fissano un limite inferiore
     fun recuperaAnnunciPrezzoInferiore(prezzoMinore: Int){
 
-        this.prezzoMinore = prezzoMinore
+        this.prezzoInferiore = prezzoMinore
         this.prezzoSuperiore = null
     }
 
     //Fissano un limite superiore
     fun recuperaAnnunciPrezzoSuperiore(prezzoSuperiore: Int) {
 
-        this.prezzoMinore = null
+        this.prezzoInferiore = null
         this.prezzoSuperiore = prezzoSuperiore
     }
 
     // Fissano un range in cui l'annuncio deve essere compreso tra il prezzo minore e quello maggiore.
     fun recuperaAnnunciPrezzoRange(prezzoMinore: Int?, prezzoSuperiore: Int?){
 
-        this.prezzoMinore = prezzoMinore
+        this.prezzoInferiore = prezzoMinore
         this.prezzoSuperiore = prezzoSuperiore
     }
 
@@ -412,7 +486,7 @@ class HomeFragment : Fragment() {
     //--- Mi notifica quando il numero di annunci, che rispettano i criteri cambia ---
     suspend fun inserisciRicercaSuFirebaseFirestore(
         idUtente: String,
-        titoloAnnuncio: String?, disponibilitaSpedire: Boolean?, prezzoSuperiore: Int?, prezzoMinore: Int?
+        titoloAnnuncio: String?, disponibilitaSpedire: Boolean?, prezzoSuperiore: Int?, prezzoMinore: Int?, distanzaMax : Int?, posizioneUtente: Location
     ): String {
 
         val myCollectionUtente = this.database.collection("utente")
@@ -421,36 +495,25 @@ class HomeFragment : Fragment() {
 
         val myCollectionRicerca = myDocumento.collection("ricerca")
 
-        //numero di documenti che corrisponde alla ricerca effettuata dal utente.
-        val numeroAnnunci = UserLoginActivity.definisciQuery(titoloAnnuncio, disponibilitaSpedire, prezzoSuperiore, prezzoMinore).size
+        val myDocumentAnnunci = UserLoginActivity.recuperaAnnunci(UserLoginActivity.definisciQuery(titoloAnnuncio, disponibilitaSpedire, prezzoSuperiore, prezzoMinore))
+
+        var numeroAnnunci = myDocumentAnnunci.size
+        if(distanzaMax != null)
+            numeroAnnunci = recuperaAnnunciLocalizzazione(posizioneUtente, distanzaMax, myDocumentAnnunci).size
 
         val myRicerca = hashMapOf(
             "titoloAnnuncio" to titoloAnnuncio,
             "disponibilitaSpedire" to disponibilitaSpedire,
             "prezzoSuperiore" to prezzoSuperiore,
             "prezzoMinore" to prezzoMinore,
-            "numeroAnnunci" to numeroAnnunci
+            "numeroAnnunci" to numeroAnnunci,
+            "distanzaMax" to distanzaMax
         )
 
         return myCollectionRicerca.add(myRicerca).await().id
     }
 
-    fun recuperaAnnunciLocalizzazione(
-        posizioneUtente: Location,
-        distanzaMax: Int,
-        myAnnunciDaFiltrare: HashMap<String, Annuncio>
-    ): HashMap<String, Annuncio> {
 
-        val myAnnunciFiltrati = HashMap<String, Annuncio>()
-
-        //Recupero il documento e creo Annuncio, utilizzo il metodo per capire se la distanza è rispettata
-        for (myAnnuncio in myAnnunciDaFiltrare.values) {
-            if (myAnnuncio.distanzaMinore(posizioneUtente, distanzaMax))
-                myAnnunciFiltrati[myAnnuncio.getAnnuncioId()] = myAnnuncio
-        }
-
-        return myAnnunciFiltrati
-    }
 
 
 //     suspend fun eliminaRicercaFirebaseFirestore(userId : String, idRicerca: String){

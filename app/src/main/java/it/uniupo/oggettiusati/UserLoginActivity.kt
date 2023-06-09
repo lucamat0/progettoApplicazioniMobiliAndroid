@@ -1,6 +1,7 @@
 package it.uniupo.oggettiusati
 
 import android.content.Intent
+import android.location.Location
 import android.os.Bundle
 import android.util.Log
 import android.view.Menu
@@ -20,6 +21,7 @@ import com.google.firebase.firestore.*
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 import it.uniupo.oggettiusati.adapter.ViewPagerAdapter
+import it.uniupo.oggettiusati.fragment.HomeFragment
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.tasks.await
 import java.util.*
@@ -49,16 +51,13 @@ open class UserLoginActivity : AppCompatActivity() {
 
         private val auth = FirebaseAuth.getInstance()
 
-        fun recuperaAnnunci(myDocumenti: Set<DocumentSnapshot>, home: Boolean): HashMap<String, Annuncio> {
+        fun recuperaAnnunci(myDocumenti: Set<DocumentSnapshot>): HashMap<String, Annuncio> {
 
             //Inizializzo HashMap vuota, la chiave sarà il suo Id, l'elemento associato alla chiave sarà oggetto Annuncio.
             val myAnnunci = HashMap<String, Annuncio>()
 
             for (myDocumentoAnnuncio in myDocumenti) {
                 myAnnunci[myDocumentoAnnuncio.id] = documentoAnnuncioToObject(myDocumentoAnnuncio)
-
-                if(home)
-                    ultimoAnnuncio = myDocumentoAnnuncio.id
             }
 
             return myAnnunci
@@ -99,12 +98,12 @@ open class UserLoginActivity : AppCompatActivity() {
                 myDocumentiFiltrati = database.collection(Annuncio.nomeCollection).whereEqualTo("titolo", titoloAnnuncio).get().await().documents.intersect(myDocumentiFiltrati)
             //siamo nel caso in cui deve essere compreso
             if(prezzoSuperiore != null && prezzoInferiore != null)
-                myDocumentiFiltrati =  database.collection(Annuncio.nomeCollection).orderBy("prezzo").whereGreaterThan("prezzo", prezzoInferiore!!).whereLessThan("prezzo", prezzoSuperiore!!).get().await().documents.intersect(myDocumentiFiltrati)
+                myDocumentiFiltrati =  database.collection(Annuncio.nomeCollection).orderBy("prezzo").whereGreaterThan("prezzo", prezzoInferiore).whereLessThan("prezzo", prezzoSuperiore).get().await().documents.intersect(myDocumentiFiltrati)
             else {
                 if(prezzoInferiore != null)
-                    myDocumentiFiltrati =  database.collection(Annuncio.nomeCollection).orderBy("prezzo").whereGreaterThan("prezzo", prezzoInferiore!!).get().await().documents.intersect(myDocumentiFiltrati)
+                    myDocumentiFiltrati =  database.collection(Annuncio.nomeCollection).orderBy("prezzo").whereGreaterThan("prezzo", prezzoInferiore).get().await().documents.intersect(myDocumentiFiltrati)
                 else if(prezzoSuperiore != null)
-                    myDocumentiFiltrati =  database.collection(Annuncio.nomeCollection).orderBy("prezzo").whereLessThan("prezzo", prezzoSuperiore!!).get().await().documents.intersect(myDocumentiFiltrati)
+                    myDocumentiFiltrati =  database.collection(Annuncio.nomeCollection).orderBy("prezzo").whereLessThan("prezzo", prezzoSuperiore).get().await().documents.intersect(myDocumentiFiltrati)
             }
             if(disponibilitaSpedire != null)
                 myDocumentiFiltrati = database.collection(Annuncio.nomeCollection).whereEqualTo("disponibilitaSpedire", disponibilitaSpedire).get().await().documents.intersect(myDocumentiFiltrati)
@@ -163,7 +162,13 @@ open class UserLoginActivity : AppCompatActivity() {
 
         //-- Recupero gli annunci preferiti dell'utente --
         runBlocking {
-            recuperaRicercheSalvateFirebaseFirestore(auth.uid!!)
+            //recuperaRicercheSalvateFirebaseFirestore(auth.uid!!)
+            //posizione temporanea per test
+            var posizioneUtente: Location = Location("provider")
+            posizioneUtente.latitude = 44.922
+            posizioneUtente.longitude = 8.617
+            controllaStatoRicercheAnnunci(auth.uid!!, posizioneUtente)
+
         }
     }
 
@@ -198,13 +203,13 @@ open class UserLoginActivity : AppCompatActivity() {
 
         val myArrayList = ArrayList<Ricerca>()
         for(myRicerca in myDocumentsRicerca.documents){
-            myArrayList.add(Ricerca(userId,myRicerca.get("idRicerca") as String, myRicerca.get("titoloAnnuncio") as String?, myRicerca.getBoolean("disponibilitaSpedire"), myRicerca.get("prezzoSuperiore") as Int?, myRicerca.get("prezzoMinore") as Int?, myRicerca.get("numeroAnnunci") as Int))
+            myArrayList.add(Ricerca(userId,myRicerca.get("idRicerca") as String, myRicerca.get("titoloAnnuncio") as String?, myRicerca.getBoolean("disponibilitaSpedire"), myRicerca.get("prezzoSuperiore") as Int?, myRicerca.get("prezzoMinore") as Int?, myRicerca.get("numeroAnnunci") as Int, myRicerca.get("distanzaMax") as Int?))
         }
 
         return myArrayList
     }
 
-    suspend fun controllaStatoRicercheAnnunci(userId: String): Boolean {
+    suspend fun controllaStatoRicercheAnnunci(userId: String, posizioneUtente :Location): Boolean {
 
         val myCollection = database.collection("utente")
 
@@ -225,11 +230,17 @@ open class UserLoginActivity : AppCompatActivity() {
 
             val numeroAnnunciRicerca = (myDocumento.get("numeroAnnunci") as Long).toInt()
 
-            val query = definisciQuery(titoloAnnuncio, disponibilitaSpedire, prezzoSuperiore, prezzoMinore)
+            val distanzaMax = myDocumento.get("distanzaMax") as Int?
 
-            val numeroAnnunci = query.size
+            val myAnnunciRef = definisciQuery(titoloAnnuncio, disponibilitaSpedire, prezzoSuperiore, prezzoMinore)
+            var myAnnunci = recuperaAnnunci(myAnnunciRef)
+            if(distanzaMax != null)
+                myAnnunci = HomeFragment.recuperaAnnunciLocalizzazione(posizioneUtente, distanzaMax, myAnnunci)
+
+            val numeroAnnunci = myAnnunci.size
 
             if( numeroAnnunci > numeroAnnunciRicerca) {
+
                 Toast.makeText(
                     this@UserLoginActivity,
                     "Il numero di annunci della ricerca ${myDocumento.id} sono aumentati!",
@@ -268,5 +279,5 @@ open class UserLoginActivity : AppCompatActivity() {
     }
 
 
-    data class Ricerca(val userId: String, val idRicerca: String, val titoloAnnuncio: String?, val disponibilitaSpedire: Boolean?, val prezzoSuperiore: Int?, val prezzoMinore: Int?, val numeroAnnunci: Int)
+    data class Ricerca(val userId: String, val idRicerca: String, val titoloAnnuncio: String?, val disponibilitaSpedire: Boolean?, val prezzoSuperiore: Int?, val prezzoMinore: Int?, val numeroAnnunci: Int, val distanzaMax :Int?)
 }

@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.cardview.widget.CardView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="200dp"
+    android:id="@+id/cardVu"
+    android:layout_margin="10dp"
+    app:cardElevation="6dp">
+
+    <LinearLayout
+        android:id="@+id/cardLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="5dp"
+        android:layout_gravity="center">
+
+        <TextView
+            android:id="@+id/titolo_recensione"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Titolo"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            android:paddingVertical="10dp"/>
+
+        <TextView
+            android:id="@+id/testo_recensione"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="testo"
+            android:textSize="20sp"
+            android:layout_gravity="center"
+            android:paddingVertical="10dp"/>
+
+        <TextView
+            android:id="@+id/autore_recensione"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Autore"
+            android:textSize="20sp"
+            android:layout_gravity="start"
+            android:paddingVertical="10dp"/>
+
+        <TextView
+            android:id="@+id/data_recensione"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Data"
+            android:textSize="20sp"
+            android:layout_gravity="end"
+            android:paddingVertical="10dp"/>
+
+    </LinearLayout>
+
+</androidx.cardview.widget.CardView>
