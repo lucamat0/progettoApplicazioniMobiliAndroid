@@ -12,6 +12,7 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 import it.uniupo.oggettiusati.R
+import it.uniupo.oggettiusati.UserLoginActivity
 import it.uniupo.oggettiusati.adapter.UserAdapter
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.tasks.await
@@ -38,7 +39,7 @@ class ChatFragment : Fragment() {
 
         runBlocking {
 
-            val nomeCognomeUtenti = recuperaUtenti()
+            val nomeCognomeUtenti = UserLoginActivity.recuperaUtenti()
 
             val recyclerViewUtenti = view?.findViewById<RecyclerView>(R.id.recyclerviewUtenti)
             recyclerViewUtenti!!.layoutManager = LinearLayoutManager(activity)
@@ -50,26 +51,4 @@ class ChatFragment : Fragment() {
         Toast.makeText(activity, "Sei nella sezione chat", Toast.LENGTH_SHORT).show()
     }
 
-    private suspend fun recuperaUtenti(): ArrayList<Utente>{
-
-        val myUtenti = ArrayList<Utente>()
-
-        val myDocumenti = database.collection("utente")/*.whereNotEqualTo("userId", auth.uid)*/.get().await()
-        for(myDocumento in myDocumenti.documents){
-            myUtenti.add(
-                Utente(myDocumento.id /*as String*/,
-                    myDocumento.get("nome") as String,
-                    myDocumento.get("cognome") as String,
-                    (myDocumento.getLong("amministratore") as Long).toInt(),
-                    myDocumento.get("numeroDiTelefono") as String,
-                    myDocumento.getBoolean("sospeso") as Boolean,
-                    myDocumento.getString("dataNascita") as String
-                )
-            )
-        }
-
-        return myUtenti
-    }
-
-    data class Utente(val uid: String, val nome: String, val cognome: String, val amministratore: Int, val numeroDiTelefono: String, val sospeso: Boolean, val dataNascita: String)
 }

@@ -13,7 +13,7 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
-class RecensioniAdapter(private val listaRecensioni: HashMap<String, RecensioniActivity.Recensione>) : RecyclerView.Adapter<RecensioniAdapter.ViewHolder>() {
+class RecensioniAdapter(private val listaRecensioni: List<RecensioniActivity.Recensione>) : RecyclerView.Adapter<RecensioniAdapter.ViewHolder>() {
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         val view = LayoutInflater.from(parent.context).inflate(R.layout.card_view_recensioni_design, parent, false)
         return ViewHolder(view)
@@ -24,13 +24,10 @@ class RecensioniAdapter(private val listaRecensioni: HashMap<String, RecensioniA
     }
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-        val recensioni = listaRecensioni.toList()
-
-        holder.textViewTitolo.text = recensioni[position].second.titolo
-        holder.textViewTesto.text = recensioni[position].second.testo
-        holder.textViewAutore.text = recensioni[position].second.autore
-        holder.textViewData.text = getDateInstance().format(Date(recensioni[position].second.data))
-//        holder.textViewData.text = SimpleDateFormat("dd/M/yyyy hh:mm:ss", Locale.ITALY).format(Date(recensioni[position].second.data))
+        holder.textViewTitolo.text = listaRecensioni[position].titoloRecensione
+        holder.textViewTesto.text = listaRecensioni[position].descrizioniRecensione
+        holder.textViewAutore.text = listaRecensioni[position].idUtenteEspresso
+        holder.textViewData.text = listaRecensioni[position].votoAlUtente.toString()
     }
 
     class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView){

@@ -68,9 +68,9 @@ class HomeFragment : Fragment() {
 
             //Recupero il documento e creo Annuncio, utilizzo il metodo per capire se la distanza è rispettata
             for (myAnnuncio in myAnnunciDaFiltrare.values) {
-                if (myAnnuncio.distanzaMinore(posizioneUtente, distanzaMax))
-                    Log.d("test","annuncio vicino")
+                if (myAnnuncio.distanzaMinore(posizioneUtente, distanzaMax)) {
                     myAnnunciFiltrati[myAnnuncio.getAnnuncioId()] = myAnnuncio
+                }
             }
 
             return myAnnunciFiltrati
@@ -343,12 +343,12 @@ class HomeFragment : Fragment() {
                             prezzoInferiore =  priceSlider . values [0].toInt()
                         }
                         idPrezzoMin -> {
-                            prezzoSuperiore = null
-                            prezzoInferiore = prezzoMin?.value?.toInt()!!
+                            prezzoSuperiore = prezzoMin?.value?.toInt()!!
+                            prezzoInferiore = null
                         }
                         idPrezzoMax -> {
-                            prezzoSuperiore = prezzoMax?.value?.toInt()
-                            prezzoInferiore = null
+                            prezzoSuperiore = null
+                            prezzoInferiore = prezzoMax?.value?.toInt()
                         }
                     }
                 }
@@ -398,7 +398,7 @@ class HomeFragment : Fragment() {
     suspend fun recuperaAnnunciPerMostrarliNellaHome(): HashMap<String, Annuncio> {
 
             //-- Recupero i riferimenti ai miei documenti --
-            val myDocumentiRef = UserLoginActivity.definisciQuery(this.titoloAnnuncio, this.disponibilitaSpedire, this.prezzoSuperiore, this.prezzoInferiore)
+            val myDocumentiRef = UserLoginActivity.definisciQuery(this.titoloAnnuncio, this.disponibilitaSpedire, this.prezzoInferiore, this.prezzoSuperiore )
 
             //-- Trasmormo il riferimento ai documenti in Annunci --
             this.myAnnunciHome = UserLoginActivity.recuperaAnnunci(myDocumentiRef)
@@ -495,11 +495,14 @@ class HomeFragment : Fragment() {
 
         val myCollectionRicerca = myDocumento.collection("ricerca")
 
-        val myDocumentAnnunci = UserLoginActivity.recuperaAnnunci(UserLoginActivity.definisciQuery(titoloAnnuncio, disponibilitaSpedire, prezzoSuperiore, prezzoMinore))
+        val myDocumentAnnunci = UserLoginActivity.recuperaAnnunci(UserLoginActivity.definisciQuery(titoloAnnuncio, disponibilitaSpedire, prezzoMinore, prezzoSuperiore))
 
         var numeroAnnunci = myDocumentAnnunci.size
-        if(distanzaMax != null)
-            numeroAnnunci = recuperaAnnunciLocalizzazione(posizioneUtente, distanzaMax, myDocumentAnnunci).size
+        if(distanzaMax != null) {
+
+            numeroAnnunci =
+                recuperaAnnunciLocalizzazione(posizioneUtente, distanzaMax, myDocumentAnnunci).size
+        }
 
         val myRicerca = hashMapOf(
             "titoloAnnuncio" to titoloAnnuncio,

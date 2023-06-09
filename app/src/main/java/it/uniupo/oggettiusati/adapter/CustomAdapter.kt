@@ -17,6 +17,9 @@ import com.google.firebase.auth.FirebaseAuth
 import it.uniupo.oggettiusati.Annuncio
 import it.uniupo.oggettiusati.DettaglioOggettoActivity
 import it.uniupo.oggettiusati.R
+import it.uniupo.oggettiusati.UserLoginActivity
+import it.uniupo.oggettiusati.fragment.CartFragment
+import it.uniupo.oggettiusati.fragment.FavoritesFragment
 import kotlinx.coroutines.runBlocking
 
 class CustomAdapter(private val myArrayList: HashMap<String, Annuncio>, val layout: Int) : RecyclerView.Adapter<CustomAdapter.ViewHolder>() {
@@ -66,17 +69,21 @@ class CustomAdapter(private val myArrayList: HashMap<String, Annuncio>, val layo
                     uiRequestFromCurrentUser(holder)
                 } else {
                     if(holder.btnRemove != null) {
-                        holder.btnRemove.setOnClickListener { //viewClicked ->
-                            //rimuovo oggetto dal carrello
-                            Toast.makeText(holder.itemView.context, "Rimuovo l'oggetto ${null} dal carrello", Toast.LENGTH_SHORT).show()
-                            holder.card.visibility = View.GONE
+                        holder.btnRemove.setOnClickListener { viewClicked ->
+                            runBlocking {
+                                CartFragment.eliminaAnnuncioCarrelloFirebaseFirestore(auth.uid!!,myAnnuncio[position].second.getAnnuncioId())
+                                Toast.makeText(holder.itemView.context, "Rimuovo l'oggetto ${null} dal carrello", Toast.LENGTH_SHORT).show()
+                                holder.card.visibility = View.GONE
+                                val intent = Intent(holder.itemView.context, UserLoginActivity::class.java)
+                                viewClicked.context.startActivity(intent)
+                            }
                         }
                     }
 
                     if(holder.btnRequest != null) {
                         holder.btnRequest.setOnClickListener {
                             runBlocking {
-                                myAnnuncio[position].second.setRichiesta(auth.uid.toString())
+                                myAnnuncio[position].second.setRichiesta(auth.uid!!)
                             }
                             uiRequestFromCurrentUser(holder)
                         }
@@ -86,6 +93,11 @@ class CustomAdapter(private val myArrayList: HashMap<String, Annuncio>, val layo
                 if(holder.btnRemove != null) {
                     holder.btnRemove.setOnClickListener { //viewClicked ->
                         //rimuovo oggetto dai preferiti
+                        runBlocking {
+                            FavoritesFragment.eliminaAnnuncioPreferitoFirebaseFirestore(auth.uid!!, myAnnuncio[position].second.getAnnuncioId(), holder.itemView.context)
+                            val intent = Intent(holder.itemView.context, UserLoginActivity::class.java)
+                            it.context.startActivity(intent)
+                        }
                         Toast.makeText(holder.itemView.context, "Rimuovo l'oggetto ${null} dai preferiti", Toast.LENGTH_SHORT).show()
                     }
                 }

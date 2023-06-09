@@ -21,6 +21,7 @@ import com.google.firebase.firestore.*
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 import it.uniupo.oggettiusati.adapter.ViewPagerAdapter
+import it.uniupo.oggettiusati.fragment.ChatFragment
 import it.uniupo.oggettiusati.fragment.HomeFragment
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.tasks.await
@@ -72,7 +73,7 @@ open class UserLoginActivity : AppCompatActivity() {
                 myDocumentoAnnuncio.get("userId") as String,
                 myDocumentoAnnuncio.get("titolo") as String,
                 myDocumentoAnnuncio.get("descrizione") as String,
-                myDocumentoAnnuncio.get("prezzo") as Double,
+                myDocumentoAnnuncio.getDouble("prezzo") as Double,
                 (myDocumentoAnnuncio.getLong("stato") as Long).toInt(),
                 myDocumentoAnnuncio.getBoolean("disponibilitaSpedire") as Boolean,
                 myDocumentoAnnuncio.get("categoria") as String,
@@ -83,7 +84,7 @@ open class UserLoginActivity : AppCompatActivity() {
                 myDocumentoAnnuncio.id)
         }
 
-        suspend fun definisciQuery(titoloAnnuncio: String?, disponibilitaSpedire: Boolean?, prezzoInferiore: Int?, prezzoSuperiore: Int?): Set<DocumentSnapshot> {
+        suspend fun definisciQuery(titoloAnnuncio: String?, disponibilitaSpedire: Boolean?, prezzoSuperiore: Int?, prezzoInferiore: Int?): Set<DocumentSnapshot> {
 
             var myDocumentiFiltrati = database.collection(Annuncio.nomeCollection).whereNotEqualTo("userId", auth.currentUser?.uid).get().await().documents.toSet()
 /*
@@ -110,6 +111,37 @@ open class UserLoginActivity : AppCompatActivity() {
 
             return myDocumentiFiltrati
         }
+
+        suspend fun recuperaUtenti(): ArrayList<Utente>{
+
+            val myUtenti = ArrayList<Utente>()
+
+            val myDocumenti = database.collection("utente")/*.whereNotEqualTo("userId", auth.uid)*/.get().await()
+            for(myDocumento in myDocumenti.documents){
+                myUtenti.add(
+                    documentoUtenteToObject(myDocumento)
+                )
+            }
+            return myUtenti
+        }
+
+        fun documentoUtenteToObject(myDocumento :DocumentSnapshot): Utente {
+            return Utente(
+                myDocumento.id,
+                myDocumento.getString("nome") as String,
+                myDocumento.getString("cognome") as String,
+                (myDocumento.getLong("amministratore") as Long).toInt(),
+                myDocumento.getString("numeroDiTelefono") as String,
+                myDocumento.getBoolean("sospeso") as Boolean,
+                myDocumento.getString("dataNascita") as String
+            )
+        }
+
+        suspend fun recuperaUtente(userId :String) : Utente {
+            return documentoUtenteToObject(database.collection("utente").document(userId).get().await())
+        }
+
+
     }
 
 
@@ -118,7 +150,10 @@ open class UserLoginActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_user_logged)
 
-        supportActionBar?.setDisplayShowTitleEnabled(false)
+//        supportActionBar?.setDisplayShowTitleEnabled(false)
+        runBlocking{
+            supportActionBar?.setTitle(recuperaUtente(auth.uid!!).nome)
+        }
 
         //fragments
         val viewPager = findViewById<ViewPager2>(R.id.viewPager)
@@ -230,9 +265,9 @@ open class UserLoginActivity : AppCompatActivity() {
 
             val numeroAnnunciRicerca = (myDocumento.get("numeroAnnunci") as Long).toInt()
 
-            val distanzaMax = myDocumento.get("distanzaMax") as Int?
+            val distanzaMax = myDocumento.getLong("distanzaMax")!!.toInt()
 
-            val myAnnunciRef = definisciQuery(titoloAnnuncio, disponibilitaSpedire, prezzoSuperiore, prezzoMinore)
+            val myAnnunciRef = definisciQuery(titoloAnnuncio, disponibilitaSpedire, prezzoMinore, prezzoSuperiore)
             var myAnnunci = recuperaAnnunci(myAnnunciRef)
             if(distanzaMax != null)
                 myAnnunci = HomeFragment.recuperaAnnunciLocalizzazione(posizioneUtente, distanzaMax, myAnnunci)
@@ -280,4 +315,9 @@ open class UserLoginActivity : AppCompatActivity() {
 
 
     data class Ricerca(val userId: String, val idRicerca: String, val titoloAnnuncio: String?, val disponibilitaSpedire: Boolean?, val prezzoSuperiore: Int?, val prezzoMinore: Int?, val numeroAnnunci: Int, val distanzaMax :Int?)
+    data class Utente(val uid: String, val nome: String, val cognome: String, val amministratore: Int, val numeroDiTelefono: String, val sospeso: Boolean, val dataNascita: String) {
+        fun getNomeCognome() :String{
+            return "$nome $cognome"
+        }
+    }
 }

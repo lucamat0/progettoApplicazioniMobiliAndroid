@@ -14,12 +14,13 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 import it.uniupo.oggettiusati.R
+import it.uniupo.oggettiusati.UserLoginActivity
 import it.uniupo.oggettiusati.chat.ChatActivity
 import it.uniupo.oggettiusati.fragment.ChatFragment
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.tasks.await
 
-class UserAdapter(val userList: ArrayList<ChatFragment.Utente>): RecyclerView.Adapter<UserAdapter.UserViewHolder>() {
+class UserAdapter(val userList: ArrayList<UserLoginActivity.Utente>): RecyclerView.Adapter<UserAdapter.UserViewHolder>() {
 
     val auth = FirebaseAuth.getInstance()
     private val database = Firebase.firestore

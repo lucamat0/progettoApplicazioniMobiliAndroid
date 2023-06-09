@@ -112,7 +112,7 @@ class FavoritesFragment : Fragment() {
                 "dataOraAttuale" to dataOraAttuale
             )
 
-            myCollectionPreferito.add(myElementoPreferito).await()
+            myCollectionPreferito.document(annuncioId).set(myElementoPreferito).await()
 
             recuperaAnnunciPreferitiFirebaseFirestore(userId, context)
         }

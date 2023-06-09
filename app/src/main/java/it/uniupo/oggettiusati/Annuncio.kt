@@ -253,6 +253,10 @@ data class Annuncio(
         return this.userIdAcquirente != null
     }
 
+    fun getProprietario() :String {
+        return userId
+    }
+
     //ti controlla se userId è del proprietario del annuncio
     fun isProprietario(userId: String): Boolean{
         return userId == this.userId

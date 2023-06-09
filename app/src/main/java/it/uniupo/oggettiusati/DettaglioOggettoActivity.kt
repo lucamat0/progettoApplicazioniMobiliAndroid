@@ -13,9 +13,11 @@ import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FieldPath
+import com.google.firebase.firestore.auth.User
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 import it.uniupo.oggettiusati.fragment.CartFragment
+import it.uniupo.oggettiusati.fragment.FavoritesFragment
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.tasks.await
 import java.util.Date
@@ -29,7 +31,10 @@ class DettaglioOggettoActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.oggetto)
 
-        supportActionBar?.setDisplayShowTitleEnabled(false)
+//        supportActionBar?.setDisplayShowTitleEnabled(false)
+        runBlocking{
+            supportActionBar?.setTitle(UserLoginActivity.recuperaUtente(auth.uid!!).nome)
+        }
 
         val myAnnuncio: Annuncio = intent.getParcelableExtra<Annuncio>("annuncio")!!
 
@@ -37,6 +42,10 @@ class DettaglioOggettoActivity : AppCompatActivity() {
         findViewById<TextView>(R.id.categoria).text = myAnnuncio.getCategoria()
         findViewById<TextView>(R.id.descrizione).text = myAnnuncio.getDescrizione()
         findViewById<TextView>(R.id.prezzo).text = myAnnuncio.getPrezzoToString()
+        runBlocking{
+            findViewById<TextView>(R.id.nomeVenditore).text =
+                UserLoginActivity.recuperaUtente(myAnnuncio.getProprietario()).getNomeCognome()
+        }
 
         // 0 = difettoso, 1 = qualche lieve difetto, 2 = usato ma in perfette condizioni, 3 = nuovo
         findViewById<TextView>(R.id.stato).text = if(myAnnuncio.getStato() == 0) "Stato: difettoso" else if(myAnnuncio.getStato() == 1) "Stato: qualche lieve difetto" else if(myAnnuncio.getStato() == 2) "Stato: usato ma in perfette condizioni" else "Stato: nuovo"
@@ -44,10 +53,8 @@ class DettaglioOggettoActivity : AppCompatActivity() {
         findViewById<TextView>(R.id.spedizione).text = spediz
 
         val btnRecensioniVenditore = findViewById<Button>(R.id.visualizza_recensioni_venditore)
-        Log.d("testStampa", "dettaglio oggetto oncreate eseguito")
         btnRecensioniVenditore.setOnClickListener {
-            Log.d("testStampa", "Bottone recensioni venditore cliccato")
-            startActivity(Intent(this, UserLoginActivity::class.java))
+            startActivity(Intent(this, RecensioniActivity::class.java))
         }
 
         btnRecensioniVenditore.setOnClickListener { Toast.makeText(this, "Bottone cliccato",Toast.LENGTH_SHORT).show() }
@@ -113,30 +120,31 @@ class DettaglioOggettoActivity : AppCompatActivity() {
             //                     nei preferiti
 
             findViewById<Button>(R.id.visualizza_recensioni_venditore).setOnClickListener {
+                startActivity(Intent(this, RecensioniActivity::class.java))
                 runBlocking {
                     //startActivity(Recensioni.kt)
                 }
             }
 
             runBlocking {
-                if(isPreferito(auth.uid.toString(), myAnnuncio.getAnnuncioId())){
+                if(isPreferito(auth.uid!!, myAnnuncio.getAnnuncioId())){
                     findViewById<Button>(R.id.aggiungi_preferiti).visibility = View.GONE
                 } else {
                     findViewById<Button>(R.id.aggiungi_preferiti).setOnClickListener {
                         runBlocking {
                             //inserisci oggetto nei preferiti
+                            FavoritesFragment.inserisciAnnuncioPreferitoFirebaseFirestore(auth.uid!!, myAnnuncio.getAnnuncioId(), this@DettaglioOggettoActivity)
                         }
                         findViewById<Button>(R.id.aggiungi_preferiti).visibility = View.GONE
                     }
                 }
 
-                if(isCarrello(auth.uid.toString(), myAnnuncio.getAnnuncioId())){
+                if(isCarrello(auth.uid!!, myAnnuncio.getAnnuncioId())){
                     findViewById<Button>(R.id.aggiungi_carrello).visibility = View.GONE
                 } else {
                     findViewById<Button>(R.id.aggiungi_carrello).setOnClickListener {
                         runBlocking {
                             CartFragment.inserisciAnnuncioCarrelloFirebaseFirestore(auth.uid!!, myAnnuncio.getAnnuncioId())
-                            startActivity(Intent(this@DettaglioOggettoActivity, UserLoginActivity::class.java))
                         }
                         findViewById<Button>(R.id.aggiungi_carrello).visibility = View.GONE
                     }
@@ -150,7 +158,7 @@ class DettaglioOggettoActivity : AppCompatActivity() {
         val myCollectionPreferito = this.database.collection("utente").document(userId).collection("preferito")
 
         for(myDocument in myCollectionPreferito.get().await().documents)
-            if (myDocument.id == annuncioId)
+            if (myDocument.get("annuncioId") == annuncioId)
                 return true
         return false
     }
