@@ -44,7 +44,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:visibility="visible">
+            android:visibility="gone">
             <TextView
                 android:id="@+id/titolo_distanza"
                 android:layout_width="wrap_content"

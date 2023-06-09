@@ -226,8 +226,6 @@ class HomeFragment : Fragment() {
         val recuperaTitolo = casellaRicerca?.text.toString()
         buttonRicerca?.setOnClickListener {
 
-
-
             if(recuperaTitolo.isEmpty())
                 recuperaAnnunciTitolo(null)
             else
@@ -267,7 +265,6 @@ class HomeFragment : Fragment() {
                 }
                 else
                     myAnnunciHome = recuperaAnnunciPerMostrarliNellaHome()
-
 
                 val adapterRicerca = CustomAdapter(myAnnunciHome, R.layout.card_view_design)
                 val recyclerVu = view?.findViewById<RecyclerView>(R.id.recyclerview)
