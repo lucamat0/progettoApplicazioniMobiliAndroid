@@ -16,7 +16,6 @@ import com.google.firebase.ktx.Firebase
 import it.uniupo.oggettiusati.R
 import it.uniupo.oggettiusati.UserLoginActivity
 import it.uniupo.oggettiusati.chat.ChatActivity
-import it.uniupo.oggettiusati.fragment.ChatFragment
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.tasks.await
 
@@ -36,7 +35,7 @@ class UserAdapter(val userList: ArrayList<UserLoginActivity.Utente>): RecyclerVi
     }
 
     override fun onBindViewHolder(holder: UserViewHolder, position: Int) {
-        holder.nomeCognome.text = userList[position].cognome + " " + userList[position].nome
+        holder.nomeCognome.text = "${userList[position].cognome} ${userList[position].nome}"
 
         holder.itemView.setOnClickListener { viewClicked ->
             try {
@@ -44,7 +43,7 @@ class UserAdapter(val userList: ArrayList<UserLoginActivity.Utente>): RecyclerVi
                     Intent(holder.itemView.context, ChatActivity::class.java)
 
                 intent.putExtra("nome", userList[position].nome)
-                intent.putExtra("uid", userList[position].uid)
+                intent.putExtra("uid", userList[position].userId)
 
                 viewClicked.context.startActivity(intent)
             } catch (e: BadParcelableException) {

@@ -1,26 +1,18 @@
 package it.uniupo.oggettiusati
 
-import android.graphics.Bitmap
-import android.graphics.BitmapFactory
+
 import android.location.Location
 import android.net.Uri
-import android.os.Build
 import android.os.Parcel
 import android.os.Parcelable
 import android.util.Log
-import androidx.annotation.RequiresApi
-import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.firestore.GeoPoint
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
-import com.google.firebase.storage.FileDownloadTask
 import com.google.firebase.storage.FirebaseStorage
 import com.google.firebase.storage.StorageReference
 import it.uniupo.oggettiusati.fragment.CartFragment
 import kotlinx.coroutines.tasks.await
-import java.io.File
-import java.lang.Math.*
-import java.nio.file.Paths
 import kotlin.random.Random
 
 val database = Firebase.firestore
@@ -84,6 +76,8 @@ data class Annuncio(
 
     private var venduto: Boolean = false
 
+    private var recensito: Boolean = false
+
         constructor(parcel: Parcel) : this(
             parcel.readString() ?: "",
             parcel.readString() ?: "",
@@ -102,17 +96,18 @@ data class Annuncio(
 
     constructor(
         userId: String, titolo: String, descrizione: String, prezzo: Double, stato: Int, disponibilitaSpedire: Boolean,
-        categoria: String, posizione: GeoPoint, timeStampInizioVendita: Long, timeStampFineVendita: Long?, userIdAcquirente: String?, annuncioId: String) : this(userId, titolo, descrizione, prezzo, stato, disponibilitaSpedire, categoria) {
+        categoria: String, posizione: GeoPoint, timeStampInizioVendita: Long, timeStampFineVendita: Long?, userIdAcquirente: String?, annuncioId: String, venduto: Boolean, recensito: Boolean) : this(userId, titolo, descrizione, prezzo, stato, disponibilitaSpedire, categoria) {
         this.annuncioId = annuncioId
 
         this.userIdAcquirente = userIdAcquirente
         this.timeStampInizioVendita = timeStampInizioVendita
         this.timeStampFineVendita = timeStampFineVendita
+        this.venduto = venduto
+        this.recensito = recensito
 
         this.posizione.latitude = posizione.latitude
         this.posizione.longitude = posizione.longitude
         this.storageRef = storage.reference.child(annuncioId)
-
     }
 
     constructor(
@@ -125,7 +120,6 @@ data class Annuncio(
 
         this.posizione.latitude = posizione.latitude
         this.posizione.longitude = posizione.longitude
-
     }
 
     //Funzione che mi permette di scrivere sul cloud, FireBase, i dati del singolo annuncio, passo anche la posizione dell'immagine che voglio caricare sul cloud.
@@ -148,7 +142,8 @@ data class Annuncio(
                 "timeStampInizioVendita" to timeStampInizioVendita,
                 "timeStampFineVendita" to timeStampFineVendita,
                 "userIdAcquirente" to userIdAcquirente,
-                "venduto" to false
+                "venduto" to false,
+                "recensito" to false
             )
 
             val myCollection = database.collection(nomeCollection)
@@ -172,7 +167,7 @@ data class Annuncio(
 
         val adRif = database.collection(nomeCollection).document(this.annuncioId)
 
-        adRif.update("userId", userId, "titolo", titolo, "descrizione", descrizione, "prezzo", prezzo, "stato", stato, "disponibilitaSpedire", disponibilitaSpedire, "categoria", categoria, "venduto", venduto, "userIdAcquirente", userIdAcquirente, "timeStampFineVendita", timeStampFineVendita).await()
+        adRif.update("userId", userId, "titolo", titolo, "descrizione", descrizione, "prezzo", prezzo, "stato", stato, "disponibilitaSpedire", disponibilitaSpedire, "categoria", categoria, "venduto", venduto, "userIdAcquirente", userIdAcquirente, "timeStampFineVendita", timeStampFineVendita, "recensito", recensito).await()
     }
 
     suspend fun eliminaAnnuncioDaFirebase() {
@@ -266,6 +261,19 @@ data class Annuncio(
         return userIdAcquirente != null && venduto
     }
 
+    //ti comunica se e' stata inserita una recensione dopo acquisto del prodotto
+    fun getRecensito(): Boolean{
+        return recensito
+    }
+
+    //setRichiesta prende in input userId, si controlla che sia quella del acquirente, per un maggiore livello di sicurezza
+    suspend fun setRecensito(userId: String){
+        if(userIdAcquirente == userId){
+            recensito = true
+            modificaAnnuncioSuFirebase()
+        }
+    }
+
     suspend fun setEliminaRichiesta(userId: String){
         if(this.userIdAcquirente != null && isProprietario(userId)){
 
@@ -336,29 +344,12 @@ data class Annuncio(
         return this.userIdAcquirente
     }
 
-    //Metodo che mi permette di tradurre la distanza in Km, date due coordinate composte da longitudine e latitudine
-    private fun distanzaInKm(posizioneUtente: Location): Double {
-
-        val lat1 = this.posizione.latitude
-        val lon1 = this.posizione.longitude
-
-        val lat2 = posizioneUtente.latitude
-        val lon2 = posizioneUtente.longitude
-
-        val theta = lon1 - lon2
-
-        var dist = sin(toRadians(lat1)) * sin(toRadians(lat2)) + cos(toRadians(lat1)) * cos(toRadians(lat2)) * cos(toRadians(theta))
-        dist = acos(dist)
-        dist = toDegrees(dist)
-        dist *= 60 * 1.1515
-        dist *= 1.609344
-
-        return dist
-    }
-
     //Mi ritorna true se l'annuncio, ha una distanza inferiore a quella massima.
-    fun distanzaMinore(posizioneUtente: Location, distanzaMax: Int): Boolean {
-        return  distanzaInKm(posizioneUtente) <= distanzaMax
+    fun distanzaMinore(posizioneUtente: Location, distanzaMaxKm: Int): Boolean {
+
+        //Log.d("Posizione", posizioneUtente.distanceTo(this.posizione).toString())
+
+        return posizioneUtente.distanceTo(this.posizione) <= distanzaMaxKm*1000
     }
 
 

@@ -44,15 +44,11 @@ class HomeFragment : Fragment() {
     var myAnnunciHome = HashMap<String, Annuncio>()
     var myListenerAnnunciHome: MutableList<ListenerRegistration> = mutableListOf()
 
-
     //--- Variabili utili per filtrare gli annunci ---
     private var titoloAnnuncio: String? = null
     private var disponibilitaSpedire: Boolean? = null
     private var prezzoSuperiore: Int? = null
     private var prezzoInferiore: Int? = null
-
-    //--- Variabile utile per salvare utente, id ---
-    //var userId: String = "userIdProva"
 
     val userId = auth.currentUser!!.uid
 
@@ -223,8 +219,9 @@ class HomeFragment : Fragment() {
             shippingSwitch?.isEnabled = selezionaSpedizione.isChecked
         }
 
-        val recuperaTitolo = casellaRicerca?.text.toString()
         buttonRicerca?.setOnClickListener {
+
+            val recuperaTitolo = casellaRicerca?.text.toString()
 
             if(recuperaTitolo.isEmpty())
                 recuperaAnnunciTitolo(null)
@@ -249,7 +246,7 @@ class HomeFragment : Fragment() {
             runBlocking {
 
                 //-- Location simulata x test ---
-                var posizioneUtente: Location = Location("provider")
+                val posizioneUtente = Location("provider")
                 posizioneUtente.latitude = 44.922
                 posizioneUtente.longitude = 8.617
 
@@ -322,17 +319,20 @@ class HomeFragment : Fragment() {
 
         btnSalvaRicerca?.setOnClickListener {
             runBlocking {
-                val distMax :Int?
+
+                val recuperaTitolo = casellaRicerca?.text.toString()
 
                 if(recuperaTitolo.isEmpty())
                     titoloAnnuncio = null
                 else
-                    titoloAnnuncio = casellaRicerca?.text.toString()
+                    titoloAnnuncio = recuperaTitolo
 
+                val distMax :Int?
                 if (selezionaDistanza!!.isChecked)
                     distMax = distanceSlider?.value?.toInt()
                 else
                     distMax = null
+
                 if(selezionePrezzo.isChecked) {
                     when (radioGroupPrezzo.checkedRadioButtonId) {
                         idPrezzoRange -> {
@@ -359,9 +359,10 @@ class HomeFragment : Fragment() {
                 else
                     disponibilitaSpedire = null
 
-                var posizioneUtente: Location = Location("provider")
+                val posizioneUtente = Location("provider")
                 posizioneUtente.latitude = 44.922
                 posizioneUtente.longitude = 8.617
+
 
                 inserisciRicercaSuFirebaseFirestore(auth.uid!!, titoloAnnuncio, disponibilitaSpedire, prezzoSuperiore, prezzoInferiore, distMax, posizioneUtente)
             }
@@ -458,7 +459,7 @@ class HomeFragment : Fragment() {
         myAnnunciHome: HashMap<String, Annuncio>
     ): MutableList<ListenerRegistration> {
 
-        var myListener: MutableList<ListenerRegistration> = mutableListOf()
+        val myListener: MutableList<ListenerRegistration> = mutableListOf()
 
         for(myDocumentoRef in myDocumentiRef){
                 myListener.add(myDocumentoRef.reference.addSnapshotListener{ snapshot, exception ->
