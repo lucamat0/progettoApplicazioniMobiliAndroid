@@ -9,13 +9,11 @@ import android.widget.Button
 import android.widget.EditText
 import android.widget.Toast
 import com.google.firebase.auth.FirebaseUser
-import com.google.firebase.firestore.QuerySnapshot
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.tasks.await
-import java.text.SimpleDateFormat
-import java.util.Date
+
 
 class SignUpActivity : AppCompatActivity() {
 
@@ -132,7 +130,7 @@ class SignUpActivity : AppCompatActivity() {
                 "amministratore" to 0,
                 "sospeso" to false,
                 "eliminato" to false,
-                "userId" to auth.uid
+                "userId" to utenteDaSalvareId
             )
 
             val inserimentoDatiUtente =

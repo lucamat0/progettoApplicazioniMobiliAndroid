@@ -21,11 +21,11 @@ import com.google.firebase.firestore.*
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 import it.uniupo.oggettiusati.adapter.ViewPagerAdapter
-import it.uniupo.oggettiusati.fragment.ChatFragment
 import it.uniupo.oggettiusati.fragment.HomeFragment
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.tasks.await
 import java.util.*
+
 
 val pageTitlesArray = arrayOf(
     "Home",
@@ -45,8 +45,6 @@ private val tabIcons :IntArray= intArrayOf(
 open class UserLoginActivity : AppCompatActivity() {
 
     companion object {
-
-        private var ultimoAnnuncio: String? = null
 
         private val database = Firebase.firestore
 
@@ -70,18 +68,20 @@ open class UserLoginActivity : AppCompatActivity() {
             val timeStampFineVendita: Long? = myDocumentoAnnuncio.getLong("timeStampFineVendita")
 
             return Annuncio(
-                myDocumentoAnnuncio.get("userId") as String,
-                myDocumentoAnnuncio.get("titolo") as String,
-                myDocumentoAnnuncio.get("descrizione") as String,
+                myDocumentoAnnuncio.getString("userId") as String,
+                myDocumentoAnnuncio.getString("titolo") as String,
+                myDocumentoAnnuncio.getString("descrizione") as String,
                 myDocumentoAnnuncio.getDouble("prezzo") as Double,
                 (myDocumentoAnnuncio.getLong("stato") as Long).toInt(),
                 myDocumentoAnnuncio.getBoolean("disponibilitaSpedire") as Boolean,
-                myDocumentoAnnuncio.get("categoria") as String,
+                myDocumentoAnnuncio.getString("categoria") as String,
                 myDocumentoAnnuncio.getGeoPoint("posizione") as GeoPoint,
                 myDocumentoAnnuncio.getLong("timeStampInizioVendita") as Long,
                 timeStampFineVendita,
                 userIdAcquirente,
-                myDocumentoAnnuncio.id)
+                myDocumentoAnnuncio.id,
+                myDocumentoAnnuncio.getBoolean("venduto") as Boolean,
+                myDocumentoAnnuncio.getBoolean("recensito") as Boolean)
         }
 
         suspend fun definisciQuery(titoloAnnuncio: String?, disponibilitaSpedire: Boolean?, prezzoSuperiore: Int?, prezzoInferiore: Int?): Set<DocumentSnapshot> {
@@ -112,11 +112,13 @@ open class UserLoginActivity : AppCompatActivity() {
             return myDocumentiFiltrati
         }
 
-        suspend fun recuperaUtenti(): ArrayList<Utente>{
+        //Recupero tutti gli utenti, eccetto quello che e' loggato
+        suspend fun recuperaUtenti(userId: String): ArrayList<Utente>{
 
             val myUtenti = ArrayList<Utente>()
 
-            val myDocumenti = database.collection("utente")/*.whereNotEqualTo("userId", auth.uid)*/.get().await()
+            val myDocumenti = database.collection("utente").whereNotEqualTo("userId", userId).get().await()
+
             for(myDocumento in myDocumenti.documents){
                 myUtenti.add(
                     documentoUtenteToObject(myDocumento)
@@ -140,11 +142,9 @@ open class UserLoginActivity : AppCompatActivity() {
         suspend fun recuperaUtente(userId :String) : Utente {
             return documentoUtenteToObject(database.collection("utente").document(userId).get().await())
         }
-
-
     }
 
-
+    //lateinit var myLocationManager: LocationManager
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -194,6 +194,8 @@ open class UserLoginActivity : AppCompatActivity() {
 
 //            Toast.makeText(this, "Benvenuto ${username}!", Toast.LENGTH_LONG).show()
         }
+
+        //myLocationManager = this.getSystemService(LOCATION_SERVICE) as LocationManager;
 
         //-- Recupero gli annunci preferiti dell'utente --
         runBlocking {
@@ -265,10 +267,11 @@ open class UserLoginActivity : AppCompatActivity() {
 
             val numeroAnnunciRicerca = (myDocumento.get("numeroAnnunci") as Long).toInt()
 
-            val distanzaMax = myDocumento.getLong("distanzaMax")!!.toInt()
+            val distanzaMax = myDocumento.getLong("distanzaMax")?.toInt()
 
             val myAnnunciRef = definisciQuery(titoloAnnuncio, disponibilitaSpedire, prezzoMinore, prezzoSuperiore)
             var myAnnunci = recuperaAnnunci(myAnnunciRef)
+
             if(distanzaMax != null)
                 myAnnunci = HomeFragment.recuperaAnnunciLocalizzazione(posizioneUtente, distanzaMax, myAnnunci)
 
@@ -315,7 +318,8 @@ open class UserLoginActivity : AppCompatActivity() {
 
 
     data class Ricerca(val userId: String, val idRicerca: String, val titoloAnnuncio: String?, val disponibilitaSpedire: Boolean?, val prezzoSuperiore: Int?, val prezzoMinore: Int?, val numeroAnnunci: Int, val distanzaMax :Int?)
-    data class Utente(val uid: String, val nome: String, val cognome: String, val amministratore: Int, val numeroDiTelefono: String, val sospeso: Boolean, val dataNascita: String) {
+
+    data class Utente(val userId: String, val nome: String, val cognome: String, val amministratore: Int, val numeroDiTelefono: String, val sospeso: Boolean, val dataNascita: String) {
         fun getNomeCognome() :String{
             return "$nome $cognome"
         }
