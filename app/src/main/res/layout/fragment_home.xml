@@ -257,12 +257,30 @@
 
             </LinearLayout>
 
-            <Button
-                android:id="@+id/salva_ricerca"
-                android:layout_width="wrap_content"
+            <LinearLayout
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Salva parametri Ricerca"
-                android:layout_gravity="center"/>
+                android:orientation="horizontal"
+                android:gravity="center">
+
+                <Button
+                    android:id="@+id/reset_ricerca"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="reset"
+                    android:layout_gravity="center"
+                    style="@style/btnAccDec"/>
+
+                <Button
+                    android:id="@+id/salva_ricerca"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Salva parametri Ricerca"
+                    android:layout_gravity="center"
+                    style="@style/btnAccDec"/>
+            </LinearLayout>
+
+
         </LinearLayout>
 
         <ScrollView

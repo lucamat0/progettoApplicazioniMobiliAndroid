@@ -3,7 +3,7 @@
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
-    android:layout_height="200dp"
+    android:layout_height="wrap_content"
     android:id="@+id/cardVu"
     android:layout_margin="10dp"
     app:cardElevation="6dp">
@@ -16,12 +16,23 @@
         android:padding="5dp"
         android:layout_gravity="center">
 
+        <RatingBar
+            android:id="@+id/valutazione_venditore"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:numStars="5"
+            android:rating="2.5"
+            android:stepSize="0.5"
+            android:layout_gravity="start"
+            android:isIndicator="true"
+            />
+
         <TextView
             android:id="@+id/titolo_recensione"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="Titolo"
-            android:textSize="20sp"
+            android:textSize="25sp"
             android:textStyle="bold"
             android:paddingVertical="10dp"/>
 
@@ -40,17 +51,18 @@
             android:layout_height="wrap_content"
             android:text="Autore"
             android:textSize="20sp"
-            android:layout_gravity="start"
-            android:paddingVertical="10dp"/>
-
-        <TextView
-            android:id="@+id/data_recensione"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Data"
-            android:textSize="20sp"
             android:layout_gravity="end"
             android:paddingVertical="10dp"/>
+
+<!--        <TextView-->
+<!--            android:id="@+id/data_recensione"-->
+<!--            android:layout_width="wrap_content"-->
+<!--            android:layout_height="wrap_content"-->
+<!--            android:text="Voto"-->
+<!--            android:textSize="20sp"-->
+<!--            android:layout_gravity="end"-->
+<!--            android:paddingVertical="10dp"/>-->
+
 
     </LinearLayout>
 
