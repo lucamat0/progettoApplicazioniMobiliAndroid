@@ -61,7 +61,7 @@ class AdminLoginActivity : UserLoginActivity() {
 
     private suspend fun numeroOggettiInVenditaPerRaggioDistanza(posizioneUtente: Location, distanzaMax: Int): Int {
 
-            val myOggettiInVenditaRef = UserLoginActivity.definisciQuery(null,null,null,null)
+            val myOggettiInVenditaRef = UserLoginActivity.definisciQuery(null,null,null)
 
             return HomeFragment.recuperaAnnunciLocalizzazione(posizioneUtente, distanzaMax, UserLoginActivity.recuperaAnnunci(myOggettiInVenditaRef)).size
     }

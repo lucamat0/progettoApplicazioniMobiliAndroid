@@ -87,14 +87,16 @@ open class UserLoginActivity : AppCompatActivity() {
         }
 
         suspend fun definisciQuery(
-            titoloAnnuncio: String?,
+            /*titoloAnnuncio: String?,*/
             disponibilitaSpedire: Boolean?,
             prezzoSuperiore: Int?,
             prezzoInferiore: Int?
         ): Set<DocumentSnapshot> {
 
             var myDocumentiFiltrati = database.collection(Annuncio.nomeCollection)
-                .whereNotEqualTo("userId", auth.currentUser?.uid).get().await().documents.toSet()
+                .whereNotEqualTo("userId", auth.currentUser?.uid).get().await().documents
+                .intersect(database.collection(Annuncio.nomeCollection).whereEqualTo("userIdAcquirente",null)
+                    .get().await().documents.toSet())
             /*
             myDocumentiFiltrati.forEach { myDocumento ->
                 Log.d("Uguale", (myDocumento.get("userId") as String).equals(auth.currentUser!!.uid).toString()+ "[ "+ myDocumento.get("userId")+"] [${auth.currentUser!!.uid}] "+myDocumento.get("titolo") + "${myDocumentiFiltrati.size}")
@@ -102,12 +104,13 @@ open class UserLoginActivity : AppCompatActivity() {
 
             Log.d("UserId", auth.currentUser!!.uid)
 */
-
+/*
             if (titoloAnnuncio != null)
                 myDocumentiFiltrati = database.collection(Annuncio.nomeCollection)
                     .whereEqualTo("titolo", titoloAnnuncio).get().await().documents.intersect(
                     myDocumentiFiltrati
                 )
+ */
             //siamo nel caso in cui deve essere compreso
             if (prezzoSuperiore != null && prezzoInferiore != null)
                 myDocumentiFiltrati = database.collection(Annuncio.nomeCollection).orderBy("prezzo")
@@ -308,7 +311,7 @@ open class UserLoginActivity : AppCompatActivity() {
             val distanzaMax = myDocumento.getLong("distanzaMax")?.toInt()
 
             val myAnnunciRef =
-                definisciQuery(titoloAnnuncio, disponibilitaSpedire, prezzoMinore, prezzoSuperiore)
+                definisciQuery(/*titoloAnnuncio,*/ disponibilitaSpedire, prezzoMinore, prezzoSuperiore)
             var myAnnunci = recuperaAnnunci(myAnnunciRef)
 
             if (distanzaMax != null)
