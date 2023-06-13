@@ -56,7 +56,7 @@ class UserAdapter(val userList: ArrayList<UserLoginActivity.Utente>): RecyclerVi
 
         val utenteAdmin :Int
         runBlocking {
-            utenteAdmin = database.collection("utente").document(auth.uid!!).get().await().get("amministratore").toString().toInt()
+            utenteAdmin = database.collection(UserLoginActivity.Utente.nomeCollection).document(auth.uid!!).get().await().get("amministratore").toString().toInt()
         }
         if (utenteAdmin == 1) {
             holder.btn_sospendi.visibility = View.VISIBLE

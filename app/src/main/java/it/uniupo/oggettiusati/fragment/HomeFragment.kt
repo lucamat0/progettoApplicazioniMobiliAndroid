@@ -83,7 +83,7 @@ class HomeFragment : Fragment() {
         val fragmentRootView = inflater.inflate(R.layout.fragment_home, container, false)
 
         lateinit var username: String
-        val userRef = database.collection("utente").document(userId)
+        val userRef = database.collection(UserLoginActivity.Utente.nomeCollection).document(userId)
         userRef.get().addOnSuccessListener { document ->
             if (document != null) {
                 username = document.get("nome").toString()
@@ -396,7 +396,9 @@ class HomeFragment : Fragment() {
     suspend fun recuperaAnnunciPerMostrarliNellaHome(): HashMap<String, Annuncio> {
 
             //-- Recupero i riferimenti ai miei documenti --
-            val myDocumentiRef = UserLoginActivity.definisciQuery(this.titoloAnnuncio, this.disponibilitaSpedire, this.prezzoInferiore, this.prezzoSuperiore )
+            var myDocumentiRef = UserLoginActivity.definisciQuery(this.titoloAnnuncio, this.disponibilitaSpedire, this.prezzoInferiore, this.prezzoSuperiore )
+
+            myDocumentiRef -= CartFragment.recuperaAnnunciRefCarrelloFirebaseFirestore(auth.uid!!).toSet()
 
             //-- Trasmormo il riferimento ai documenti in Annunci --
             this.myAnnunciHome = UserLoginActivity.recuperaAnnunci(myDocumentiRef)
@@ -487,7 +489,7 @@ class HomeFragment : Fragment() {
         titoloAnnuncio: String?, disponibilitaSpedire: Boolean?, prezzoSuperiore: Int?, prezzoMinore: Int?, distanzaMax : Int?, posizioneUtente: Location
     ): String {
 
-        val myCollectionUtente = this.database.collection("utente")
+        val myCollectionUtente = this.database.collection(UserLoginActivity.Utente.nomeCollection)
 
         val myDocumento = myCollectionUtente.document(idUtente)
 
@@ -519,7 +521,7 @@ class HomeFragment : Fragment() {
 
 //     suspend fun eliminaRicercaFirebaseFirestore(userId : String, idRicerca: String){
 //
-//        val myCollection = this.database.collection("utente")
+//        val myCollection = this.database.collection(Utente.nomeCollection)
 //
 //        val myDocumento = myCollection.document(userId)
 //

@@ -3,9 +3,11 @@ package it.uniupo.oggettiusati
 
 import android.location.Location
 import android.net.Uri
+import android.os.Build
 import android.os.Parcel
 import android.os.Parcelable
 import android.util.Log
+import androidx.annotation.RequiresApi
 import com.google.firebase.firestore.GeoPoint
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
@@ -50,6 +52,7 @@ data class Annuncio(
         val nomeCollection = "annuncio"
 
         @JvmField val CREATOR = object : Parcelable.Creator<Annuncio> {
+            @RequiresApi(Build.VERSION_CODES.Q)
             override fun createFromParcel(parcel: Parcel): Annuncio {
                 return Annuncio(parcel)
             }
@@ -78,7 +81,8 @@ data class Annuncio(
 
     private var recensito: Boolean = false
 
-        constructor(parcel: Parcel) : this(
+    @RequiresApi(Build.VERSION_CODES.Q)
+    constructor(parcel: Parcel) : this(
             parcel.readString() ?: "",
             parcel.readString() ?: "",
             parcel.readString() ?: "",
@@ -86,14 +90,16 @@ data class Annuncio(
             parcel.readInt(),
             parcel.readByte() != 0.toByte(),
             parcel.readString() ?: "",
-            parcel.readParcelable(Location::class.java.classLoader) ?: Location("")
-        ) {
-            annuncioId = parcel.readString() ?: ""
-            userIdAcquirente = parcel.readString()
-            timeStampInizioVendita = parcel.readLong()
-            timeStampFineVendita = parcel.readLong()
-        }
+            parcel.readParcelable(Location::class.java.classLoader) ?: Location(""),
+    ) {
+        this.annuncioId = parcel.readString() ?: ""
+        this.userIdAcquirente = parcel.readString()
+        this.timeStampInizioVendita = parcel.readLong()
+        this.venduto = parcel.readBoolean()
+        this.recensito = parcel.readBoolean()
+    }
 
+    //--- Costruttore secondario utilizzato per inizializzare gli annunci, una volta che sono stati scaricati da FirebaseFirestore ---
     constructor(
         userId: String, titolo: String, descrizione: String, prezzo: Double, stato: Int, disponibilitaSpedire: Boolean,
         categoria: String, posizione: GeoPoint, timeStampInizioVendita: Long, timeStampFineVendita: Long?, userIdAcquirente: String?, annuncioId: String, venduto: Boolean, recensito: Boolean) : this(userId, titolo, descrizione, prezzo, stato, disponibilitaSpedire, categoria) {
@@ -110,9 +116,10 @@ data class Annuncio(
         this.storageRef = storage.reference.child(annuncioId)
     }
 
+    //--- Costruttore secondario utilizzato per inizializzare gli annunci nei test ---
     constructor(
         userId: String, titolo: String, descrizione: String, prezzo: Double, stato: Int, disponibilitaSpedire: Boolean,
-        categoria: String, posizione: Location, timeStampInizioVendita: Long, timeStampFineVendita: Long?, userIdAcquirente: String?) : this(userId, titolo, descrizione, prezzo, stato, disponibilitaSpedire, categoria) {
+        categoria: String, posizione: Location, timeStampInizioVendita: Long, timeStampFineVendita: Long?, userIdAcquirente: String?,venduto: Boolean, recensito: Boolean) : this(userId, titolo, descrizione, prezzo, stato, disponibilitaSpedire, categoria) {
 
         this.userIdAcquirente = userIdAcquirente
         this.timeStampInizioVendita = timeStampInizioVendita
@@ -120,6 +127,8 @@ data class Annuncio(
 
         this.posizione.latitude = posizione.latitude
         this.posizione.longitude = posizione.longitude
+        this.venduto = venduto
+        this.recensito = recensito
     }
 
     //Funzione che mi permette di scrivere sul cloud, FireBase, i dati del singolo annuncio, passo anche la posizione dell'immagine che voglio caricare sul cloud.
@@ -249,7 +258,7 @@ data class Annuncio(
     }
 
     fun getProprietario() :String {
-        return userId
+        return this.userId
     }
 
     //ti controlla se userId è del proprietario del annuncio
@@ -257,13 +266,17 @@ data class Annuncio(
         return userId == this.userId
     }
 
+    fun isAcquirente(userId: String): Boolean{
+        return this.userIdAcquirente == userId
+    }
+
     fun isVenduto(): Boolean {
-        return userIdAcquirente != null && venduto
+        return this.userIdAcquirente != null && this.venduto
     }
 
     //ti comunica se e' stata inserita una recensione dopo acquisto del prodotto
     fun getRecensito(): Boolean{
-        return recensito
+        return this.recensito
     }
 
     //setRichiesta prende in input userId, si controlla che sia quella del acquirente, per un maggiore livello di sicurezza
@@ -348,7 +361,6 @@ data class Annuncio(
     fun distanzaMinore(posizioneUtente: Location, distanzaMaxKm: Int): Boolean {
 
         //Log.d("Posizione", posizioneUtente.distanceTo(this.posizione).toString())
-
         return posizioneUtente.distanceTo(this.posizione) <= distanzaMaxKm*1000
     }
 
@@ -370,7 +382,7 @@ data class Annuncio(
     }
 
     fun getCategoria(): String {
-        return categoria
+        return this.categoria
     }
 
     override fun writeToParcel(parcel: Parcel, flags: Int) {
@@ -386,6 +398,8 @@ data class Annuncio(
         parcel.writeString(userIdAcquirente)
         parcel.writeValue(timeStampInizioVendita)
         parcel.writeValue(timeStampFineVendita)
+        parcel.writeValue(venduto)
+        parcel.writeValue(recensito)
     }
 
     override fun describeContents(): Int {

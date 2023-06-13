@@ -4,6 +4,7 @@ import android.location.Location
 import androidx.fragment.app.testing.FragmentScenario
 import androidx.fragment.app.testing.launchFragment
 import androidx.fragment.app.testing.launchFragmentInContainer
+import androidx.lifecycle.Lifecycle
 import androidx.test.core.app.ActivityScenario
 import androidx.test.platform.app.InstrumentationRegistry
 import androidx.test.ext.junit.runners.AndroidJUnit4
@@ -71,6 +72,7 @@ class ExampleInstrumentedTest {
     }
 */
 
+
     lateinit var myAnnunci : ArrayList <Annuncio>
     val database = Firebase.firestore
 
@@ -134,7 +136,9 @@ class ExampleInstrumentedTest {
             geoPosition,
             timeStampInizioVenditaAnnuncio1,
             timeStampFineVenditaAnnuncio1,
-            "alan.turing"
+            "alan.turing",
+            true,
+            true
         ))
 
         myAnnunci.add(Annuncio(
@@ -167,7 +171,9 @@ class ExampleInstrumentedTest {
             geoPosition,
             timeStampInizioVenditaAnnuncio3,
             timeStampFineVenditaAnnuncio3,
-            "alan.turing"
+            "alan.turing",
+            true,
+            true
         ))
 
         val calendarInizioVenditaAnnuncio4 = Calendar.getInstance()
@@ -190,7 +196,9 @@ class ExampleInstrumentedTest {
             geoPosition,
             timeStampInizioVenditaAnnuncio4,
             timeStampFineVenditaAnnuncio4,
-            "alan.turing"
+            "alan.turing",
+            true,
+            true
         ))
 
         myAnnunci.add(Annuncio(
@@ -274,7 +282,9 @@ class ExampleInstrumentedTest {
             myAnnuncio.salvaAnnuncioSuFirebase(null)
 
         //scenarioCartFragment = launchFragmentInContainer()
-        scenarioHomeFragment = launchFragment<HomeFragment>()
+        scenarioHomeFragment = launchFragmentInContainer<HomeFragment>(
+            initialState = Lifecycle.State.INITIALIZED
+        )
 
     }
 
@@ -283,7 +293,7 @@ class ExampleInstrumentedTest {
         for(myAnnuncio in myAnnunci)
             myAnnuncio.eliminaAnnuncioDaFirebase()
 
-        val myCollectionUtente = database.collection("utente")
+        val myCollectionUtente = database.collection(UserLoginActivity.Utente.nomeCollection)
 
         myCollectionUtente.document("ada.loelace").delete().await()
         myCollectionUtente.document("alan.turing").delete().await()
@@ -299,7 +309,7 @@ class ExampleInstrumentedTest {
         scenarioUserLoginActivity.onActivity { activity ->
             runBlocking {
 
-                val myCollectionUtente = database.collection("utente");
+                val myCollectionUtente = database.collection(UserLoginActivity.Utente.nomeCollection);
 
                 val myDocumento = myCollectionUtente.document("alan.turing")
 
@@ -390,7 +400,7 @@ class ExampleInstrumentedTest {
                 activity.eliminaAnnuncioPreferitoFirebaseFirestore("ada.loelace", myElementoPreferito1)
                 activity.eliminaAnnuncioPreferitoFirebaseFirestore("ada.loelace", myElementoPreferito2)
 
-                val myCollection = database.collection("utente")
+                val myCollection = database.collection(UserLoginActivity.Utente.nomeCollection)
 
                 myCollection.document("ada.loelace").delete().await()
                 myCollection.document("alan.turing").delete().await()
@@ -405,7 +415,7 @@ class ExampleInstrumentedTest {
         scenarioUserLoginActivity.onActivity { activity ->
             runBlocking {
 
-                val myCollection = database.collection("utente")
+                val myCollection = database.collection(UserLoginActivity.Utente.nomeCollection)
 
                 val myDocument = myCollection.document("ada.lovelace")
 
@@ -433,7 +443,7 @@ class ExampleInstrumentedTest {
         scenarioUserLoginActivity.onActivity { activity ->
             runBlocking {
 
-                val myCollection = database.collection("utente")
+                val myCollection = database.collection(UserLoginActivity.Utente.nomeCollection)
 
                 val myDocument = myCollection.document("ada.lovelace")
 
@@ -468,7 +478,7 @@ class ExampleInstrumentedTest {
                 assertEquals(false, activity.isAcquistabile("alan.turing", 110.0))
                 assertEquals(false, activity.isAcquistabile("alan.turing", 100.1))
 
-              database.collection("utente").document("alan.turing").collection("transazione").document(idTransazioneAlan).delete().await()
+              database.collection(UserLoginActivity.Utente.nomeCollection).document("alan.turing").collection("transazione").document(idTransazioneAlan).delete().await()
             }
         }
     }
@@ -486,7 +496,7 @@ class ExampleInstrumentedTest {
                 //Effettuo una ricarica di 100€
                 idTransazioniAlan.add(activity.salvaTransazioneSuFirestoreFirebase("alan.turing", 100.00, true))
 
-                val myCollection = database.collection("utente")
+                val myCollection = database.collection(UserLoginActivity.Utente.nomeCollection)
 
                 val myCollectionTransazioneAlan =
                     myCollection.document("alan.turing").collection("transazione")
@@ -510,7 +520,7 @@ class ExampleInstrumentedTest {
     @Test fun testClassificaUtentiRecensitiConVotoPiuAlto() {
 
 
-        val myCollectionUtente = database.collection("utente")
+        val myCollectionUtente = database.collection(UserLoginActivity.Utente.nomeCollection)
 
         val myCollectionRecensioneAda = myCollectionUtente.document("ada.loelace").collection("recensione")
         val myCollectionRecensioneAlan = myCollectionUtente.document("alan.turing").collection("recensione")
@@ -562,7 +572,7 @@ class ExampleInstrumentedTest {
     //--- Inizio test sulla funzione che mi inserisci un documento per ogni utente ---
     @Test fun testInserisciUtenteFirebaseFirestore(): Unit = runBlocking {
 
-        val myCollection = database.collection("utente")
+        val myCollection = database.collection(UserLoginActivity.Utente.nomeCollection)
 
         val primaInserimento = myCollection.get().await().size()
 
@@ -587,15 +597,14 @@ class ExampleInstrumentedTest {
     }\
     */
 
-
-/*
+    /*
     //--- Inizio test sulla funzione che mi inserisce una recensione a un utente: creato, recensito e eliminato ---
     @Test fun testInserisciRecensioneUtenteFirebaseFirestore(){
 
         scenarioCartFragment.onFragment { fragment ->
             //scenarioUserLoginActivity.onActivity { activity ->
             runBlocking {
-                val myDocumentUtente = database.collection("utente").document("alan.turing")
+                val myDocumentUtente = database.collection(UserLoginActivity.Utente.nomeCollection).document("alan.turing")
 
                 val myCollectionRecensione = myDocumentUtente.collection("recensione")
 
@@ -612,7 +621,7 @@ class ExampleInstrumentedTest {
 
                 assertEquals(
                     numeroDocsRecensioni + 1,
-                    database.collection("utente").document("alan.turing").collection("recensione")
+                    database.collection(UserLoginActivity.Utente.nomeCollection).document("alan.turing").collection("recensione")
                         .get().await().size()
                 )
 
@@ -638,95 +647,47 @@ class ExampleInstrumentedTest {
     */
     @Test fun testRecuperaAnnunciNonVendutiPerMostrarliNellaHome(): Unit = runBlocking {
 
-        val a = Annuncio(
-            "francesca.neri",
-            "ASUS ZenBook 14",
-            "Vendo ASUS ZenBook 14 UX425EA-BM033T, nuovo e ancora nella confezione originale. Processore Intel Core i5-1135G7, 8 GB di RAM, 512 GB di SSD, schermo Full HD da 14 pollici. Design ultra-sottile e leggero. Includo la garanzia di 2 anni.",
-            799.0,
-            3,
-            true,
-            "computer"
-        )
-
-        a.salvaAnnuncioSuFirebase(null)
-        myAnnunci.add(a)
-
-        val b = Annuncio(
-            "maria.rossi",
-            "Samsung Galaxy S21 Ultra",
-            "Vendo Samsung Galaxy S21 Ultra, come nuovo, usato solo per un mese. Colore Phantom Black, 256 GB di storage, 12 GB di RAM. Fotocamera posteriore quadrupla da 108 MP. Display Dynamic AMOLED 2X da 6.8 pollici. Includo la scatola originale, la garanzia e una custodia in omaggio.",
-            950.0,
-            3,
-            true,
-            "smartphone"
-        )
-
-        b.salvaAnnuncioSuFirebase(null)
-        myAnnunci.add(b)
-
-        val c = Annuncio(
-            "giovanni.bianchi",
-            "Dell XPS 13",
-            "Vendo Dell XPS 13 9310, come nuovo, usato solo per qualche settimana. Processore Intel Core i7-1185G7, 16 GB di RAM, 512 GB di SSD, schermo InfinityEdge da 13.4 pollici. Design ultra-sottile e leggero. Includo la garanzia di 2 anni.",
-            1399.0,
-            3,
-            true,
-            "computer"
-        )
-
-        c.salvaAnnuncioSuFirebase(null)
-        myAnnunci.add(c)
-
-        //val scenarioUserLoginActivity = ActivityScenario.launch(UserLoginActivity::class.java)
-
-        //--- Fine Inserimento dati su Firestore Firebase ---
         scenarioHomeFragment.onFragment { fragment ->
             runBlocking {
 
-                //Nel caso in cui, inserissi un numero di pagina non valida mi ritorna null.
-                assertNull(fragment.recuperaAnnunciPerMostrarliNellaHome(0))
-
                 //Nel caso in cui, non andassi a invocare nessun metodo che mi filtra, mi recupera tutti gli annunci presenti. (MAX 10)
-                assertEquals(10,fragment.recuperaAnnunciPerMostrarliNellaHome(1)!!.size)
-                assertEquals(1,fragment.recuperaAnnunciPerMostrarliNellaHome(2)!!.size)
+                assertEquals(8,fragment.recuperaAnnunciPerMostrarliNellaHome()!!.size)
 
                 fragment.recuperaAnnunciPrezzoInferiore(80)
 
-                assertEquals(0,fragment.recuperaAnnunciPerMostrarliNellaHome(1)!!.size)
+                assertEquals(0,fragment.recuperaAnnunciPerMostrarliNellaHome()!!.size)
 
                 fragment.recuperaTuttiAnnunci()
 
-                fragment.recuperaAnnunciTitolo("Dell XPS 13")
+                fragment.recuperaAnnunciTitolo("Robot")
 
-                assertEquals(1, fragment.recuperaAnnunciPerMostrarliNellaHome(1)!!.size)
+                assertEquals(0, fragment.recuperaAnnunciPerMostrarliNellaHome()!!.size)
 
                 fragment.recuperaTuttiAnnunci()
 
-                assertEquals(10, fragment.recuperaAnnunciPerMostrarliNellaHome(1)!!.size)
-                assertEquals(1, fragment.recuperaAnnunciPerMostrarliNellaHome(2)!!.size)
+                assertEquals(8, fragment.recuperaAnnunciPerMostrarliNellaHome()!!.size)
 
                 fragment.recuperaAnnunciDisponibilitaSpedire(true)
 
-                assertEquals(10, fragment.recuperaAnnunciPerMostrarliNellaHome(1)!!.size)
+                assertEquals(7, fragment.recuperaAnnunciPerMostrarliNellaHome()!!.size)
 
                 fragment.recuperaAnnunciPrezzoRange(18,1200)
 
                 //Spedire + range.
-                assertEquals(5, fragment.recuperaAnnunciPerMostrarliNellaHome(1)!!.size)
+                assertEquals(3, fragment.recuperaAnnunciPerMostrarliNellaHome()!!.size)
 
                 //prezzo superiore + spedire
                 fragment.recuperaAnnunciPrezzoSuperiore(1200)
 
-                assertEquals(5, fragment.recuperaAnnunciPerMostrarliNellaHome(1)!!.size)
+                assertEquals(4, fragment.recuperaAnnunciPerMostrarliNellaHome()!!.size)
 
                 //prezzo superiore + spedire
                 fragment.recuperaAnnunciPrezzoInferiore(20)
 
-                assertEquals(0, fragment.recuperaAnnunciPerMostrarliNellaHome(1)!!.size)
+                assertEquals(0, fragment.recuperaAnnunciPerMostrarliNellaHome()!!.size)
 
                 fragment.recuperaAnnunciPrezzoRange(10,5000)
-                assertEquals(10, fragment.recuperaAnnunciPerMostrarliNellaHome(1)!!.size)
-                assertEquals(1, fragment.recuperaAnnunciPerMostrarliNellaHome(2)!!.size)
+                assertEquals(6, fragment.recuperaAnnunciPerMostrarliNellaHome()!!.size)
             }
         }
     }
@@ -952,7 +913,7 @@ class ExampleInstrumentedTest {
         scenarioAdminLoginActivity.onActivity { activity ->
             runBlocking {
 
-                val myCollection = database.collection("utente")
+                val myCollection = database.collection(UserLoginActivity.Utente.nomeCollection)
 
                 val myDocument = myCollection.document("alan.turing")
 
@@ -1081,7 +1042,7 @@ class ExampleInstrumentedTest {
             }
         }
 
-        val myCollection = database.collection("utente")
+        val myCollection = database.collection(UserLoginActivity.Utente.nomeCollection)
 
         myCollection.document("ada.lovelace").delete().await()
         myCollection.document("alan.turing").delete().await()

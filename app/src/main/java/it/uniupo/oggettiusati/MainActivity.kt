@@ -130,7 +130,7 @@ class MainActivity : AppCompatActivity() {
 
     private suspend fun isSuspendDelete(userId: String): Boolean {
 
-        val myDocumentUtente = database.collection("utente").document(userId).get().await()
+        val myDocumentUtente = database.collection(UserLoginActivity.Utente.nomeCollection).document(userId).get().await()
 
         return myDocumentUtente.getBoolean("sospeso")!! && myDocumentUtente.getBoolean("eliminato")!!
     }
@@ -143,7 +143,7 @@ class MainActivity : AppCompatActivity() {
      */
     private fun updateUI(userId: String) {
 
-        val userCollection = database.collection("utente").document(userId)
+        val userCollection = database.collection(UserLoginActivity.Utente.nomeCollection).document(userId)
 
         userCollection.get().addOnSuccessListener { document ->
                 if (document != null) {

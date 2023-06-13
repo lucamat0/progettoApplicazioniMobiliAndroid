@@ -48,7 +48,7 @@ open class UserLoginActivity : AppCompatActivity() {
 
         private val database = Firebase.firestore
 
-        private val auth = FirebaseAuth.getInstance()
+        val auth = FirebaseAuth.getInstance()
 
         fun recuperaAnnunci(myDocumenti: Set<DocumentSnapshot>): HashMap<String, Annuncio> {
 
@@ -61,6 +61,7 @@ open class UserLoginActivity : AppCompatActivity() {
 
             return myAnnunci
         }
+
         fun documentoAnnuncioToObject(myDocumentoAnnuncio: DocumentSnapshot): Annuncio {
 
             val userIdAcquirente: String? = myDocumentoAnnuncio.get("userIdAcquirente") as String?
@@ -81,13 +82,20 @@ open class UserLoginActivity : AppCompatActivity() {
                 userIdAcquirente,
                 myDocumentoAnnuncio.id,
                 myDocumentoAnnuncio.getBoolean("venduto") as Boolean,
-                myDocumentoAnnuncio.getBoolean("recensito") as Boolean)
+                myDocumentoAnnuncio.getBoolean("recensito") as Boolean
+            )
         }
 
-        suspend fun definisciQuery(titoloAnnuncio: String?, disponibilitaSpedire: Boolean?, prezzoSuperiore: Int?, prezzoInferiore: Int?): Set<DocumentSnapshot> {
+        suspend fun definisciQuery(
+            titoloAnnuncio: String?,
+            disponibilitaSpedire: Boolean?,
+            prezzoSuperiore: Int?,
+            prezzoInferiore: Int?
+        ): Set<DocumentSnapshot> {
 
-            var myDocumentiFiltrati = database.collection(Annuncio.nomeCollection).whereNotEqualTo("userId", auth.currentUser?.uid).get().await().documents.toSet()
-/*
+            var myDocumentiFiltrati = database.collection(Annuncio.nomeCollection)
+                .whereNotEqualTo("userId", auth.currentUser?.uid).get().await().documents.toSet()
+            /*
             myDocumentiFiltrati.forEach { myDocumento ->
                 Log.d("Uguale", (myDocumento.get("userId") as String).equals(auth.currentUser!!.uid).toString()+ "[ "+ myDocumento.get("userId")+"] [${auth.currentUser!!.uid}] "+myDocumento.get("titolo") + "${myDocumentiFiltrati.size}")
             }
@@ -95,31 +103,47 @@ open class UserLoginActivity : AppCompatActivity() {
             Log.d("UserId", auth.currentUser!!.uid)
 */
 
-            if(titoloAnnuncio != null)
-                myDocumentiFiltrati = database.collection(Annuncio.nomeCollection).whereEqualTo("titolo", titoloAnnuncio).get().await().documents.intersect(myDocumentiFiltrati)
+            if (titoloAnnuncio != null)
+                myDocumentiFiltrati = database.collection(Annuncio.nomeCollection)
+                    .whereEqualTo("titolo", titoloAnnuncio).get().await().documents.intersect(
+                    myDocumentiFiltrati
+                )
             //siamo nel caso in cui deve essere compreso
-            if(prezzoSuperiore != null && prezzoInferiore != null)
-                myDocumentiFiltrati =  database.collection(Annuncio.nomeCollection).orderBy("prezzo").whereGreaterThan("prezzo", prezzoInferiore).whereLessThan("prezzo", prezzoSuperiore).get().await().documents.intersect(myDocumentiFiltrati)
+            if (prezzoSuperiore != null && prezzoInferiore != null)
+                myDocumentiFiltrati = database.collection(Annuncio.nomeCollection).orderBy("prezzo")
+                    .whereGreaterThan("prezzo", prezzoInferiore)
+                    .whereLessThan("prezzo", prezzoSuperiore).get().await().documents.intersect(
+                    myDocumentiFiltrati
+                )
             else {
-                if(prezzoInferiore != null)
-                    myDocumentiFiltrati =  database.collection(Annuncio.nomeCollection).orderBy("prezzo").whereGreaterThan("prezzo", prezzoInferiore).get().await().documents.intersect(myDocumentiFiltrati)
-                else if(prezzoSuperiore != null)
-                    myDocumentiFiltrati =  database.collection(Annuncio.nomeCollection).orderBy("prezzo").whereLessThan("prezzo", prezzoSuperiore).get().await().documents.intersect(myDocumentiFiltrati)
+                if (prezzoInferiore != null)
+                    myDocumentiFiltrati =
+                        database.collection(Annuncio.nomeCollection).orderBy("prezzo")
+                            .whereGreaterThan("prezzo", prezzoInferiore).get()
+                            .await().documents.intersect(myDocumentiFiltrati)
+                else if (prezzoSuperiore != null)
+                    myDocumentiFiltrati =
+                        database.collection(Annuncio.nomeCollection).orderBy("prezzo")
+                            .whereLessThan("prezzo", prezzoSuperiore).get()
+                            .await().documents.intersect(myDocumentiFiltrati)
             }
-            if(disponibilitaSpedire != null)
-                myDocumentiFiltrati = database.collection(Annuncio.nomeCollection).whereEqualTo("disponibilitaSpedire", disponibilitaSpedire).get().await().documents.intersect(myDocumentiFiltrati)
+            if (disponibilitaSpedire != null)
+                myDocumentiFiltrati = database.collection(Annuncio.nomeCollection)
+                    .whereEqualTo("disponibilitaSpedire", disponibilitaSpedire).get()
+                    .await().documents.intersect(myDocumentiFiltrati)
 
             return myDocumentiFiltrati
         }
 
         //Recupero tutti gli utenti, eccetto quello che e' loggato
-        suspend fun recuperaUtenti(userId: String): ArrayList<Utente>{
+        suspend fun recuperaUtenti(userId: String): ArrayList<Utente> {
 
             val myUtenti = ArrayList<Utente>()
 
-            val myDocumenti = database.collection("utente").whereNotEqualTo("userId", userId).get().await()
+            val myDocumenti =
+                database.collection(Utente.nomeCollection).whereNotEqualTo("userId", userId).get().await()
 
-            for(myDocumento in myDocumenti.documents){
+            for (myDocumento in myDocumenti.documents) {
                 myUtenti.add(
                     documentoUtenteToObject(myDocumento)
                 )
@@ -127,7 +151,7 @@ open class UserLoginActivity : AppCompatActivity() {
             return myUtenti
         }
 
-        fun documentoUtenteToObject(myDocumento :DocumentSnapshot): Utente {
+        fun documentoUtenteToObject(myDocumento: DocumentSnapshot): Utente {
             return Utente(
                 myDocumento.id,
                 myDocumento.getString("nome") as String,
@@ -139,8 +163,10 @@ open class UserLoginActivity : AppCompatActivity() {
             )
         }
 
-        suspend fun recuperaUtente(userId :String) : Utente {
-            return documentoUtenteToObject(database.collection("utente").document(userId).get().await())
+        suspend fun recuperaUtente(userId: String): Utente {
+            return documentoUtenteToObject(
+                database.collection(Utente.nomeCollection).document(userId).get().await()
+            )
         }
     }
 
@@ -151,7 +177,7 @@ open class UserLoginActivity : AppCompatActivity() {
         setContentView(R.layout.activity_user_logged)
 
 //        supportActionBar?.setDisplayShowTitleEnabled(false)
-        runBlocking{
+        runBlocking {
             supportActionBar?.setTitle(recuperaUtente(auth.uid!!).nome)
         }
 
@@ -178,9 +204,9 @@ open class UserLoginActivity : AppCompatActivity() {
         fabAggiungiOggetto.setOnClickListener {
             startActivity(Intent(this, AggiungiOggettoActivity::class.java))
         }
-        
+
         lateinit var username: String
-        val userRef = database.collection("utente").document(auth.uid!!)
+        val userRef = database.collection(Utente.nomeCollection).document(auth.uid!!)
         userRef.get().addOnSuccessListener { document ->
             if (document != null) {
                 username = document.get("nome").toString()
@@ -224,6 +250,7 @@ open class UserLoginActivity : AppCompatActivity() {
                 startActivity(Intent(this, MainActivity::class.java))
                 true
             }
+
             else -> {
                 super.onOptionsItemSelected(item)
             }
@@ -232,23 +259,34 @@ open class UserLoginActivity : AppCompatActivity() {
 
     suspend fun recuperaRicercheSalvateFirebaseFirestore(userId: String): ArrayList<Ricerca> {
 
-        val myCollection = database.collection("utente")
+        val myCollection = database.collection(Utente.nomeCollection)
 
         val myDocumentUtente = myCollection.document(userId)
 
         val myDocumentsRicerca = myDocumentUtente.collection("ricerca").get().await()
 
         val myArrayList = ArrayList<Ricerca>()
-        for(myRicerca in myDocumentsRicerca.documents){
-            myArrayList.add(Ricerca(userId,myRicerca.get("idRicerca") as String, myRicerca.get("titoloAnnuncio") as String?, myRicerca.getBoolean("disponibilitaSpedire"), myRicerca.get("prezzoSuperiore") as Int?, myRicerca.get("prezzoMinore") as Int?, myRicerca.get("numeroAnnunci") as Int, myRicerca.get("distanzaMax") as Int?))
+        for (myRicerca in myDocumentsRicerca.documents) {
+            myArrayList.add(
+                Ricerca(
+                    userId,
+                    myRicerca.get("idRicerca") as String,
+                    myRicerca.get("titoloAnnuncio") as String?,
+                    myRicerca.getBoolean("disponibilitaSpedire"),
+                    myRicerca.get("prezzoSuperiore") as Int?,
+                    myRicerca.get("prezzoMinore") as Int?,
+                    myRicerca.get("numeroAnnunci") as Int,
+                    myRicerca.get("distanzaMax") as Int?
+                )
+            )
         }
 
         return myArrayList
     }
 
-    suspend fun controllaStatoRicercheAnnunci(userId: String, posizioneUtente :Location): Boolean {
+    suspend fun controllaStatoRicercheAnnunci(userId: String, posizioneUtente: Location): Boolean {
 
-        val myCollection = database.collection("utente")
+        val myCollection = database.collection(Utente.nomeCollection)
 
         val myDocumentoUtente = myCollection.document(userId)
 
@@ -256,7 +294,7 @@ open class UserLoginActivity : AppCompatActivity() {
 
         val myDocumentiRicerca = myCollectionRicerca.get().await()
 
-        for(myDocumento in myDocumentiRicerca.documents) {
+        for (myDocumento in myDocumentiRicerca.documents) {
 
             val titoloAnnuncio = myDocumento.get("titoloAnnuncio") as String?
             val disponibilitaSpedire = myDocumento.getBoolean("disponibilitaSpedire")
@@ -269,15 +307,20 @@ open class UserLoginActivity : AppCompatActivity() {
 
             val distanzaMax = myDocumento.getLong("distanzaMax")?.toInt()
 
-            val myAnnunciRef = definisciQuery(titoloAnnuncio, disponibilitaSpedire, prezzoMinore, prezzoSuperiore)
+            val myAnnunciRef =
+                definisciQuery(titoloAnnuncio, disponibilitaSpedire, prezzoMinore, prezzoSuperiore)
             var myAnnunci = recuperaAnnunci(myAnnunciRef)
 
-            if(distanzaMax != null)
-                myAnnunci = HomeFragment.recuperaAnnunciLocalizzazione(posizioneUtente, distanzaMax, myAnnunci)
+            if (distanzaMax != null)
+                myAnnunci = HomeFragment.recuperaAnnunciLocalizzazione(
+                    posizioneUtente,
+                    distanzaMax,
+                    myAnnunci
+                )
 
             val numeroAnnunci = myAnnunci.size
 
-            if( numeroAnnunci > numeroAnnunciRicerca) {
+            if (numeroAnnunci > numeroAnnunciRicerca) {
 
                 Toast.makeText(
                     this@UserLoginActivity,
@@ -285,17 +328,33 @@ open class UserLoginActivity : AppCompatActivity() {
                     Toast.LENGTH_LONG
                 ).show()
 
-                aggiornaRicerca(userId, myDocumento.id, titoloAnnuncio, disponibilitaSpedire, prezzoSuperiore, prezzoMinore, numeroAnnunci)
+                aggiornaRicerca(
+                    userId,
+                    myDocumento.id,
+                    titoloAnnuncio,
+                    disponibilitaSpedire,
+                    prezzoSuperiore,
+                    prezzoMinore,
+                    numeroAnnunci
+                )
 
                 return true
-            } else if(numeroAnnunci < numeroAnnunciRicerca) {
+            } else if (numeroAnnunci < numeroAnnunciRicerca) {
                 Toast.makeText(
                     this@UserLoginActivity,
                     "Il numero di annunci della ricerca ${myDocumento.id} sono diminuiti!",
                     Toast.LENGTH_LONG
                 ).show()
 
-                aggiornaRicerca(userId, myDocumento.id, titoloAnnuncio, disponibilitaSpedire, prezzoSuperiore, prezzoMinore, numeroAnnunci)
+                aggiornaRicerca(
+                    userId,
+                    myDocumento.id,
+                    titoloAnnuncio,
+                    disponibilitaSpedire,
+                    prezzoSuperiore,
+                    prezzoMinore,
+                    numeroAnnunci
+                )
 
                 return true
             }
@@ -303,9 +362,17 @@ open class UserLoginActivity : AppCompatActivity() {
         return false
     }
 
-    private suspend fun aggiornaRicerca(userId: String, idRicerca: String, titoloAnnuncio: String?, disponibilitaSpedire: Boolean?, prezzoSuperiore: Int?, prezzoMinore: Int?, numeroAnnunci: Int) {
+    private suspend fun aggiornaRicerca(
+        userId: String,
+        idRicerca: String,
+        titoloAnnuncio: String?,
+        disponibilitaSpedire: Boolean?,
+        prezzoSuperiore: Int?,
+        prezzoMinore: Int?,
+        numeroAnnunci: Int
+    ) {
 
-        val myCollection = database.collection("utente")
+        val myCollection = database.collection(Utente.nomeCollection)
 
         val myDocumento = myCollection.document(userId)
 
@@ -313,15 +380,105 @@ open class UserLoginActivity : AppCompatActivity() {
 
         val myRicerca = myCollectionRicerca.document(idRicerca)
 
-        myRicerca.update("titoloAnnuncio", titoloAnnuncio,"disponibilitaSpedire", disponibilitaSpedire, "prezzoSuperiore", prezzoSuperiore, "prezzoMinore", prezzoMinore, "numeroAnnunci", numeroAnnunci).await()
+        myRicerca.update(
+            "titoloAnnuncio",
+            titoloAnnuncio,
+            "disponibilitaSpedire",
+            disponibilitaSpedire,
+            "prezzoSuperiore",
+            prezzoSuperiore,
+            "prezzoMinore",
+            prezzoMinore,
+            "numeroAnnunci",
+            numeroAnnunci
+        ).await()
     }
 
 
-    data class Ricerca(val userId: String, val idRicerca: String, val titoloAnnuncio: String?, val disponibilitaSpedire: Boolean?, val prezzoSuperiore: Int?, val prezzoMinore: Int?, val numeroAnnunci: Int, val distanzaMax :Int?)
+    data class Ricerca(
+        val userId: String,
+        val idRicerca: String,
+        val titoloAnnuncio: String?,
+        val disponibilitaSpedire: Boolean?,
+        val prezzoSuperiore: Int?,
+        val prezzoMinore: Int?,
+        val numeroAnnunci: Int,
+        val distanzaMax: Int?
+    )
 
-    data class Utente(val userId: String, val nome: String, val cognome: String, val amministratore: Int, val numeroDiTelefono: String, val sospeso: Boolean, val dataNascita: String) {
-        fun getNomeCognome() :String{
+    data class Utente(
+        val userId: String,
+        val nome: String,
+        val cognome: String,
+        val amministratore: Int,
+        val numeroDiTelefono: String,
+        val sospeso: Boolean,
+        val dataNascita: String
+    ) {
+
+        companion object {  val nomeCollection = "utente" }
+
+        fun getNomeCognome(): String {
             return "$nome $cognome"
         }
+
+        suspend fun recuperaPunteggioRecensioniFirebase(): Double {
+
+            val queryRecensioni =
+                database.collection(nomeCollection).document(this.userId).collection("recensione").get()
+                    .await()
+
+            val numeroRecensioni = queryRecensioni.documents.size
+
+            //Log.d("RECENSIONI CON VOTO PIÚ ALTO", numeroRecensioni.toString())
+
+            if (numeroRecensioni > 0) {
+
+                var totalePunteggioRecensioni = 0.0
+                for (myRecensioni in queryRecensioni.documents)
+                    totalePunteggioRecensioni += (myRecensioni.getLong("votoAlUtente") as Long).toDouble()
+
+                return totalePunteggioRecensioni / numeroRecensioni
+            }
+            return 0.0
+        }
+
+        suspend fun calcolaTempoMedioAnnunciVenduti(): Double{
+
+            val myCollectionAnnuncioRef = database.collection(Annuncio.nomeCollection).whereEqualTo("userId", this.userId).whereEqualTo("venduto",true)
+
+            val myDocuments = myCollectionAnnuncioRef.get().await()
+
+            val numeroDocumenti = myDocuments.size()
+
+            if(numeroDocumenti>0){
+
+                var tempoTotale: Long = 0
+                for (myDocument in myDocuments.documents) {
+
+                    val timeStampInizioVendita = myDocument.getLong("timeStampInizioVendita")
+                    val timeStampFineVendita = myDocument.getLong("timeStampFineVendita")
+
+                    //Log.d("TEMPO INIZIO VENDITA", "Il tempo inizio vendita é $timeStampInizioVendita")
+
+                    //Log.d("TEMPO FINE VENDITA", "Il tempo fine vendita é $timeStampFineVendita")
+
+                    tempoTotale += (timeStampFineVendita!!.toLong() - timeStampInizioVendita!!.toLong()) * -1
+
+                    //Log.d("TEMPO TOTALE", "Il tempo totale é $tempoTotale")
+
+                }
+
+                val tempoMedio = tempoTotale / numeroDocumenti
+
+                //Log.d("TEMPO MEDIO", "Il tempo medio é $tempoMedio")
+
+                //86400000 = numero di millisecondi per giorno.
+                return tempoMedio.toDouble() / 86400000.toDouble()
+            }
+            return 0.0
+        }
+
+
     }
 }

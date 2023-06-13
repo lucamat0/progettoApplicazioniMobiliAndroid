@@ -38,7 +38,7 @@ class RecensioniActivity : AppCompatActivity() {
     }
 
     suspend fun recuperaRecensioniFirebaseFirestore(userId: String): LinkedList<Recensione> {
-        val queryRecensioni = database.collection("utente").document(userId).collection("recensione").get().await()
+        val queryRecensioni = database.collection(UserLoginActivity.Utente.nomeCollection).document(userId).collection("recensione").get().await()
         val myRecensioni = LinkedList<Recensione>()
         for (myRecensione in queryRecensioni.documents) {
             myRecensioni.add(Recensione(
@@ -63,7 +63,7 @@ class RecensioniActivity : AppCompatActivity() {
         //se il voto del utente si trova tra 1 e 5 allora inserisci la recensione...
         if(votoAlUtente in 1..5) {
 
-            val myCollectionUtente = CartFragment.database.collection("utente")
+            val myCollectionUtente = CartFragment.database.collection(UserLoginActivity.Utente.nomeCollection)
 
             val myDocumento = myCollectionUtente.document(idUtenteRecensito)
 

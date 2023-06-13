@@ -70,23 +70,23 @@ class CartFragment : Fragment() {
             return saldoAccount(idUtente) >= prezzoAcquisto
         }
 
-        private suspend fun saldoAccount(idUtente: String): Double{
+        private suspend fun saldoAccount(idUtente: String): Double {
 
-            val myCollection = database.collection("utente")
+            val myCollection = database.collection(UserLoginActivity.Utente.nomeCollection)
 
             val myCollectionTransazioni = myCollection.document(idUtente).collection("transazione")
 
             val query = myCollectionTransazioni.get().await()
 
             var saldoAccount = 0.0
-            for(myTransazione in query.documents){
+            for (myTransazione in query.documents) {
 
                 val tipo = myTransazione.get("tipo") as Boolean
 
                 //Log.d("SALDO ACCOUNT", myTransazione.id + "tipo: "+ tipo.toString())
 
                 //true -> ricarica
-                if(tipo)
+                if (tipo)
                     saldoAccount += myTransazione.getDouble("importo")!!
                 else
                     saldoAccount -= myTransazione.getDouble("importo")!!
@@ -98,9 +98,9 @@ class CartFragment : Fragment() {
         suspend fun inserisciAnnuncioCarrelloFirebaseFirestore(
             userId: String,
             annuncioId: String
-        ){
+        ) {
 
-            val myCollection = database.collection("utente")
+            val myCollection = database.collection(UserLoginActivity.Utente.nomeCollection)
 
             val myDocumento = myCollection.document(userId)
 
@@ -116,9 +116,12 @@ class CartFragment : Fragment() {
             myCollectionCarrello.document(annuncioId).set(myElementoCarrello).await()
         }
 
-        suspend fun eliminaAnnuncioCarrelloFirebaseFirestore(userId : String, elementoCarrelloId: String){
+        suspend fun eliminaAnnuncioCarrelloFirebaseFirestore(
+            userId: String,
+            elementoCarrelloId: String
+        ) {
 
-            val myCollection = database.collection("utente")
+            val myCollection = database.collection(UserLoginActivity.Utente.nomeCollection)
 
             val myDocumento = myCollection.document(userId)
 
@@ -129,9 +132,13 @@ class CartFragment : Fragment() {
             myDocumentCarrello.delete().await()
         }
 
-        suspend fun salvaTransazioneSuFirestoreFirebase(idUtente: String, importo: Double, tipoTransazione: Boolean): String{
+        suspend fun salvaTransazioneSuFirestoreFirebase(
+            idUtente: String,
+            importo: Double,
+            tipoTransazione: Boolean
+        ): String {
 
-            val myCollection = database.collection("utente")
+            val myCollection = database.collection(UserLoginActivity.Utente.nomeCollection)
 
             val myDocumentUtente = myCollection.document(idUtente)
 
@@ -149,34 +156,39 @@ class CartFragment : Fragment() {
 
             return myCollectionTransazioneUtente.add(myTransazione).await().id
         }
-    }
 
-    private suspend fun recuperaAnnunciCarrelloFirebaseFirestore(userId: String): HashMap<String, Annuncio> {
+        suspend fun recuperaAnnunciCarrelloFirebaseFirestore(userId: String): HashMap<String, Annuncio> {
 
-        val myCollection = database.collection("utente")
+            val myHashMap = HashMap<String, Annuncio>()
 
-        val myDocument = myCollection.document(userId)
-
-        val myElementiCarrello = myDocument.collection("carrello").get().await()
-
-        val myHashMap = HashMap<String, Annuncio>()
-
-        if(myElementiCarrello.size() > 0) {
-
-            val myCollectionAnnuncio = database.collection(Annuncio.nomeCollection)
-
-            for (myElemento in myElementiCarrello.documents) {
-
-                val myDocumentAnnuncio =
-                    myCollectionAnnuncio.document(myElemento.id).get()
-                        .await()
-
-                val myAnnuncio = UserLoginActivity.documentoAnnuncioToObject(myDocumentAnnuncio)
-
+            recuperaAnnunciRefCarrelloFirebaseFirestore(userId).stream().forEach { doc ->
+                val myAnnuncio = UserLoginActivity.documentoAnnuncioToObject(doc)
                 myHashMap[myAnnuncio.getAnnuncioId()] = myAnnuncio
             }
+
+            return myHashMap
         }
-        return myHashMap
+
+        suspend fun recuperaAnnunciRefCarrelloFirebaseFirestore(userId: String): ArrayList<DocumentSnapshot> {
+
+            val myDocumentRef =
+                database.collection(UserLoginActivity.Utente.nomeCollection).document(userId)
+            val myElementiCarrello = myDocumentRef.collection("carrello").get().await()
+
+            var myDocumentRefAnnunci = ArrayList<DocumentSnapshot>()
+            if (myElementiCarrello.size() > 0) {
+
+                val myCollectionAnnuncio = database.collection(Annuncio.nomeCollection)
+
+                for (myElemento in myElementiCarrello.documents) {
+                    myDocumentRefAnnunci.add(
+                        myCollectionAnnuncio.document(myElemento.id).get().await()
+                    )
+                }
+            }
+
+            return myDocumentRefAnnunci
+        }
     }
 
     private suspend fun inviaRichiestaAcqiustoAnnuncio(idUtente: String, myAnnuncio: Annuncio): Boolean{
