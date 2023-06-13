@@ -6,13 +6,19 @@ import android.os.Bundle
 import android.util.Log
 import android.widget.Button
 import com.google.firebase.auth.FirebaseAuth
+import it.uniupo.oggettiusati.fragment.HomeFragment
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.tasks.await
+import java.util.ArrayList
 import java.util.LinkedList
 import kotlin.collections.HashMap
+import kotlin.streams.toList
 
 
 class AdminLoginActivity : UserLoginActivity() {
-
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -28,131 +34,52 @@ class AdminLoginActivity : UserLoginActivity() {
 
     //--- Deve poter eliminare utenti o sospenderli dalle attività ---
     private suspend fun eliminaUtente(userId: String) {
-        database.collection("utente").document(userId).update("eliminato", true).await()
+        database.collection(Utente.nomeCollection).document(userId).update("eliminato", true).await()
     }
 
     suspend fun sospendiUtente(userId: String) {
-        database.collection("utente").document(userId).update("sospeso", true).await()
+        database.collection(Utente.nomeCollection).document(userId).update("sospeso", true).await()
     }
 
     suspend fun attivaUtente(userId: String){
-        database.collection("utente").document(userId).update("sospeso", false).await()
+        database.collection(Utente.nomeCollection).document(userId).update("sospeso", false).await()
     }
 
     //--- Fine eliminazione e sospensione utente ---
 
     //--- Accesso a dati statistici ---
 
+    val myAnnunciVenduti = database.collection(Annuncio.nomeCollection).whereEqualTo("venduto", false)
+
     suspend fun numeroOggettiInVendita(): Int {
-            val myCollection = database.collection(Annuncio.nomeCollection)
-
-            val query = myCollection.whereEqualTo("userIdAcquirente", null)
-
-            val myDocuments = query.get().await()
-
-            return myDocuments.size()
+        return myAnnunciVenduti.get().await().size()
     }
 
     suspend fun numeroOggettiInVenditaPerSpecificoUtente(userId: String): Int {
-
-            val myCollection = database.collection(Annuncio.nomeCollection)
-
-            val query = myCollection.whereEqualTo("userIdAcquirente", null).whereEqualTo("userId", userId)
-
-            val myDocuments = query.get().await()
-
-            return myDocuments.size()
+           return myAnnunciVenduti.whereEqualTo("userId", userId).get().await().size()
     }
 
-    //??? la gestione dellla posizione è corretta? secondo me no!!!
-    private suspend fun numeroOggettiInVenditaPerRaggioDistanza(posizione: Location): Int {
+    private suspend fun numeroOggettiInVenditaPerRaggioDistanza(posizioneUtente: Location, distanzaMax: Int): Int {
 
-            val myCollection = database.collection(Annuncio.nomeCollection)
+            val myOggettiInVenditaRef = UserLoginActivity.definisciQuery(null,null,null,null)
 
-            val query = myCollection.whereLessThanOrEqualTo("posizione", posizione)
-
-            val myDocuments = query.get().await()
-
-            return myDocuments.size()
+            return HomeFragment.recuperaAnnunciLocalizzazione(posizioneUtente, distanzaMax, UserLoginActivity.recuperaAnnunci(myOggettiInVenditaRef)).size
     }
 
-    //Nel caso in cui non ci fosse nessuna recensione non rientra nella lista, una maniera efficente per farlo???
-    suspend fun classificaUtentiRecensitiConVotoPiuAlto(): Map<String, Double> {
+    suspend fun classificaUtentiRecensitiConVotoPiuAlto(): List<Utente> {
 
-        val myCollection = database.collection("utente")
+        var myUtenti = recuperaUtenti(auth.uid!!)
 
-        //Contiene la qye di tutti gli utenti
-        val queryUtente = myCollection.get().await()
+        myUtenti = myUtenti.sortedByDescending { utente -> runBlocking{utente.recuperaPunteggioRecensioniFirebase()}} as ArrayList<Utente>
 
-        val myHashRecensioni = HashMap<String, Double>()
-
-        for (myDocumento in queryUtente.documents) {
-
-            val queryRecensioni = myCollection.document(myDocumento.id).collection("recensione").get().await()
-
-            //Log.d("RECENSIONI CON VOTO PIÚ ALTO", myDocumento.id)
-
-            val numeroRecensioni = queryRecensioni.documents.size
-
-            //Log.d("RECENSIONI CON VOTO PIÚ ALTO", numeroRecensioni.toString())
-
-            if(numeroRecensioni > 0) {
-                var totalePunteggioRecensioni: Double = 0.0
-                for (myRecensioni in queryRecensioni.documents) {
-                    totalePunteggioRecensioni += (myRecensioni.getLong("votoAlUtente") as Long).toDouble()
-                }
-
-                myHashRecensioni[myDocumento.id] = totalePunteggioRecensioni / numeroRecensioni
-            } else {
-                myHashRecensioni[myDocumento.id] = 0.0
-            }
-        }
-
-        if(myHashRecensioni.size > 1) {
-            //Converto la mia Hash map in lista, utilizzando il toList, ordiniamo gli elementi considerando i valori, in ordine decrescente, poi riconvertiamo la lista in mappa.
-            //Alla mia funzione sortedByDescending gli passo una funzione lambda, coppia chiave valore nella lista sono rappresentati come dei valori,
-            //visto che non vogliamo considerare la chiave, utilizziamo _ per indicare il precedente valore, restituiamo solo il valore,
-            //che viene dato in input alla funzione sortedByDescending, che lo considera per per l'ordinamento.
-            return  myHashRecensioni.toList().sortedByDescending { (_, value) -> value }.toMap()
-        } else
-            return myHashRecensioni
+        return myUtenti
     }
 
-    suspend fun calcolaTempoMedioAnnunciUtenteVenduto(userId: String): Double? {
+    suspend fun calcolaTempoMedioAnnunciVenduti(): Double{
 
-        val myCollection = database.collection(Annuncio.nomeCollection)
+        var myUtenti = recuperaUtenti(auth.uid!!).stream().filter{ utente-> runBlocking {  utente.calcolaTempoMedioAnnunciVenduti() != 0.0 } }.toList()
 
-        val query = myCollection.whereEqualTo("userId", userId).whereNotEqualTo("userIdAcquirente",null)
-
-        val myDocuments = query.get().await()
-
-        val numeroDocumenti = myDocuments.size()
-
-        if(numeroDocumenti > 0) {
-
-            var tempoTotale: Long = 0
-            for (myDocument in myDocuments.documents) {
-
-                val timeStampInizioVendita = myDocument.getLong("timeStampInizioVendita")
-                val timeStampFineVendita = myDocument.getLong("timeStampFineVendita")
-
-                //Log.d("TEMPO INIZIO VENDITA", "Il tempo inizio vendita é $timeStampInizioVendita")
-
-                //Log.d("TEMPO FINE VENDITA", "Il tempo fine vendita é $timeStampFineVendita")
-
-                tempoTotale += (timeStampFineVendita!!.toLong() - timeStampInizioVendita!!.toLong()) * -1
-
-                //Log.d("TEMPO TOTALE", "Il tempo totale é $tempoTotale")
-
-            }
-
-            val tempoMedio = tempoTotale / numeroDocumenti
-
-            //Log.d("TEMPO MEDIO", "Il tempo medio é $tempoMedio")
-
-            //86400000 = numero di millisecondi per giorno.
-            return tempoMedio.toDouble() / 86400000.toDouble()
-        } else
-            return null
+        return myUtenti.sumOf { utente -> runBlocking {  utente.calcolaTempoMedioAnnunciVenduti() } } / myUtenti.size
     }
 }
+

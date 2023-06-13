@@ -153,7 +153,7 @@ class DettaglioOggettoActivity : AppCompatActivity() {
 
     suspend fun isPreferito(userId: String, annuncioId: String): Boolean{
 
-        val myCollectionPreferito = this.database.collection("utente").document(userId).collection("preferito")
+        val myCollectionPreferito = this.database.collection(UserLoginActivity.Utente.nomeCollection).document(userId).collection("preferito")
 
         for(myDocument in myCollectionPreferito.get().await().documents)
             if (myDocument.get("annuncioId") == annuncioId)
@@ -163,7 +163,7 @@ class DettaglioOggettoActivity : AppCompatActivity() {
 
     suspend fun isCarrello(userId: String, annuncioId: String): Boolean{
 
-        val myCollectionPreferito = this.database.collection("utente").document(userId).collection("carrello")
+        val myCollectionPreferito = this.database.collection(UserLoginActivity.Utente.nomeCollection).document(userId).collection("carrello")
 
         for(myDocument in myCollectionPreferito.get().await().documents)
             if (myDocument.id == annuncioId)

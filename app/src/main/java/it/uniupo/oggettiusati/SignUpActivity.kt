@@ -188,7 +188,7 @@ class SignUpActivity : AppCompatActivity() {
             )
 
             val inserimentoDatiUtente =
-                database.collection("utente").document(utenteDaSalvareId).set(userValues).await()
+                database.collection(UserLoginActivity.Utente.nomeCollection).document(utenteDaSalvareId).set(userValues).await()
 
             //Tutto é andato bene
             if (inserimentoDatiUtente == null) {

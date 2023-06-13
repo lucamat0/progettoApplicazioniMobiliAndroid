@@ -42,7 +42,7 @@ class FavoritesFragment : Fragment() {
 
         suspend fun recuperaAnnunciPreferitiFirebaseFirestore(userId: String, context: Context): java.util.HashMap<String, Annuncio> {
 
-            val myCollectionUtente = Firebase.firestore.collection("utente")
+            val myCollectionUtente = Firebase.firestore.collection(UserLoginActivity.Utente.nomeCollection)
 
             val myDocumentUtente = myCollectionUtente.document(userId)
 
@@ -99,7 +99,7 @@ class FavoritesFragment : Fragment() {
 
         suspend fun inserisciAnnuncioPreferitoFirebaseFirestore(userId: String, annuncioId: String, context: Context){
 
-            val myCollection = database.collection("utente")
+            val myCollection = database.collection(UserLoginActivity.Utente.nomeCollection)
 
             val myDocumento = myCollection.document(userId)
 
@@ -119,7 +119,7 @@ class FavoritesFragment : Fragment() {
 
         suspend fun eliminaAnnuncioPreferitoFirebaseFirestore(userId : String, elementoCarrelloId: String, context: Context){
 
-            val myCollection = database.collection("utente")
+            val myCollection = database.collection(UserLoginActivity.Utente.nomeCollection)
 
             val myDocumento = myCollection.document(userId)
 
