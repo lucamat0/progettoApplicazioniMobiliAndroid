@@ -1,6 +1,7 @@
 package it.uniupo.oggettiusati.adapter
 
 import android.content.Intent
+import android.media.Image
 import android.os.BadParcelableException
 import android.util.Log
 import android.view.LayoutInflater
@@ -38,20 +39,21 @@ class CustomAdapter(private val myArrayList: HashMap<String, Annuncio>, val layo
     //binds the list items to a view
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
+        val myAnnuncio = myArrayList.toList()
+        val annuncioCorrente = myAnnuncio[position].second
         runBlocking {
-            val myAnnuncio = myArrayList.toList()
 
             //sets the text to the textview from our itemHolder class
-            holder.textView.text = myAnnuncio[position].second.getTitolo()
+            holder.textView.text = annuncioCorrente.getTitolo()
 
-            holder.priceTextView.text = myAnnuncio[position].second.getPrezzoToString()
+            holder.priceTextView.text = annuncioCorrente.getPrezzoToString()
 
             holder.card.setOnClickListener { viewClicked ->
                 try {
                     val intent =
                         Intent(holder.itemView.context, DettaglioOggettoActivity::class.java)
 
-                    intent.putExtra("annuncio", myAnnuncio[position].second)
+                    intent.putExtra("annuncio", annuncioCorrente)
 
                     viewClicked.context.startActivity(intent)
                 } catch (e: BadParcelableException) {
@@ -62,16 +64,26 @@ class CustomAdapter(private val myArrayList: HashMap<String, Annuncio>, val layo
                 }
             }
 
-            if(layout == R.layout.card_view_remove_buy_design) {
+            if (layout == R.layout.card_view_remove_buy_design) {
                 // il layout della card caricato contiene i bottoni rimuovi e richiedi oggetto
 
-                if(myAnnuncio[position].second.getAcquirente().equals(auth.uid) && myAnnuncio[position].second.getRichiesta()){
+                if (annuncioCorrente.getAcquirente().equals(auth.uid) && annuncioCorrente.getRichiesta()) {
                     uiRequestFromCurrentUser(holder)
+                    if(annuncioCorrente.isVenduto() /*&& (!annuncioCorrente.isRecensito())*/){
+                        val btnAcquirente = holder.btnRecensisciVenditore
+                        btnAcquirente.visibility = View.VISIBLE
+                        btnAcquirente.setOnClickListener {
+//                            Activity CREA RECENSIONE
+                            val i = Intent(/*holder.itemView.context, CreaRecensioneActivity::class.java*/)
+                                .putExtra("idUtenteRecensito", annuncioCorrente.getProprietario())
+                            it.context.startActivity(i)
+                        }
+                    }
                 } else {
                     if(holder.btnRemove != null) {
                         holder.btnRemove.setOnClickListener { viewClicked ->
                             runBlocking {
-                                CartFragment.eliminaAnnuncioCarrelloFirebaseFirestore(auth.uid!!,myAnnuncio[position].second.getAnnuncioId())
+                                CartFragment.eliminaAnnuncioCarrelloFirebaseFirestore(auth.uid!!, annuncioCorrente.getAnnuncioId())
                                 Toast.makeText(holder.itemView.context, "Rimuovo l'oggetto ${null} dal carrello", Toast.LENGTH_SHORT).show()
                                 holder.card.visibility = View.GONE
                                 val intent = Intent(holder.itemView.context, UserLoginActivity::class.java)
@@ -83,7 +95,7 @@ class CustomAdapter(private val myArrayList: HashMap<String, Annuncio>, val layo
                     if(holder.btnRequest != null) {
                         holder.btnRequest.setOnClickListener {
                             runBlocking {
-                                myAnnuncio[position].second.setRichiesta(auth.uid!!)
+                                annuncioCorrente.setRichiesta(auth.uid!!)
                             }
                             uiRequestFromCurrentUser(holder)
                         }
@@ -94,7 +106,7 @@ class CustomAdapter(private val myArrayList: HashMap<String, Annuncio>, val layo
                     holder.btnRemove.setOnClickListener { //viewClicked ->
                         //rimuovo oggetto dai preferiti
                         runBlocking {
-                            FavoritesFragment.eliminaAnnuncioPreferitoFirebaseFirestore(auth.uid!!, myAnnuncio[position].second.getAnnuncioId(), holder.itemView.context)
+                            FavoritesFragment.eliminaAnnuncioPreferitoFirebaseFirestore(auth.uid!!, annuncioCorrente.getAnnuncioId(), holder.itemView.context)
                             val intent = Intent(holder.itemView.context, UserLoginActivity::class.java)
                             it.context.startActivity(intent)
                         }
@@ -102,17 +114,26 @@ class CustomAdapter(private val myArrayList: HashMap<String, Annuncio>, val layo
                     }
                 }
             } else if(layout == R.layout.card_view_design){
-                if(myAnnuncio[position].second.getRichiesta()) { //equivalente a and
-                    if(myAnnuncio[position].second.isProprietario(auth.uid.toString())){
+                if(annuncioCorrente.getRichiesta()) {
+                    if(annuncioCorrente.isProprietario(auth.uid.toString())){
                         holder.imgNotification?.visibility = View.VISIBLE
-                        if(myAnnuncio[position].second.isVenduto()){
+                        if(annuncioCorrente.isVenduto()){
                             holder.imgNotification?.setImageResource(R.drawable.baseline_sell_50)
+                        }
+
+                        val btnVenditore = holder.btnRecensisciAcquirente
+                        btnVenditore.visibility = View.VISIBLE
+                        btnVenditore.setOnClickListener {
+//                            Activity CREA RECENSIONE
+                            val i = Intent(/*holder.itemView.context, CreaRecensioneActivity::class.java*/)
+                                .putExtra("idUtenteRecensito", annuncioCorrente.getAcquirente())
+                            it.context.startActivity(i)
                         }
                     }
                 }
             }
 
-            val myArrayListImmagini = myAnnuncio[position].second.recuperaImmaginiSuFirebase()
+            val myArrayListImmagini = annuncioCorrente.recuperaImmaginiSuFirebase()
             if (myArrayListImmagini.size > 0) {
                 Glide.with(holder.itemView.context)
                     .load(myArrayListImmagini.get(0))
@@ -142,5 +163,7 @@ class CustomAdapter(private val myArrayList: HashMap<String, Annuncio>, val layo
         val btnRequest: ImageButton? = itemView.findViewById(R.id.richiedi_oggetto)
         val imgReqSent :ImageView? = itemView.findViewById(R.id.richiesta_inviata)
         val imgNotification :ImageView? = itemView.findViewById(R.id.avviso_richiesta)
+        val btnRecensisciVenditore :ImageButton = itemView.findViewById(R.id.inserisci_recensione_venditore)
+        val btnRecensisciAcquirente :ImageButton = itemView.findViewById(R.id.inserisci_recensione_acquirente)
     }
 }

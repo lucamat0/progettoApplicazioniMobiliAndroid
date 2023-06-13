@@ -92,8 +92,18 @@
                     android:src="@drawable/baseline_send_24"
                     android:background="@color/teal_200"
                     android:visibility="gone"
-
                 />
+
+                <ImageButton
+                    android:id="@+id/inserisci_recensione_venditore"
+                    android:layout_width="60dp"
+                    android:layout_height="60dp"
+                    android:layout_margin="5dp"
+                    android:src="@drawable/baseline_rate_review_50"
+                    android:background="@color/teal_200"
+                    android:visibility="gone"
+                />
+
 
             </LinearLayout>
 

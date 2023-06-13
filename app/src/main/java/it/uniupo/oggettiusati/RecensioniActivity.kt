@@ -19,6 +19,10 @@ class RecensioniActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_recensioni)
 
+        runBlocking{
+            supportActionBar?.setTitle(UserLoginActivity.recuperaUtente(auth.uid!!).nome)
+        }
+
 //        recensioniDaMostrare.put("1",Recensione("bel prdotto", "funziona molto bene e mi piace", "marco", 1685238057))
 //        recensioniDaMostrare.put("2",Recensione("grande occasione", "qualita' prezzo ok, durevolezza meno", "johnny", 1685228277))
 //        recensioniDaMostrare.put("3",Recensione("Ottime cuffie, fatta eccezione per la manopola del volume.",
@@ -29,10 +33,11 @@ class RecensioniActivity : AppCompatActivity() {
 //            "Nik", 1683132403760))
 //        recensioniDaMostrare.put("5",Recensione("Immagine e prodotto corrispondono perfettamente", "stavo cercando un fazzoletto di rame e un bidone della spazzatura che sembra fantastico e funziona bene", "Caterina L. Pianta", 1684532403760))
 
+        val idVenditore = intent.extras?.getString("idVenditore")
         runBlocking {//fill Recyclerview
             val recyclerVu = findViewById<RecyclerView>(R.id.recyclerview_recensioni)
             recyclerVu?.layoutManager = LinearLayoutManager(this@RecensioniActivity)
-            val adapter = RecensioniAdapter(recuperaRecensioniFirebaseFirestore(auth.uid!!))
+            val adapter = RecensioniAdapter(recuperaRecensioniFirebaseFirestore(idVenditore!!))
             recyclerVu?.adapter = adapter
         }
     }

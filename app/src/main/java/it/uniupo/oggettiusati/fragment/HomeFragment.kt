@@ -52,6 +52,15 @@ class HomeFragment : Fragment() {
 
     val userId = auth.currentUser!!.uid
 
+    var distanceSlider :Slider? = null
+    var testoDistanza :TextView? = null
+    var testoPrezzo :TextView? = null
+    lateinit var radioGroupPrezzo :RadioGroup
+    var priceSlider :RangeSlider? = null
+    var prezzoMin :Slider? = null
+    var prezzoMax :Slider? = null
+    var shippingSwitch : SwitchCompat? = null
+
     companion object {
 
         fun recuperaAnnunciLocalizzazione(
@@ -103,6 +112,15 @@ class HomeFragment : Fragment() {
         super.onResume()
         //perform here operation when fragment changes and this become visible (i.e. do updates dynamically when fragment is again visible)
 
+        distanceSlider = view?.findViewById<Slider>(R.id.distanceSlider)
+        testoDistanza = view?.findViewById<TextView>(R.id.maxDistance)
+        testoPrezzo = view?.findViewById<TextView>(R.id.priceRange)
+        radioGroupPrezzo = view?.findViewById<RadioGroup>(R.id.rGroup_prezzo)!!
+        priceSlider = view?.findViewById<RangeSlider>(R.id.price_range_slider)
+        prezzoMin = view?.findViewById<Slider>(R.id.price_min_slider)
+        prezzoMax = view?.findViewById<Slider>(R.id.price_max_slider)
+        shippingSwitch = view?.findViewById<SwitchCompat>(R.id.shipping_switch)
+
         runBlocking {
 
             //Recupero tutti gli annunci, preferiti, per la notifica.
@@ -123,24 +141,22 @@ class HomeFragment : Fragment() {
             recyclerVu?.adapter = adapter
         }
 
-        val distanceSlider = view?.findViewById<Slider>(R.id.distanceSlider)
+
 //        distanceSlider?.isEnabled = false
-        val testoDistanza = view?.findViewById<TextView>(R.id.maxDistance)
+
 
         var updTxt = "Distanza max: ${distanceSlider?.value}km"
         testoDistanza?.text = updTxt
 
-        val testoPrezzo = view?.findViewById<TextView>(R.id.priceRange)
-        val radioGroupPrezzo = view?.findViewById<RadioGroup>(R.id.rGroup_prezzo)!!
+
         setEnabledRadioGroup(radioGroupPrezzo, false)
 
 
-        val priceSlider = view?.findViewById<RangeSlider>(R.id.price_range_slider)
-        val selezionePrezzo = requireView().findViewById<CheckBox>(R.id.select_price)
-        val prezzoMin = view?.findViewById<Slider>(R.id.price_min_slider)
-        val prezzoMax = view?.findViewById<Slider>(R.id.price_max_slider)
 
-        updTxt = "Fascia di prezzo: ${priceSlider!!.values[0]}€ - ${priceSlider.values[1]}€"
+        val selezionePrezzo = requireView().findViewById<CheckBox>(R.id.select_price)
+
+
+        updTxt = "Fascia di prezzo: ${priceSlider!!.values[0]}€ - ${priceSlider!!.values[1]}€"
         testoPrezzo?.text = updTxt
 
         prezzoMin?.setLabelFormatter { value -> "$value €"; }
@@ -148,7 +164,7 @@ class HomeFragment : Fragment() {
         prezzoMin?.addOnSliderTouchListener(object : Slider.OnSliderTouchListener {
             override fun onStartTrackingTouch(slider: Slider) {}
             override fun onStopTrackingTouch(slider: Slider) {
-                updTxt = "Prezzo min: ${prezzoMin.value}€"
+                updTxt = "Prezzo min: ${prezzoMin!!.value}€"
                 testoPrezzo?.text = updTxt
             }
         })
@@ -158,7 +174,7 @@ class HomeFragment : Fragment() {
         prezzoMax?.addOnSliderTouchListener(object : Slider.OnSliderTouchListener {
             override fun onStartTrackingTouch(slider: Slider) {}
             override fun onStopTrackingTouch(slider: Slider) {
-                updTxt = "Prezzo max: ${prezzoMax.value}€"
+                updTxt = "Prezzo max: ${prezzoMax!!.value}€"
                 testoPrezzo?.text = updTxt
             }
         })
@@ -178,7 +194,7 @@ class HomeFragment : Fragment() {
 
         filtraPrezzoRange.setOnClickListener {
             enableFirstSliderPrezzo(priceSlider, prezzoMin, prezzoMax)
-             updTxt = "Fascia di prezzo: ${priceSlider.values[0]}€ - ${priceSlider.values[1]}€"
+             updTxt = "Fascia di prezzo: ${priceSlider!!.values[0]}€ - ${priceSlider!!.values[1]}€"
             testoPrezzo?.text = updTxt
         }
         filtraPrezzoMin.setOnClickListener {
@@ -199,7 +215,7 @@ class HomeFragment : Fragment() {
         val selezionaDistanza = view?.findViewById<CheckBox>(R.id.select_distance)
 
         val selezionaSpedizione = view?.findViewById<CheckBox>(R.id.select_shipping)
-        val shippingSwitch = view?.findViewById<SwitchCompat>(R.id.shipping_switch)
+
         shippingSwitch?.isChecked = false
 
         listOf(
@@ -230,7 +246,7 @@ class HomeFragment : Fragment() {
 
             if(selezionePrezzo.isChecked) {
                 when (radioGroupPrezzo.checkedRadioButtonId) {
-                    idPrezzoRange -> recuperaAnnunciPrezzoRange(priceSlider.values[1].toInt(), priceSlider.values[0].toInt())
+                    idPrezzoRange -> recuperaAnnunciPrezzoRange(priceSlider!!.values[1].toInt(), priceSlider!!.values[0].toInt())
                     idPrezzoMin -> recuperaAnnunciPrezzoSuperiore(prezzoMin?.value?.toInt()!!)
                     idPrezzoMax -> recuperaAnnunciPrezzoInferiore(prezzoMax?.value?.toInt()!!)
                 }
@@ -291,15 +307,15 @@ class HomeFragment : Fragment() {
             }
 
             override fun onStopTrackingTouch(slider: Slider) {
-                updTxt = "Distanza max: ${distanceSlider.value}km"
+                updTxt = "Distanza max: ${distanceSlider!!.value}km"
                 testoDistanza?.text = updTxt
             }
         })
 
-        priceSlider.setLabelFormatter { value -> "${value.toInt()} €"; }
+        priceSlider!!.setLabelFormatter { value -> "${value.toInt()} €"; }
 
-        priceSlider.addOnChangeListener { _, _, _ ->
-             updTxt = "Fascia di prezzo: ${priceSlider.values[0]}€ - ${priceSlider.values[1]}€"
+        priceSlider!!.addOnChangeListener { _, _, _ ->
+             updTxt = "Fascia di prezzo: ${priceSlider!!.values[0]}€ - ${priceSlider!!.values[1]}€"
             testoPrezzo?.text = updTxt
         }
 
@@ -336,8 +352,8 @@ class HomeFragment : Fragment() {
                 if(selezionePrezzo.isChecked) {
                     when (radioGroupPrezzo.checkedRadioButtonId) {
                         idPrezzoRange -> {
-                            prezzoSuperiore = priceSlider.values[1].toInt()
-                            prezzoInferiore =  priceSlider . values [0].toInt()
+                            prezzoSuperiore = priceSlider!!.values[1].toInt()
+                            prezzoInferiore =  priceSlider!!.values [0].toInt()
                         }
                         idPrezzoMin -> {
                             prezzoSuperiore = prezzoMin?.value?.toInt()!!
@@ -368,7 +384,23 @@ class HomeFragment : Fragment() {
             }
         }
 
+        activity?.findViewById<Button>(R.id.reset_ricerca)?.setOnClickListener {
+            casellaRicerca?.setText("")
+            selezionaDistanza?.isChecked = false
+            selezionePrezzo?.isChecked = false
+            selezionaSpedizione?.isChecked = false
+            disabilitaTuttiIFiltri()
+        }
+
         Toast.makeText(activity, "Sei nella sezione home", Toast.LENGTH_SHORT).show()
+    }
+
+    private fun disabilitaTuttiIFiltri() {
+        distanceSlider?.isEnabled = false
+        testoDistanza?.isEnabled = false
+        togglePrezzo(radioGroupPrezzo, priceSlider, prezzoMin, prezzoMax, false)
+        testoPrezzo?.isEnabled = false
+        shippingSwitch?.isEnabled = false
     }
 
     private fun enableFirstSliderPrezzo(firstSlider: View?, secondSlider: View?, thirdSlider: View?) {

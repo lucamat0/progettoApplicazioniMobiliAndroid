@@ -3,6 +3,7 @@ package it.uniupo.oggettiusati.adapter
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.RatingBar
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.RecyclerView.ViewHolder
@@ -27,13 +28,18 @@ class RecensioniAdapter(private val listaRecensioni: List<RecensioniActivity.Rec
         holder.textViewTitolo.text = listaRecensioni[position].titoloRecensione
         holder.textViewTesto.text = listaRecensioni[position].descrizioniRecensione
         holder.textViewAutore.text = listaRecensioni[position].idUtenteEspresso
-        holder.textViewData.text = listaRecensioni[position].votoAlUtente.toString()
+        val valoreVoto = listaRecensioni[position].votoAlUtente
+//        val valutazione = "${valoreVoto}/5"
+//        holder.textViewData.text = valutazione
+        holder.ratingBarRecensione.rating = valoreVoto.toFloat()
+        holder.ratingBarRecensione.setIsIndicator(true) // false quando devo creare la recensione
     }
 
     class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView){
         val textViewTitolo :TextView = itemView.findViewById(R.id.titolo_recensione)
         val textViewTesto :TextView = itemView.findViewById(R.id.testo_recensione)
         val textViewAutore :TextView = itemView.findViewById(R.id.autore_recensione)
-        val textViewData :TextView = itemView.findViewById(R.id.data_recensione)
+//        val textViewData :TextView = itemView.findViewById(R.id.data_recensione)
+        val ratingBarRecensione :RatingBar = itemView.findViewById(R.id.valutazione_venditore)
     }
 }

@@ -50,10 +50,10 @@ class DettaglioOggettoActivity : AppCompatActivity() {
 
         val btnRecensioniVenditore = findViewById<Button>(R.id.visualizza_recensioni_venditore)
         btnRecensioniVenditore.setOnClickListener {
-            startActivity(Intent(this, RecensioniActivity::class.java))
+            val i = Intent(this, RecensioniActivity::class.java)
+            i.putExtra("idVenditore", myAnnuncio.getProprietario())
+            startActivity(i)
         }
-
-        btnRecensioniVenditore.setOnClickListener { Toast.makeText(this, "Bottone cliccato",Toast.LENGTH_SHORT).show() }
 
         if(myAnnuncio.isProprietario(auth.uid.toString())) { //l'annuncio appartiene all'utente autenticato:
             btnRecensioniVenditore.visibility = View.GONE //Must be one of: View.VISIBLE, View.INVISIBLE, View.GONE
@@ -109,19 +109,6 @@ class DettaglioOggettoActivity : AppCompatActivity() {
                 }
             }
         } else {
-            // inserire nell'else del controllo proprietario
-            // aggiungere
-            // visualizza recensioni venditore
-            // controllare se gia' nel carrello e
-            //                     nei preferiti
-
-            findViewById<Button>(R.id.visualizza_recensioni_venditore).setOnClickListener {
-                startActivity(Intent(this, RecensioniActivity::class.java))
-                runBlocking {
-                    //startActivity(Recensioni.kt)
-                }
-            }
-
             runBlocking {
                 if(isPreferito(auth.uid!!, myAnnuncio.getAnnuncioId())){
                     findViewById<Button>(R.id.aggiungi_preferiti).visibility = View.GONE
