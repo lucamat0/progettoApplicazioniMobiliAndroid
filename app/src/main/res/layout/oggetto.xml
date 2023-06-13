@@ -62,17 +62,26 @@
             </LinearLayout>
 
             <LinearLayout
-                android:id="@+id/layout_aggiungi"
+                android:id="@+id/layout_aggiungi_contatta"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
                 >
+                <Button
+                    android:id="@+id/chatta_con_proprietario"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="contatta il venditore"
+                    android:backgroundTint="@color/green"
+                    style="@style/buttonSpaceHorizontal"
+                />
 
                 <Button
                     android:id="@+id/aggiungi_carrello"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:text="Aggiungi al carrello"
+                    style="@style/buttonSpaceHorizontal"
                     />
 
                 <Button
@@ -80,6 +89,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:text="Aggiungi ai preferiti"
+                    style="@style/buttonSpaceHorizontal"
                     />
 
             </LinearLayout>
@@ -141,6 +151,7 @@
                 android:layout_height="wrap_content"
                 android:text="modifica oggetto"
                 android:visibility="gone"
+                style="@style/buttonSpaceHorizontal"
                 />
             <Button
                 android:id="@+id/elimina_oggetto"
@@ -148,6 +159,7 @@
                 android:layout_height="wrap_content"
                 android:text="elimina oggetto"
                 android:visibility="gone"
+                style="@style/buttonSpaceHorizontal"
                 />
 
             <TextView

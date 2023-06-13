@@ -1,13 +1,20 @@
 package it.uniupo.oggettiusati
 
+import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
-import com.google.firebase.auth.FirebaseAuth
-import androidx.appcompat.app.AppCompatActivity
 import android.util.Log
+import android.view.MotionEvent
+import android.view.View
+import android.view.ViewParent
 import android.widget.Button
+import android.widget.DatePicker
 import android.widget.EditText
+import android.widget.TextView
 import android.widget.Toast
+import androidx.appcompat.app.AppCompatActivity
+import androidx.core.text.isDigitsOnly
+import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
@@ -29,27 +36,53 @@ class SignUpActivity : AppCompatActivity() {
         supportActionBar?.setDisplayShowTitleEnabled(false)
 
         // -- SignUp Activity --
-        val nome = findViewById<EditText>(R.id.nome)
-        val cognome = findViewById<EditText>(R.id.cognome)
-        val email = findViewById<EditText>(R.id.email)
-        val numeroDiTelefono = findViewById<EditText>(R.id.numeroDiTelefono)
-        val password = findViewById<EditText>(R.id.password)
-        val dataNascita = findViewById<EditText>(R.id.dataDiNascita)
+        val nome = findViewById<EditText>(R.id.nome).text.toString()
+        val cognome = findViewById<EditText>(R.id.cognome).text.toString()
+        val email = findViewById<EditText>(R.id.email).text.toString()
+        val numeroDiTelefono = findViewById<EditText>(R.id.numeroDiTelefono).text.toString()
+        val password = findViewById<EditText>(R.id.password).text.toString()
+
+        val btnMostraCalendario = findViewById<Button>(R.id.mostra_calendario)
+        val btnNascondiCalendario = findViewById<Button>(R.id.nascondi_calendario)
+        val datePicker = findViewById<DatePicker>(R.id.dataDiNascita)
+        val mostraDataSelezionata = findViewById<TextView>(R.id.data)
+
+        btnMostraCalendario.setOnClickListener {
+            datePicker.visibility = View.VISIBLE
+            btnNascondiCalendario.visibility = View.VISIBLE
+        }
+        btnNascondiCalendario.setOnClickListener {
+            datePicker.visibility = View.GONE
+            btnNascondiCalendario.visibility = View.GONE
+        }
+
+        var dataNascita = ""
+        datePicker.setOnDateChangedListener { /*view*/ _, year, monthOfYear, dayOfMonth ->
+            dataNascita = "${dayOfMonth}/${monthOfYear + 1}/${year}"
+            mostraDataSelezionata.text = dataNascita
+        }
 
         val buttonSignUp = findViewById<Button>(R.id.registrati)
 
         buttonSignUp.setOnClickListener {
-            if (email.text.toString().isNotEmpty() && password.text.toString().isNotEmpty()) {
-                Toast.makeText(this, "Email e password non vuoti", Toast.LENGTH_SHORT).show()
+            findViewById<TextView>(R.id.error_message).text = ""
+            if (email.isNotBlank() &&
+                password.isNotBlank() &&
+                nome.isNotBlank() &&
+                cognome.isNotBlank() &&
+                numeroDiTelefono.isNotBlank() &&
+                dataNascita.isNotBlank()) {
+                Toast.makeText(this, "Campi non vuoti", Toast.LENGTH_SHORT).show()
 
                 //Almeno un: numero, lettera maiuscola, lettera minuscola, carattere speciale, no spazi bianchi, lunga almeno 8 caratteri. -> DA SCRIVERE IN MANIERA PIÚ EFFICENTE, SE POSSIBILE.
                 //Il numero di telefono é composto da 10 numeri
-                if (password.text.toString()
-                        .matches(Regex("^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[@#$%^&+=!])(?=\\S+\$).{8,}\$")) && numeroDiTelefono.text.length == 10
+                if (password
+                        .matches(Regex("^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[@#$%^&+=!])(?=\\S+\$).{8,}\$")) &&
+                    numeroDiTelefono.length == 10 && numeroDiTelefono.isDigitsOnly()
                 ) {
                     auth.createUserWithEmailAndPassword(
-                        email.text.toString(),
-                        password.text.toString()
+                        email,
+                        password
                     ).addOnCompleteListener(this) { task ->
                         if (task.isSuccessful) {
                             // Sign in success, update UI with the signed-in user's information
@@ -69,10 +102,10 @@ class SignUpActivity : AppCompatActivity() {
 
                                 if (salvaUtenteSuFirebaseFirestore(
                                         userId,
-                                        nome.text.toString(),
-                                        cognome.text.toString(),
-                                        dataNascita.text.toString(),
-                                        numeroDiTelefono.text.toString()
+                                        nome,
+                                        cognome,
+                                        dataNascita,
+                                        numeroDiTelefono
                                     ) == null
                                 ) {
                                     //Se non si é riuscito a creare il documento bisogna eliminare utente
@@ -88,19 +121,20 @@ class SignUpActivity : AppCompatActivity() {
                                 "Authentication failed: error creating user.",
                                 Toast.LENGTH_SHORT
                             ).show()
+                            findViewById<TextView>(R.id.error_message).text = task.exception?.message
                         }
                     }
                 } else {
                     Toast.makeText(
                         baseContext,
-                        "Authentication error. Sign-up failed: weak password.",
+                        "Authentication error. Sign-up failed: weak password or wrong phone number format.",
                         Toast.LENGTH_SHORT
                     ).show()
                 }
             } else {
                 Toast.makeText(
                     baseContext,
-                    "Authentication error. Sign-up failed: empty credentials.",
+                    "Authentication error. Sign-up failed: empty fields.",
                     Toast.LENGTH_SHORT
                 ).show()
             }
@@ -109,6 +143,26 @@ class SignUpActivity : AppCompatActivity() {
         val buttonLogin = findViewById<Button>(R.id.login)
         buttonLogin.setOnClickListener { startActivity(Intent(this, MainActivity::class.java)) }
     }
+
+//    private fun validaDataGgMmAaaa(dataNascita: String): Boolean {
+//        if(dataNascita.length != 10 || !(dataNascita.replace("/","").isDigitsOnly()) || !dataNascita.contains("/"))
+//            return false
+//        val numEl = arrayOf(2, 2, 4)
+//        val numDate = arrayOf(31, 12, 2022)
+//        val monthNotThirtyOneDay = arrayOf(2, 4, 6, 9, 11)
+//        val dayNumNonthNotThirtyOne = arrayOf(28, 30)
+//
+//        val dateToken = dataNascita.split("/")
+//        for ((i, token) in dateToken.withIndex()){
+//            if(token.length != numEl[i] || token.toInt() > numDate[i])
+//                return false
+//        }
+//
+//        if(dateToken[0].toInt() in monthNotThirtyOneDay)
+//
+//
+//        return true
+//    }
 
     //Se tutto è andato bene ritorna idDocumento appena creato, che coincide con id del utente che si trova in autentication.
     suspend fun salvaUtenteSuFirebaseFirestore(

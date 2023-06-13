@@ -9,6 +9,7 @@ import android.widget.Button
 import android.widget.EditText
 import android.widget.Spinner
 import android.widget.Switch
+import android.widget.Toast
 import androidx.appcompat.widget.SwitchCompat
 import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.runBlocking
@@ -23,35 +24,43 @@ class AggiungiOggettoActivity : AppCompatActivity() {
         setContentView(R.layout.activity_aggiungi_oggetto)
 
         val btnCreaOggetto = findViewById<Button>(R.id.crea_nuovo_oggetto)
-
-        findViewById<Button>(R.id.pick_photo).setOnClickListener {
+        val btnPickImg = findViewById<Button>(R.id.pick_photo)
+        btnPickImg.setOnClickListener {
             selezionaImmagini()
+            //if(immaginiSelezionateCorrettamente()) {
+//            it.text = "" why not works?
+            val txt = "Immagini selezionate"
+            btnPickImg.text = txt
+            //}
         }
 
         btnCreaOggetto.setOnClickListener {
             //qui codice per creare un nuovo oggetto su firebase
             val nomeOgg = findViewById<EditText>(R.id.nome).text.toString()
             val categoriaOgg = findViewById<EditText>(R.id.categoria).text.toString()
-            val posizioneOgg = Location("provider")
-            posizioneOgg.latitude = 45.37
-            posizioneOgg.longitude = 8.22
+            val testoPosizioneOgg = findViewById<EditText>(R.id.posizione).text.toString()
             val descrizioneOgg = findViewById<EditText>(R.id.descrizione).text.toString()
-            val prezzoOgg = findViewById<EditText>(R.id.prezzo).text.toString().toDouble()
+            val testoPrezzoOgg = findViewById<EditText>(R.id.prezzo).text.toString()
             val statoOgg = findViewById<Spinner>(R.id.stato)
-
-//            val fotoOgg =
             val spedizioneOgg = findViewById<SwitchCompat>(R.id.spedizione)
 
-            val newAnnuncio = Annuncio(auth.uid!!, nomeOgg, descrizioneOgg, prezzoOgg, statoOgg.selectedItemPosition, spedizioneOgg.isChecked, categoriaOgg, posizioneOgg)
-
-            runBlocking {
-                newAnnuncio.salvaAnnuncioSuFirebase(myImmaginiAnnuncio)
-
-                startActivity(Intent(this@AggiungiOggettoActivity, UserLoginActivity::class.java))
+            if(arrayOf(nomeOgg,
+                    testoPosizioneOgg,
+                    descrizioneOgg, //per lo stato e la spedizione dobbiamo chiedere conferma della selezione?
+                    testoPrezzoOgg).all { s -> AggiungiRecensioneActivity.validString(s)} /*&& almenoUnaFotoCaricata()*/) {
+                //da testoPosizioneOgg (indirizzo) creare oggetto con coordinate
+                val posizioneOgg = Location("provider")
+                posizioneOgg.latitude = 45.37
+                posizioneOgg.longitude = 8.22
+                val prezzoOgg = testoPrezzoOgg.toDouble()
+                val newAnnuncio = Annuncio(auth.uid!!, nomeOgg, descrizioneOgg, prezzoOgg, statoOgg.selectedItemPosition, spedizioneOgg.isChecked, categoriaOgg, posizioneOgg)
+                runBlocking {
+                    newAnnuncio.salvaAnnuncioSuFirebase(myImmaginiAnnuncio)
+                    startActivity(Intent(this@AggiungiOggettoActivity, UserLoginActivity::class.java))
+                }
+            } else {
+                Toast.makeText(this, "Riempi tutti i campi, alcuni sono vuoti.", Toast.LENGTH_LONG).show()
             }
-
-
-
         }
     }
 
@@ -87,6 +96,4 @@ class AggiungiOggettoActivity : AppCompatActivity() {
             }
         }
     }
-
-
 }

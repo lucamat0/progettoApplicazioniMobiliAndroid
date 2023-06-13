@@ -15,6 +15,7 @@ import androidx.cardview.widget.CardView
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.google.firebase.auth.FirebaseAuth
+import it.uniupo.oggettiusati.AggiungiRecensioneActivity
 import it.uniupo.oggettiusati.Annuncio
 import it.uniupo.oggettiusati.DettaglioOggettoActivity
 import it.uniupo.oggettiusati.R
@@ -69,12 +70,13 @@ class CustomAdapter(private val myArrayList: HashMap<String, Annuncio>, val layo
 
                 if (annuncioCorrente.getAcquirente().equals(auth.uid) && annuncioCorrente.getRichiesta()) {
                     uiRequestFromCurrentUser(holder)
-                    if(annuncioCorrente.isVenduto() /*&& (!annuncioCorrente.isRecensito())*/){
+                    if(annuncioCorrente.isVenduto() && (!annuncioCorrente.getRecensito())) {
+                        holder.imgReqSent?.visibility = View.VISIBLE
                         val btnAcquirente = holder.btnRecensisciVenditore
-                        btnAcquirente.visibility = View.VISIBLE
-                        btnAcquirente.setOnClickListener {
+                        btnAcquirente?.visibility = View.VISIBLE
+                        btnAcquirente?.setOnClickListener {
 //                            Activity CREA RECENSIONE
-                            val i = Intent(/*holder.itemView.context, CreaRecensioneActivity::class.java*/)
+                            val i = Intent(holder.itemView.context, AggiungiRecensioneActivity::class.java)
                                 .putExtra("idUtenteRecensito", annuncioCorrente.getProprietario())
                             it.context.startActivity(i)
                         }
@@ -110,24 +112,25 @@ class CustomAdapter(private val myArrayList: HashMap<String, Annuncio>, val layo
                             val intent = Intent(holder.itemView.context, UserLoginActivity::class.java)
                             it.context.startActivity(intent)
                         }
-                        Toast.makeText(holder.itemView.context, "Rimuovo l'oggetto ${null} dai preferiti", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(holder.itemView.context, "Rimuovo l'oggetto $annuncioCorrente dai preferiti", Toast.LENGTH_SHORT).show()
                     }
                 }
             } else if(layout == R.layout.card_view_design){
                 if(annuncioCorrente.getRichiesta()) {
-                    if(annuncioCorrente.isProprietario(auth.uid.toString())){
+                    if(annuncioCorrente.isProprietario(auth.uid!!)) {
                         holder.imgNotification?.visibility = View.VISIBLE
-                        if(annuncioCorrente.isVenduto()){
+                        if(annuncioCorrente.isVenduto()) {
                             holder.imgNotification?.setImageResource(R.drawable.baseline_sell_50)
-                        }
-
-                        val btnVenditore = holder.btnRecensisciAcquirente
-                        btnVenditore.visibility = View.VISIBLE
-                        btnVenditore.setOnClickListener {
+                            if(!annuncioCorrente.getRecensito()) {
+                                val btnVenditore = holder.btnRecensisciAcquirente
+                                btnVenditore?.visibility = View.VISIBLE
+                                btnVenditore?.setOnClickListener {
 //                            Activity CREA RECENSIONE
-                            val i = Intent(/*holder.itemView.context, CreaRecensioneActivity::class.java*/)
-                                .putExtra("idUtenteRecensito", annuncioCorrente.getAcquirente())
-                            it.context.startActivity(i)
+                                    val i = Intent(holder.itemView.context, AggiungiRecensioneActivity::class.java)
+                                        .putExtra("idUtenteRecensito", annuncioCorrente.getAcquirente())
+                                    it.context.startActivity(i)
+                                }
+                            }
                         }
                     }
                 }
@@ -163,7 +166,7 @@ class CustomAdapter(private val myArrayList: HashMap<String, Annuncio>, val layo
         val btnRequest: ImageButton? = itemView.findViewById(R.id.richiedi_oggetto)
         val imgReqSent :ImageView? = itemView.findViewById(R.id.richiesta_inviata)
         val imgNotification :ImageView? = itemView.findViewById(R.id.avviso_richiesta)
-        val btnRecensisciVenditore :ImageButton = itemView.findViewById(R.id.inserisci_recensione_venditore)
-        val btnRecensisciAcquirente :ImageButton = itemView.findViewById(R.id.inserisci_recensione_acquirente)
+        val btnRecensisciVenditore :ImageButton? = itemView.findViewById(R.id.inserisci_recensione_venditore)
+        val btnRecensisciAcquirente :ImageButton? = itemView.findViewById(R.id.inserisci_recensione_acquirente)
     }
 }

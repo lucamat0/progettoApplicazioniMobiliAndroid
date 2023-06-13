@@ -222,7 +222,7 @@ data class Annuncio(
 
     suspend fun setVenduto() {
         //aggiunta di un nuovo campo booleano che viene settato a true quando acquirente ha dato ok
-        if(this.userIdAcquirente != null){
+        if(this.userIdAcquirente != null /*&& this.venduto == false*/){
             this.venduto = true
             this.timeStampFineVendita = System.currentTimeMillis()
 
@@ -268,7 +268,7 @@ data class Annuncio(
 
     //setRichiesta prende in input userId, si controlla che sia quella del acquirente, per un maggiore livello di sicurezza
     suspend fun setRecensito(userId: String){
-        if(userIdAcquirente == userId){
+        if(userIdAcquirente == userId){ //no, anche l'acquirente puo' recensire il venditore
             recensito = true
             modificaAnnuncioSuFirebase()
         }

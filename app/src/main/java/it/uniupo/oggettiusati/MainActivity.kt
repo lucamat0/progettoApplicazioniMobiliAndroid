@@ -80,7 +80,7 @@ class MainActivity : AppCompatActivity() {
      */
     //Da guardare!!!
     private fun checkCredentialsAndLogin(email: String, password: String) {
-        if (email.isNotEmpty() && password.isNotEmpty() && email.isNotBlank() && password.isNotBlank()) {
+        if (email.isNotBlank() && password.isNotBlank()) {
             auth.signInWithEmailAndPassword(email, password)
                 .addOnCompleteListener(this) { task ->
                     if (task.isSuccessful) {
