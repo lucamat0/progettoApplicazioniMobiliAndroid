@@ -24,7 +24,9 @@ import com.google.android.material.slider.RangeSlider
 import com.google.android.material.slider.Slider
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.DocumentSnapshot
+import com.google.firebase.firestore.GeoPoint
 import com.google.firebase.firestore.ListenerRegistration
+import com.google.firebase.firestore.auth.User
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 import it.uniupo.oggettiusati.Annuncio
@@ -60,28 +62,6 @@ class HomeFragment : Fragment() {
     var prezzoMin :Slider? = null
     var prezzoMax :Slider? = null
     var shippingSwitch : SwitchCompat? = null
-
-    companion object {
-
-        fun recuperaAnnunciLocalizzazione(
-            posizioneUtente: Location,
-            distanzaMax: Int,
-            myAnnunciDaFiltrare: HashMap<String, Annuncio>
-        ): HashMap<String, Annuncio> {
-
-            val myAnnunciFiltrati = HashMap<String, Annuncio>()
-
-            //Recupero il documento e creo Annuncio, utilizzo il metodo per capire se la distanza è rispettata
-            for (myAnnuncio in myAnnunciDaFiltrare.values) {
-                if (myAnnuncio.distanzaMinore(posizioneUtente, distanzaMax)) {
-                    myAnnunciFiltrati[myAnnuncio.getAnnuncioId()] = myAnnuncio
-                }
-            }
-
-            return myAnnunciFiltrati
-        }
-
-    }
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -129,7 +109,12 @@ class HomeFragment : Fragment() {
                 requireActivity()
             )
 
-            recuperaAnnunciPerMostrarliNellaHome()
+            val myDocumentiRef = UserLoginActivity.recuperaAnnunciFiltrati(null, null, null, null, null, null)
+
+            myAnnunciHome = UserLoginActivity.recuperaAnnunci(myDocumentiRef)
+
+            //-- Definisco i nuovi listener, per i documenti che ho ora nella Home --
+            myListenerAnnunciHome = subscribeRealTimeDatabase(myDocumentiRef,myListenerAnnunciHome,myAnnunciHome)
 
             //getting the recyclerView by its id
             val recyclerVu = view?.findViewById<RecyclerView>(R.id.recyclerview)
@@ -194,17 +179,17 @@ class HomeFragment : Fragment() {
 
         filtraPrezzoRange.setOnClickListener {
             enableFirstSliderPrezzo(priceSlider, prezzoMin, prezzoMax)
-             updTxt = "Fascia di prezzo: ${priceSlider!!.values[0]}€ - ${priceSlider!!.values[1]}€"
+            updTxt = "Fascia di prezzo: ${priceSlider!!.values[0]}€ - ${priceSlider!!.values[1]}€"
             testoPrezzo?.text = updTxt
         }
         filtraPrezzoMin.setOnClickListener {
             enableFirstSliderPrezzo(prezzoMin, priceSlider, prezzoMax)
-             updTxt = "Prezzo min: ${prezzoMin?.value}€"
+            updTxt = "Prezzo min: ${prezzoMin?.value}€"
             testoPrezzo?.text = updTxt
         }
         filtraPrezzoMax.setOnClickListener {
             enableFirstSliderPrezzo(prezzoMax, priceSlider, prezzoMin)
-             updTxt = "Prezzo max: ${prezzoMax?.value}€"
+            updTxt = "Prezzo max: ${prezzoMax?.value}€"
             testoPrezzo?.text = updTxt
         }
 
@@ -237,12 +222,10 @@ class HomeFragment : Fragment() {
 
         buttonRicerca?.setOnClickListener {
 
-            val recuperaTitolo = casellaRicerca?.text.toString()
+            var recuperaTitolo: String? = casellaRicerca?.text.toString()
 
-            if(recuperaTitolo.isEmpty())
-                recuperaAnnunciTitolo(null)
-            else
-                recuperaAnnunciTitolo(recuperaTitolo)
+            if(recuperaTitolo!!.isEmpty())
+                recuperaTitolo = null
 
             if(selezionePrezzo.isChecked) {
                 when (radioGroupPrezzo.checkedRadioButtonId) {
@@ -266,18 +249,16 @@ class HomeFragment : Fragment() {
                 posizioneUtente.latitude = 44.922
                 posizioneUtente.longitude = 8.617
 
-                if (selezionaDistanza!!.isChecked) {
-
-                    myAnnunciHome = recuperaAnnunciPerMostrarliNellaHome()
-
-                    myAnnunciHome = recuperaAnnunciLocalizzazione(
-                        posizioneUtente,
-                        distanceSlider?.value?.toInt()!!,
-                        myAnnunciHome
-                    )
-                }
+                var myDocumentiRef: Set<DocumentSnapshot>
+                if (selezionaDistanza!!.isChecked)
+                    myDocumentiRef = UserLoginActivity.recuperaAnnunciFiltrati(recuperaTitolo, disponibilitaSpedire, prezzoSuperiore, prezzoInferiore, posizioneUtente, distanceSlider?.value?.toInt()!!)
                 else
-                    myAnnunciHome = recuperaAnnunciPerMostrarliNellaHome()
+                    myDocumentiRef = UserLoginActivity.recuperaAnnunciFiltrati(recuperaTitolo, disponibilitaSpedire, prezzoSuperiore, prezzoInferiore,null, null)
+
+                myAnnunciHome = UserLoginActivity.recuperaAnnunci(myDocumentiRef)
+
+                //-- Definisco i nuovi listener, per i documenti che ho ora nella Home --
+                myListenerAnnunciHome = subscribeRealTimeDatabase(myDocumentiRef,myListenerAnnunciHome,myAnnunciHome)
 
                 val adapterRicerca = CustomAdapter(myAnnunciHome, R.layout.card_view_design)
                 val recyclerVu = view?.findViewById<RecyclerView>(R.id.recyclerview)
@@ -315,7 +296,7 @@ class HomeFragment : Fragment() {
         priceSlider!!.setLabelFormatter { value -> "${value.toInt()} €"; }
 
         priceSlider!!.addOnChangeListener { _, _, _ ->
-             updTxt = "Fascia di prezzo: ${priceSlider!!.values[0]}€ - ${priceSlider!!.values[1]}€"
+            updTxt = "Fascia di prezzo: ${priceSlider!!.values[0]}€ - ${priceSlider!!.values[1]}€"
             testoPrezzo?.text = updTxt
         }
 
@@ -340,10 +321,8 @@ class HomeFragment : Fragment() {
 
                 if(recuperaTitolo.isEmpty())
                     titoloAnnuncio = null
-                else
-                    titoloAnnuncio = recuperaTitolo
 
-                val distMax :Int?
+                val distMax:Int?
                 if (selezionaDistanza!!.isChecked)
                     distMax = distanceSlider?.value?.toInt()
                 else
@@ -378,7 +357,6 @@ class HomeFragment : Fragment() {
                 val posizioneUtente = Location("provider")
                 posizioneUtente.latitude = 44.922
                 posizioneUtente.longitude = 8.617
-
 
                 inserisciRicercaSuFirebaseFirestore(auth.uid!!, titoloAnnuncio, disponibilitaSpedire, prezzoSuperiore, prezzoInferiore, distMax, posizioneUtente)
             }
@@ -423,39 +401,9 @@ class HomeFragment : Fragment() {
         }
     }
 
-
-    //Ogni pagina, mostra 10 annunci alla volta, questo metodo mi ritorna 10 annunci alla volta, in base ai parametri specificati dal utente
-    suspend fun recuperaAnnunciPerMostrarliNellaHome(): HashMap<String, Annuncio> {
-
-            //-- Recupero i riferimenti ai miei documenti --
-            var myDocumentiRef = UserLoginActivity.definisciQuery(this.titoloAnnuncio, this.disponibilitaSpedire, this.prezzoInferiore, this.prezzoSuperiore )
-
-            myDocumentiRef -= CartFragment.recuperaAnnunciRefCarrelloFirebaseFirestore(auth.uid!!).toSet()
-
-            //-- Trasmormo il riferimento ai documenti in Annunci --
-            this.myAnnunciHome = UserLoginActivity.recuperaAnnunci(myDocumentiRef)
-
-            //-- Elimino i listener per i documenti che avevo precedentemente nella home --
-            for(myListenerPrecedente in myListenerAnnunciHome)
-                myListenerPrecedente.remove()
-
-            //-- Definisco i nuovi listener, per i documenti che ho ora nella Home --
-            this.myListenerAnnunciHome = subscribeRealTimeDatabase(myDocumentiRef, myAnnunciHome)
-
-            return myAnnunciHome
-    }
-
-    //Recupera gli annunci che contengono una sequernza/sottosequenza nel titolo del annuncio.
-    fun recuperaAnnunciTitolo(nomeAnnuncio: String?) {
-
-        this.titoloAnnuncio = nomeAnnuncio
-    }
-
-
     //Sospendo il metodo, per aspettare che la lista dei documenti sia stata recuperata e insirita nel arrayList
     fun recuperaTuttiAnnunci() {
 
-        this.titoloAnnuncio = null
         this.disponibilitaSpedire = null
         this.prezzoSuperiore = null
         this.prezzoInferiore = null
@@ -490,35 +438,40 @@ class HomeFragment : Fragment() {
 
     fun subscribeRealTimeDatabase(
         myDocumentiRef: Set<DocumentSnapshot>,
-        myAnnunciHome: HashMap<String, Annuncio>
+        myListenerPrec: MutableList<ListenerRegistration>,
+        myAnnunci: HashMap<String,Annuncio>
     ): MutableList<ListenerRegistration> {
+
+        //-- Elimino i listener per i documenti che avevo precedentemente nella home --
+        for(myListenerPrecedente in myListenerPrec)
+            myListenerPrecedente.remove()
 
         val myListener: MutableList<ListenerRegistration> = mutableListOf()
 
         for(myDocumentoRef in myDocumentiRef){
-                myListener.add(myDocumentoRef.reference.addSnapshotListener{ snapshot, exception ->
+            myListener.add(myDocumentoRef.reference.addSnapshotListener{ snapshot, exception ->
 
-                        if (exception != null) {
+                if (exception != null) {
 
-                            Log.e("Errore subscribeRealTimeDatabase", exception.toString())
-                            // Gestisci l'errore
-                            return@addSnapshotListener
-                        }
-                        if (snapshot != null && snapshot.exists()) {
-                            // Il documento è stato modificato, sostituiscilo !
-                            myAnnunciHome[snapshot.id] = UserLoginActivity.documentoAnnuncioToObject(snapshot)
-                        }
-                    }
-                )
+                    Log.e("Errore subscribeRealTimeDatabase", exception.toString())
+                    // Gestisci l'errore
+                    return@addSnapshotListener
+                }
+                if (snapshot != null && snapshot.exists()) {
+                    // Il documento è stato modificato, sostituiscilo !
+                    myAnnunci[snapshot.id] = UserLoginActivity.documentoAnnuncioToObject(snapshot)
+                }
             }
+            )
+        }
         return myListener
     }
 
-
     //--- Mi notifica quando il numero di annunci, che rispettano i criteri cambia ---
+
     suspend fun inserisciRicercaSuFirebaseFirestore(
         idUtente: String,
-        titoloAnnuncio: String?, disponibilitaSpedire: Boolean?, prezzoSuperiore: Int?, prezzoMinore: Int?, distanzaMax : Int?, posizioneUtente: Location
+        titoloAnnuncio: String?, disponibilitaSpedire: Boolean?, prezzoSuperiore: Int?, prezzoInferiore: Int?, distanzaMax : Int?, posizioneUtente: Location
     ): String {
 
         val myCollectionUtente = this.database.collection(UserLoginActivity.Utente.nomeCollection)
@@ -527,29 +480,19 @@ class HomeFragment : Fragment() {
 
         val myCollectionRicerca = myDocumento.collection("ricerca")
 
-        val myDocumentAnnunci = UserLoginActivity.recuperaAnnunci(UserLoginActivity.definisciQuery(titoloAnnuncio, disponibilitaSpedire, prezzoMinore, prezzoSuperiore))
-
-        var numeroAnnunci = myDocumentAnnunci.size
-        if(distanzaMax != null) {
-
-            numeroAnnunci =
-                recuperaAnnunciLocalizzazione(posizioneUtente, distanzaMax, myDocumentAnnunci).size
-        }
+        val myAnnunciFiltrati = UserLoginActivity.recuperaAnnunciFiltrati(titoloAnnuncio, disponibilitaSpedire, prezzoSuperiore, prezzoInferiore, posizioneUtente, distanzaMax)
 
         val myRicerca = hashMapOf(
             "titoloAnnuncio" to titoloAnnuncio,
             "disponibilitaSpedire" to disponibilitaSpedire,
             "prezzoSuperiore" to prezzoSuperiore,
-            "prezzoMinore" to prezzoMinore,
-            "numeroAnnunci" to numeroAnnunci,
+            "prezzoMinore" to prezzoInferiore,
+            "numeroAnnunci" to myAnnunciFiltrati.size,
             "distanzaMax" to distanzaMax
         )
 
         return myCollectionRicerca.add(myRicerca).await().id
     }
-
-
-
 
 //     suspend fun eliminaRicercaFirebaseFirestore(userId : String, idRicerca: String){
 //
@@ -564,4 +507,4 @@ class HomeFragment : Fragment() {
 //        myDocumentRicerca.delete().await()
 //    }
 
-}
+    }
