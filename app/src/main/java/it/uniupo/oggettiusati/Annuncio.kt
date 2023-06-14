@@ -357,14 +357,6 @@ data class Annuncio(
         return this.userIdAcquirente
     }
 
-    //Mi ritorna true se l'annuncio, ha una distanza inferiore a quella massima.
-    fun distanzaMinore(posizioneUtente: Location, distanzaMaxKm: Int): Boolean {
-
-        //Log.d("Posizione", posizioneUtente.distanceTo(this.posizione).toString())
-        return posizioneUtente.distanceTo(this.posizione) <= distanzaMaxKm*1000
-    }
-
-
     override fun toString(): String {
         return "Annuncio(userId='$userId', titolo='$titolo', descrizione='$descrizione', prezzo=$prezzo, stato=$stato, disponibilitaSpedire=$disponibilitaSpedire, categoria='$categoria', posizione=$posizione, annuncioId='$annuncioId')"
     }

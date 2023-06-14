@@ -21,6 +21,7 @@ import com.google.firebase.firestore.*
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 import it.uniupo.oggettiusati.adapter.ViewPagerAdapter
+import it.uniupo.oggettiusati.fragment.CartFragment
 import it.uniupo.oggettiusati.fragment.HomeFragment
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.tasks.await
@@ -87,7 +88,6 @@ open class UserLoginActivity : AppCompatActivity() {
         }
 
         suspend fun definisciQuery(
-            /*titoloAnnuncio: String?,*/
             disponibilitaSpedire: Boolean?,
             prezzoSuperiore: Int?,
             prezzoInferiore: Int?
@@ -97,20 +97,7 @@ open class UserLoginActivity : AppCompatActivity() {
                 .whereNotEqualTo("userId", auth.currentUser?.uid).get().await().documents
                 .intersect(database.collection(Annuncio.nomeCollection).whereEqualTo("userIdAcquirente",null)
                     .get().await().documents.toSet())
-            /*
-            myDocumentiFiltrati.forEach { myDocumento ->
-                Log.d("Uguale", (myDocumento.get("userId") as String).equals(auth.currentUser!!.uid).toString()+ "[ "+ myDocumento.get("userId")+"] [${auth.currentUser!!.uid}] "+myDocumento.get("titolo") + "${myDocumentiFiltrati.size}")
-            }
 
-            Log.d("UserId", auth.currentUser!!.uid)
-*/
-/*
-            if (titoloAnnuncio != null)
-                myDocumentiFiltrati = database.collection(Annuncio.nomeCollection)
-                    .whereEqualTo("titolo", titoloAnnuncio).get().await().documents.intersect(
-                    myDocumentiFiltrati
-                )
- */
             //siamo nel caso in cui deve essere compreso
             if (prezzoSuperiore != null && prezzoInferiore != null)
                 myDocumentiFiltrati = database.collection(Annuncio.nomeCollection).orderBy("prezzo")
@@ -137,6 +124,51 @@ open class UserLoginActivity : AppCompatActivity() {
 
             return myDocumentiFiltrati
         }
+
+        suspend fun recuperaAnnunciFiltrati(titoloAnnuncio: String?, disponibilitaSpedire: Boolean?, prezzoSuperiore: Int?, prezzoInferiore: Int?, posizioneUtente: Location?, distanzaKmMax: Int?): Set<DocumentSnapshot> {
+
+            //-- Recupero i riferimenti ai miei documenti --
+            var myDocumentiRef = UserLoginActivity.definisciQuery(disponibilitaSpedire, prezzoInferiore, prezzoSuperiore )
+
+            myDocumentiRef -= CartFragment.recuperaAnnunciRefCarrelloFirebaseFirestore(auth.uid!!).toSet()
+
+            if(titoloAnnuncio != null || posizioneUtente != null) {
+                var myAnnunciRef = ArrayList<DocumentSnapshot>()
+                for (myDocRef in myDocumentiRef) {
+
+                    if (titoloAnnuncio != null && posizioneUtente != null) {
+
+                        val posizioneGeoPoint = myDocRef.getGeoPoint("posizione") as GeoPoint
+
+                        var posizioneDocRef = Location("provider")
+                        posizioneDocRef.latitude = posizioneGeoPoint.latitude
+                        posizioneDocRef.longitude = posizioneGeoPoint.longitude
+
+                        if (((myDocRef.getString("titolo") as String).contains(titoloAnnuncio)) && (posizioneUtente.distanceTo(posizioneDocRef) <= distanzaKmMax!!*1000))
+                            myAnnunciRef.add(myDocRef)
+                    }
+                    else if(titoloAnnuncio != null){
+                        if ((myDocRef.getString("titolo") as String).contains(titoloAnnuncio))
+                            myAnnunciRef.add(myDocRef)
+                    }
+                    else if(posizioneUtente != null){
+
+                        val posizioneGeoPoint = myDocRef.getGeoPoint("posizione") as GeoPoint
+
+                        var posizioneDocRef = Location("provider")
+                        posizioneDocRef.latitude = posizioneGeoPoint.latitude
+                        posizioneDocRef.longitude = posizioneGeoPoint.longitude
+
+                        if (posizioneUtente.distanceTo(posizioneDocRef) <= distanzaKmMax!!*1000)
+                            myAnnunciRef.add(myDocRef)
+                    }
+                }
+                myDocumentiRef = myAnnunciRef.toSet()
+            }
+
+            return myDocumentiRef
+        }
+
 
         //Recupero tutti gli utenti, eccetto quello che e' loggato
         suspend fun recuperaUtenti(userId: String): ArrayList<Utente> {
@@ -299,29 +331,15 @@ open class UserLoginActivity : AppCompatActivity() {
 
         for (myDocumento in myDocumentiRicerca.documents) {
 
-            val titoloAnnuncio = myDocumento.get("titoloAnnuncio") as String?
+            val titoloAnnuncio = myDocumento.getString("titoloAnnuncio") as String?
             val disponibilitaSpedire = myDocumento.getBoolean("disponibilitaSpedire")
-
-            val prezzoSuperiore = (myDocumento.get("prezzoSuperiore") as Long?)?.toInt()
-
-            val prezzoMinore = (myDocumento.get("prezzoMinore") as Long?)?.toInt()
+            val prezzoSuperiore = (myDocumento.getLong("prezzoSuperiore") as Long?)?.toInt()
+            val prezzoInferiore = (myDocumento.getLong("prezzoMinore") as Long?)?.toInt()
+            val distanzaMax = myDocumento.getLong("distanzaMax")?.toInt()
 
             val numeroAnnunciRicerca = (myDocumento.get("numeroAnnunci") as Long).toInt()
 
-            val distanzaMax = myDocumento.getLong("distanzaMax")?.toInt()
-
-            val myAnnunciRef =
-                definisciQuery(/*titoloAnnuncio,*/ disponibilitaSpedire, prezzoMinore, prezzoSuperiore)
-            var myAnnunci = recuperaAnnunci(myAnnunciRef)
-
-            if (distanzaMax != null)
-                myAnnunci = HomeFragment.recuperaAnnunciLocalizzazione(
-                    posizioneUtente,
-                    distanzaMax,
-                    myAnnunci
-                )
-
-            val numeroAnnunci = myAnnunci.size
+            val numeroAnnunci = recuperaAnnunciFiltrati(titoloAnnuncio,disponibilitaSpedire,prezzoSuperiore,prezzoInferiore,posizioneUtente, distanzaMax).size
 
             if (numeroAnnunci > numeroAnnunciRicerca) {
 
@@ -337,7 +355,7 @@ open class UserLoginActivity : AppCompatActivity() {
                     titoloAnnuncio,
                     disponibilitaSpedire,
                     prezzoSuperiore,
-                    prezzoMinore,
+                    prezzoInferiore,
                     numeroAnnunci
                 )
 
@@ -355,7 +373,7 @@ open class UserLoginActivity : AppCompatActivity() {
                     titoloAnnuncio,
                     disponibilitaSpedire,
                     prezzoSuperiore,
-                    prezzoMinore,
+                    prezzoInferiore,
                     numeroAnnunci
                 )
 

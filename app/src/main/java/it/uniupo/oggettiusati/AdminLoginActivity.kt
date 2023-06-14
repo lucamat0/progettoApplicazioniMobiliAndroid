@@ -63,7 +63,7 @@ class AdminLoginActivity : UserLoginActivity() {
 
             val myOggettiInVenditaRef = UserLoginActivity.definisciQuery(null,null,null)
 
-            return HomeFragment.recuperaAnnunciLocalizzazione(posizioneUtente, distanzaMax, UserLoginActivity.recuperaAnnunci(myOggettiInVenditaRef)).size
+            return recuperaAnnunciFiltrati(null,null,null,null,posizioneUtente,distanzaMax).size
     }
 
     suspend fun classificaUtentiRecensitiConVotoPiuAlto(): List<Utente> {

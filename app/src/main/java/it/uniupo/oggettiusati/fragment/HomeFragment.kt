@@ -26,6 +26,7 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.GeoPoint
 import com.google.firebase.firestore.ListenerRegistration
+import com.google.firebase.firestore.auth.User
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 import it.uniupo.oggettiusati.Annuncio
@@ -61,28 +62,6 @@ class HomeFragment : Fragment() {
     var prezzoMin :Slider? = null
     var prezzoMax :Slider? = null
     var shippingSwitch : SwitchCompat? = null
-
-    companion object {
-
-        fun recuperaAnnunciLocalizzazione(
-            posizioneUtente: Location,
-            distanzaMax: Int,
-            myAnnunciDaFiltrare: HashMap<String, Annuncio>
-        ): HashMap<String, Annuncio> {
-
-            val myAnnunciFiltrati = HashMap<String, Annuncio>()
-
-            //Recupero il documento e creo Annuncio, utilizzo il metodo per capire se la distanza è rispettata
-            for (myAnnuncio in myAnnunciDaFiltrare.values) {
-                if (myAnnuncio.distanzaMinore(posizioneUtente, distanzaMax)) {
-                    myAnnunciFiltrati[myAnnuncio.getAnnuncioId()] = myAnnuncio
-                }
-            }
-
-            return myAnnunciFiltrati
-        }
-
-    }
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -130,7 +109,7 @@ class HomeFragment : Fragment() {
                 requireActivity()
             )
 
-            val myDocumentiRef = recuperaAnnunciPerMostrarliNellaHome(null, null, null)
+            val myDocumentiRef = UserLoginActivity.recuperaAnnunciFiltrati(null, null, null, null, null, null)
 
             myAnnunciHome = UserLoginActivity.recuperaAnnunci(myDocumentiRef)
 
@@ -272,9 +251,9 @@ class HomeFragment : Fragment() {
 
                 var myDocumentiRef: Set<DocumentSnapshot>
                 if (selezionaDistanza!!.isChecked)
-                    myDocumentiRef = recuperaAnnunciPerMostrarliNellaHome(recuperaTitolo, posizioneUtente, distanceSlider?.value?.toInt()!!)
+                    myDocumentiRef = UserLoginActivity.recuperaAnnunciFiltrati(recuperaTitolo, disponibilitaSpedire, prezzoSuperiore, prezzoInferiore, posizioneUtente, distanceSlider?.value?.toInt()!!)
                 else
-                    myDocumentiRef = recuperaAnnunciPerMostrarliNellaHome(recuperaTitolo, null, null)
+                    myDocumentiRef = UserLoginActivity.recuperaAnnunciFiltrati(recuperaTitolo, disponibilitaSpedire, prezzoSuperiore, prezzoInferiore,null, null)
 
                 myAnnunciHome = UserLoginActivity.recuperaAnnunci(myDocumentiRef)
 
@@ -379,7 +358,7 @@ class HomeFragment : Fragment() {
                 posizioneUtente.latitude = 44.922
                 posizioneUtente.longitude = 8.617
 
-                //inserisciRicercaSuFirebaseFirestore(auth.uid!!, titoloAnnuncio, disponibilitaSpedire, prezzoSuperiore, prezzoInferiore, distMax, posizioneUtente)
+                inserisciRicercaSuFirebaseFirestore(auth.uid!!, titoloAnnuncio, disponibilitaSpedire, prezzoSuperiore, prezzoInferiore, distMax, posizioneUtente)
             }
         }
 
@@ -421,53 +400,6 @@ class HomeFragment : Fragment() {
             (radioGroup.getChildAt(i)).isEnabled = enabled
         }
     }
-
-
-    suspend fun recuperaAnnunciPerMostrarliNellaHome(titoloAnnuncio: String?, posizioneUtente: Location?, distanzaKmMax: Int?): Set<DocumentSnapshot> {
-
-        //-- Recupero i riferimenti ai miei documenti --
-        var myDocumentiRef = UserLoginActivity.definisciQuery(this.disponibilitaSpedire, this.prezzoInferiore, this.prezzoSuperiore )
-
-        myDocumentiRef -= CartFragment.recuperaAnnunciRefCarrelloFirebaseFirestore(auth.uid!!).toSet()
-
-        if(titoloAnnuncio != null || posizioneUtente != null) {
-            var myAnnunciRef = ArrayList<DocumentSnapshot>()
-            for (myDocRef in myDocumentiRef) {
-
-                if (titoloAnnuncio != null && posizioneUtente != null) {
-
-                    val posizioneGeoPoint = myDocRef.getGeoPoint("posizione") as GeoPoint
-
-                    var posizioneDocRef = Location("provider")
-                    posizioneDocRef.latitude = posizioneGeoPoint.latitude
-                    posizioneDocRef.longitude = posizioneGeoPoint.longitude
-
-                    if (((myDocRef.getString("titolo") as String).contains(titoloAnnuncio)) && (posizioneUtente.distanceTo(posizioneDocRef) <= distanzaKmMax!!*1000))
-                        myAnnunciRef.add(myDocRef)
-                }
-                else if(titoloAnnuncio != null){
-                    if ((myDocRef.getString("titolo") as String).contains(titoloAnnuncio))
-                        myAnnunciRef.add(myDocRef)
-                }
-                else if(posizioneUtente != null){
-
-                    val posizioneGeoPoint = myDocRef.getGeoPoint("posizione") as GeoPoint
-
-                    var posizioneDocRef = Location("provider")
-                    posizioneDocRef.latitude = posizioneGeoPoint.latitude
-                    posizioneDocRef.longitude = posizioneGeoPoint.longitude
-
-                    if (posizioneUtente.distanceTo(posizioneDocRef) <= distanzaKmMax!!*1000)
-                        myAnnunciRef.add(myDocRef)
-                }
-            }
-            myDocumentiRef = myAnnunciRef.toSet()
-        }
-
-        return myDocumentiRef
-    }
-
-
 
     //Sospendo il metodo, per aspettare che la lista dei documenti sia stata recuperata e insirita nel arrayList
     fun recuperaTuttiAnnunci() {
@@ -536,10 +468,10 @@ class HomeFragment : Fragment() {
     }
 
     //--- Mi notifica quando il numero di annunci, che rispettano i criteri cambia ---
-    /*
+
     suspend fun inserisciRicercaSuFirebaseFirestore(
         idUtente: String,
-        titoloAnnuncio: String?, disponibilitaSpedire: Boolean?, prezzoSuperiore: Int?, prezzoMinore: Int?, distanzaMax : Int?, posizioneUtente: Location
+        titoloAnnuncio: String?, disponibilitaSpedire: Boolean?, prezzoSuperiore: Int?, prezzoInferiore: Int?, distanzaMax : Int?, posizioneUtente: Location
     ): String {
 
         val myCollectionUtente = this.database.collection(UserLoginActivity.Utente.nomeCollection)
@@ -548,27 +480,20 @@ class HomeFragment : Fragment() {
 
         val myCollectionRicerca = myDocumento.collection("ricerca")
 
-        recuperaAnnunciPerMostrarliNellaHome(titoloAnnuncio, )
-
-        var numeroAnnunci = myDocumentAnnunci.size
-        if (distanzaMax != null) {
-
-            numeroAnnunci =
-                recuperaAnnunciLocalizzazione(posizioneUtente, distanzaMax, myDocumentAnnunci).size
-        }
+        val myAnnunciFiltrati = UserLoginActivity.recuperaAnnunciFiltrati(titoloAnnuncio, disponibilitaSpedire, prezzoSuperiore, prezzoInferiore, posizioneUtente, distanzaMax)
 
         val myRicerca = hashMapOf(
             "titoloAnnuncio" to titoloAnnuncio,
             "disponibilitaSpedire" to disponibilitaSpedire,
             "prezzoSuperiore" to prezzoSuperiore,
-            "prezzoMinore" to prezzoMinore,
-            "numeroAnnunci" to numeroAnnunci,
+            "prezzoMinore" to prezzoInferiore,
+            "numeroAnnunci" to myAnnunciFiltrati.size,
             "distanzaMax" to distanzaMax
         )
 
         return myCollectionRicerca.add(myRicerca).await().id
     }
-    */
+
 //     suspend fun eliminaRicercaFirebaseFirestore(userId : String, idRicerca: String){
 //
 //        val myCollection = this.database.collection(Utente.nomeCollection)
