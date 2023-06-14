@@ -120,11 +120,11 @@ class MainActivity : AppCompatActivity() {
         else{
             Log.d("Sign in", "User is suspended or deleted")
 
-            Toast.makeText(baseContext, "Authentication failed: l'utente e' sospeso.", Toast.LENGTH_SHORT).show()
+            Toast.makeText(baseContext, "Authentication failed: l'utente e' sospeso o eliminato.", Toast.LENGTH_SHORT).show()
 
             FirebaseAuth.getInstance().signOut() //forzo l'uscita
 
-            setContentView(R.layout.activity_main) //e mostro la ui di login
+            //setContentView(R.layout.activity_main) //e mostro la ui di login
         }
     }
 
@@ -132,7 +132,7 @@ class MainActivity : AppCompatActivity() {
 
         val myDocumentUtente = database.collection(UserLoginActivity.Utente.nomeCollection).document(userId).get().await()
 
-        return myDocumentUtente.getBoolean("sospeso")!! && myDocumentUtente.getBoolean("eliminato")!!
+        return myDocumentUtente.getBoolean("sospeso")!! || myDocumentUtente.getBoolean("eliminato")!!
     }
 
     /**

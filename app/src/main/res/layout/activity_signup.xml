@@ -21,7 +21,6 @@
         android:layout_gravity="center"
         android:layout_marginTop="20dp"
         android:visibility="gone"
-
         />
 
     <ScrollView
@@ -70,6 +69,19 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:maxLength="25"/>
+            <EditText
+                android:id="@+id/ripeti_password"
+                android:hint="Ripeti password"
+                android:inputType="textPassword"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:maxLength="25"/>
+            <TextView
+                android:id="@+id/data"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textSize="20sp"
+                android:text="Seleziona data dal calendario"/>
             <TextView
                 android:id="@+id/error_message"
                 android:layout_width="wrap_content"
@@ -78,20 +90,6 @@
                 android:textSize="20sp"
                 android:textColor="@color/red"
                 />
-
-            <!--    <EditText-->
-            <!--        android:id="@+id/dataDiNascita"-->
-            <!--        android:hint="Data di nascita (gg/mm/aaaa)"-->
-            <!--        android:inputType="date"-->
-            <!--        android:layout_width="match_parent"-->
-            <!--        android:layout_height="wrap_content"-->
-            <!--        android:maxLength="10"/>-->
-            <TextView
-                android:id="@+id/data"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:textSize="20sp"
-                android:text="Seleziona data dal calendario"/>
             <Button
                 android:id="@+id/mostra_calendario"
                 android:text="Mostra calendario"
@@ -112,12 +110,10 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="100dp"/>
 
-
         </LinearLayout>
 
 
     </ScrollView>
-
 
 
 </LinearLayout>

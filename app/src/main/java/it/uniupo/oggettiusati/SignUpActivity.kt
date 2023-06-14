@@ -36,11 +36,13 @@ class SignUpActivity : AppCompatActivity() {
         supportActionBar?.setDisplayShowTitleEnabled(false)
 
         // -- SignUp Activity --
-        val nome = findViewById<EditText>(R.id.nome).text.toString()
-        val cognome = findViewById<EditText>(R.id.cognome).text.toString()
-        val email = findViewById<EditText>(R.id.email).text.toString()
-        val numeroDiTelefono = findViewById<EditText>(R.id.numeroDiTelefono).text.toString()
-        val password = findViewById<EditText>(R.id.password).text.toString()
+
+        lateinit var nome :String
+        lateinit var cognome :String
+        lateinit var email :String
+        lateinit var numeroDiTelefono :String
+        lateinit var password :String
+        lateinit var confermaPassword :String
 
         val btnMostraCalendario = findViewById<Button>(R.id.mostra_calendario)
         val btnNascondiCalendario = findViewById<Button>(R.id.nascondi_calendario)
@@ -65,9 +67,17 @@ class SignUpActivity : AppCompatActivity() {
         val buttonSignUp = findViewById<Button>(R.id.registrati)
 
         buttonSignUp.setOnClickListener {
+            nome = findViewById<EditText>(R.id.nome).text.toString()
+            cognome = findViewById<EditText>(R.id.cognome).text.toString()
+            email = findViewById<EditText>(R.id.email).text.toString()
+            numeroDiTelefono = findViewById<EditText>(R.id.numeroDiTelefono).text.toString()
+            password = findViewById<EditText>(R.id.password).text.toString()
+            confermaPassword = findViewById<EditText>(R.id.ripeti_password).text.toString()
+
             findViewById<TextView>(R.id.error_message).text = ""
             if (email.isNotBlank() &&
                 password.isNotBlank() &&
+                confermaPassword.isNotBlank() &&
                 nome.isNotBlank() &&
                 cognome.isNotBlank() &&
                 numeroDiTelefono.isNotBlank() &&
@@ -78,6 +88,7 @@ class SignUpActivity : AppCompatActivity() {
                 //Il numero di telefono é composto da 10 numeri
                 if (password
                         .matches(Regex("^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[@#$%^&+=!])(?=\\S+\$).{8,}\$")) &&
+                    password == confermaPassword &&
                     numeroDiTelefono.length == 10 && numeroDiTelefono.isDigitsOnly()
                 ) {
                     auth.createUserWithEmailAndPassword(
@@ -127,9 +138,10 @@ class SignUpActivity : AppCompatActivity() {
                 } else {
                     Toast.makeText(
                         baseContext,
-                        "Authentication error. Sign-up failed: weak password or wrong phone number format.",
+                        "Authentication error. Sign-up failed",
                         Toast.LENGTH_SHORT
                     ).show()
+                    findViewById<TextView>(R.id.error_message).text = "Weak password, wrong phone number format or passwords don't matches."
                 }
             } else {
                 Toast.makeText(
@@ -137,20 +149,25 @@ class SignUpActivity : AppCompatActivity() {
                     "Authentication error. Sign-up failed: empty fields.",
                     Toast.LENGTH_SHORT
                 ).show()
+                findViewById<TextView>(R.id.error_message).text = "Alcuni campi sono vuoti, compila tutti i campi"
+                Log.d("registrazione", "[${email}] [${password}] [${nome}] [${cognome}] [${numeroDiTelefono}] [${dataNascita}]")
             }
         }
 
         val buttonLogin = findViewById<Button>(R.id.login)
-        buttonLogin.setOnClickListener { startActivity(Intent(this, MainActivity::class.java)) }
+        buttonLogin.setOnClickListener {
+            startActivity(Intent(this, MainActivity::class.java))
+            finish()
+        }
     }
 
 //    private fun validaDataGgMmAaaa(dataNascita: String): Boolean {
-//        if(dataNascita.length != 10 || !(dataNascita.replace("/","").isDigitsOnly()) || !dataNascita.contains("/"))
+//        if(dataNascita.length != 10 || !(dataNascita.replace("/","").all{ char -> char.isDigit() /*it in '0'..'9'*/}/*.isDigitsOnly()*/) || !dataNascita.contains("/"))
 //            return false
 //        val numEl = arrayOf(2, 2, 4)
 //        val numDate = arrayOf(31, 12, 2022)
 //        val monthNotThirtyOneDay = arrayOf(2, 4, 6, 9, 11)
-//        val dayNumNonthNotThirtyOne = arrayOf(28, 30)
+//        val dayNumMonthNotThirtyOne = arrayOf(28, 30)
 //
 //        val dateToken = dataNascita.split("/")
 //        for ((i, token) in dateToken.withIndex()){
@@ -158,8 +175,14 @@ class SignUpActivity : AppCompatActivity() {
 //                return false
 //        }
 //
-//        if(dateToken[0].toInt() in monthNotThirtyOneDay)
-//
+//        val month = dateToken[1].toInt()
+//        val day = dateToken[0].toInt()
+//        if(month in monthNotThirtyOneDay) {
+//            if(month == monthNotThirtyOneDay[0] && day > dayNumMonthNotThirtyOne[0])
+//                return false
+//            if(monthNotThirtyOneDay.indexOf(month) >= 1 && day > dayNumMonthNotThirtyOne[1])
+//                return false
+//        }
 //
 //        return true
 //    }
@@ -197,6 +220,7 @@ class SignUpActivity : AppCompatActivity() {
                     "La creazione dell'utente è andata a buon fine!"
                 )
                 startActivity(Intent(this, MainActivity::class.java))
+                finish()
 
                 return utenteDaSalvareId
             } else {

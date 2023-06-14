@@ -82,7 +82,8 @@ open class UserLoginActivity : AppCompatActivity() {
                 userIdAcquirente,
                 myDocumentoAnnuncio.id,
                 myDocumentoAnnuncio.getBoolean("venduto") as Boolean,
-                myDocumentoAnnuncio.getBoolean("recensito") as Boolean
+                myDocumentoAnnuncio.getBoolean("acquirenteRecensito") as Boolean,
+                myDocumentoAnnuncio.getBoolean("proprietarioRecensito") as Boolean,
             )
         }
 
@@ -159,7 +160,8 @@ open class UserLoginActivity : AppCompatActivity() {
                 (myDocumento.getLong("amministratore") as Long).toInt(),
                 myDocumento.getString("numeroDiTelefono") as String,
                 myDocumento.getBoolean("sospeso") as Boolean,
-                myDocumento.getString("dataNascita") as String
+                myDocumento.getString("dataNascita") as String,
+                myDocumento.getBoolean("eliminato") as Boolean
             )
         }
 
@@ -413,7 +415,8 @@ open class UserLoginActivity : AppCompatActivity() {
         val amministratore: Int,
         val numeroDiTelefono: String,
         val sospeso: Boolean,
-        val dataNascita: String
+        val dataNascita: String,
+        val eliminato: Boolean
     ) {
 
         companion object {  val nomeCollection = "utente" }

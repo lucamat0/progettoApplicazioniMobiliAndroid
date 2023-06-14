@@ -70,8 +70,8 @@ class CustomAdapter(private val myArrayList: HashMap<String, Annuncio>, val layo
 
                 if (annuncioCorrente.getAcquirente().equals(auth.uid) && annuncioCorrente.getRichiesta()) {
                     uiRequestFromCurrentUser(holder)
-                    if(annuncioCorrente.isVenduto() && (!annuncioCorrente.getRecensito())) {
-                        holder.imgReqSent?.visibility = View.VISIBLE
+                    if(annuncioCorrente.isVenduto() && (!annuncioCorrente.getProprietarioRecensito())) {
+                        holder.imgReqSent?.visibility = View.GONE
                         val btnAcquirente = holder.btnRecensisciVenditore
                         btnAcquirente?.visibility = View.VISIBLE
                         btnAcquirente?.setOnClickListener {
@@ -121,7 +121,7 @@ class CustomAdapter(private val myArrayList: HashMap<String, Annuncio>, val layo
                         holder.imgNotification?.visibility = View.VISIBLE
                         if(annuncioCorrente.isVenduto()) {
                             holder.imgNotification?.setImageResource(R.drawable.baseline_sell_50)
-                            if(!annuncioCorrente.getRecensito()) {
+                            if(!annuncioCorrente.getAcquirenteRecensito()) {
                                 val btnVenditore = holder.btnRecensisciAcquirente
                                 btnVenditore?.visibility = View.VISIBLE
                                 btnVenditore?.setOnClickListener {

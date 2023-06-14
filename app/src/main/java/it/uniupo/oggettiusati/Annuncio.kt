@@ -79,7 +79,9 @@ data class Annuncio(
 
     private var venduto: Boolean = false
 
-    private var recensito: Boolean = false
+    private var acquirenteRecensito: Boolean = false
+
+    private var proprietarioRecensito: Boolean = false
 
     @RequiresApi(Build.VERSION_CODES.Q)
     constructor(parcel: Parcel) : this(
@@ -96,20 +98,22 @@ data class Annuncio(
         this.userIdAcquirente = parcel.readString()
         this.timeStampInizioVendita = parcel.readLong()
         this.venduto = parcel.readBoolean()
-        this.recensito = parcel.readBoolean()
+        this.acquirenteRecensito = parcel.readBoolean()
+        this.proprietarioRecensito = parcel.readBoolean()
     }
 
     //--- Costruttore secondario utilizzato per inizializzare gli annunci, una volta che sono stati scaricati da FirebaseFirestore ---
     constructor(
         userId: String, titolo: String, descrizione: String, prezzo: Double, stato: Int, disponibilitaSpedire: Boolean,
-        categoria: String, posizione: GeoPoint, timeStampInizioVendita: Long, timeStampFineVendita: Long?, userIdAcquirente: String?, annuncioId: String, venduto: Boolean, recensito: Boolean) : this(userId, titolo, descrizione, prezzo, stato, disponibilitaSpedire, categoria) {
+        categoria: String, posizione: GeoPoint, timeStampInizioVendita: Long, timeStampFineVendita: Long?, userIdAcquirente: String?, annuncioId: String, venduto: Boolean, acquirenteRecensito: Boolean, proprietarioRecensito: Boolean) : this(userId, titolo, descrizione, prezzo, stato, disponibilitaSpedire, categoria) {
         this.annuncioId = annuncioId
 
         this.userIdAcquirente = userIdAcquirente
         this.timeStampInizioVendita = timeStampInizioVendita
         this.timeStampFineVendita = timeStampFineVendita
         this.venduto = venduto
-        this.recensito = recensito
+        this.acquirenteRecensito = acquirenteRecensito
+        this.proprietarioRecensito = proprietarioRecensito
 
         this.posizione.latitude = posizione.latitude
         this.posizione.longitude = posizione.longitude
@@ -119,7 +123,7 @@ data class Annuncio(
     //--- Costruttore secondario utilizzato per inizializzare gli annunci nei test ---
     constructor(
         userId: String, titolo: String, descrizione: String, prezzo: Double, stato: Int, disponibilitaSpedire: Boolean,
-        categoria: String, posizione: Location, timeStampInizioVendita: Long, timeStampFineVendita: Long?, userIdAcquirente: String?,venduto: Boolean, recensito: Boolean) : this(userId, titolo, descrizione, prezzo, stato, disponibilitaSpedire, categoria) {
+        categoria: String, posizione: Location, timeStampInizioVendita: Long, timeStampFineVendita: Long?, userIdAcquirente: String?, venduto: Boolean, acquirenteRecensito: Boolean, proprietarioRecensito: Boolean) : this(userId, titolo, descrizione, prezzo, stato, disponibilitaSpedire, categoria) {
 
         this.userIdAcquirente = userIdAcquirente
         this.timeStampInizioVendita = timeStampInizioVendita
@@ -128,7 +132,8 @@ data class Annuncio(
         this.posizione.latitude = posizione.latitude
         this.posizione.longitude = posizione.longitude
         this.venduto = venduto
-        this.recensito = recensito
+        this.acquirenteRecensito = acquirenteRecensito
+        this.proprietarioRecensito = proprietarioRecensito
     }
 
     //Funzione che mi permette di scrivere sul cloud, FireBase, i dati del singolo annuncio, passo anche la posizione dell'immagine che voglio caricare sul cloud.
@@ -152,7 +157,8 @@ data class Annuncio(
                 "timeStampFineVendita" to timeStampFineVendita,
                 "userIdAcquirente" to userIdAcquirente,
                 "venduto" to false,
-                "recensito" to false
+                "acquirenteRecensito" to false,
+                "proprietarioRecensito" to false
             )
 
             val myCollection = database.collection(nomeCollection)
@@ -176,7 +182,7 @@ data class Annuncio(
 
         val adRif = database.collection(nomeCollection).document(this.annuncioId)
 
-        adRif.update("userId", userId, "titolo", titolo, "descrizione", descrizione, "prezzo", prezzo, "stato", stato, "disponibilitaSpedire", disponibilitaSpedire, "categoria", categoria, "venduto", venduto, "userIdAcquirente", userIdAcquirente, "timeStampFineVendita", timeStampFineVendita, "recensito", recensito).await()
+        adRif.update("userId", userId, "titolo", titolo, "descrizione", descrizione, "prezzo", prezzo, "stato", stato, "disponibilitaSpedire", disponibilitaSpedire, "categoria", categoria, "venduto", venduto, "userIdAcquirente", userIdAcquirente, "timeStampFineVendita", timeStampFineVendita, "acquirenteRecensito", this.acquirenteRecensito, "proprietarioRecensito", this.proprietarioRecensito).await()
     }
 
     suspend fun eliminaAnnuncioDaFirebase() {
@@ -275,14 +281,25 @@ data class Annuncio(
     }
 
     //ti comunica se e' stata inserita una recensione dopo acquisto del prodotto
-    fun getRecensito(): Boolean{
-        return this.recensito
+    fun getAcquirenteRecensito(): Boolean {
+        return this.acquirenteRecensito
+    }
+
+    fun getProprietarioRecensito(): Boolean {
+        return this.proprietarioRecensito
     }
 
     //setRichiesta prende in input userId, si controlla che sia quella del acquirente, per un maggiore livello di sicurezza
-    suspend fun setRecensito(userId: String){
-        if(userIdAcquirente == userId){ //no, anche l'acquirente puo' recensire il venditore
-            recensito = true
+    suspend fun setAcquirenteRecensito(userId: String) {
+        if(this.userId == userId){
+            acquirenteRecensito = true
+            modificaAnnuncioSuFirebase()
+        }
+    }
+
+    suspend fun setProprietarioRecensito(userId: String) {
+        if(this.userIdAcquirente == userId){
+            proprietarioRecensito = true
             modificaAnnuncioSuFirebase()
         }
     }
@@ -399,7 +416,8 @@ data class Annuncio(
         parcel.writeValue(timeStampInizioVendita)
         parcel.writeValue(timeStampFineVendita)
         parcel.writeValue(venduto)
-        parcel.writeValue(recensito)
+        parcel.writeValue(acquirenteRecensito)
+        parcel.writeValue(proprietarioRecensito)
     }
 
     override fun describeContents(): Int {
