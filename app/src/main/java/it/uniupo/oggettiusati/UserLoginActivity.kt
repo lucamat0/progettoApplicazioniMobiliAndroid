@@ -145,11 +145,11 @@ open class UserLoginActivity : AppCompatActivity() {
                         posizioneDocRef.latitude = posizioneGeoPoint.latitude
                         posizioneDocRef.longitude = posizioneGeoPoint.longitude
 
-                        if (((myDocRef.getString("titolo") as String).contains(titoloAnnuncio)) && (posizioneUtente.distanceTo(posizioneDocRef) <= distanzaKmMax!!*1000))
+                        if (((myDocRef.getString("titolo") as String).lowercase().contains(titoloAnnuncio.lowercase())) && (posizioneUtente.distanceTo(posizioneDocRef) <= distanzaKmMax!!*1000))
                             myAnnunciRef.add(myDocRef)
                     }
                     else if(titoloAnnuncio != null){
-                        if ((myDocRef.getString("titolo") as String).contains(titoloAnnuncio))
+                        if ((myDocRef.getString("titolo") as String).lowercase().contains(titoloAnnuncio.lowercase()))
                             myAnnunciRef.add(myDocRef)
                     }
                     else if(posizioneUtente != null){

@@ -1,9 +1,11 @@
 package it.uniupo.oggettiusati.fragment
 
+import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Button
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -17,6 +19,7 @@ import com.google.firebase.ktx.Firebase
 import it.uniupo.oggettiusati.Annuncio
 import it.uniupo.oggettiusati.adapter.CustomAdapter
 import it.uniupo.oggettiusati.R
+import it.uniupo.oggettiusati.RicaricaActivity
 import it.uniupo.oggettiusati.UserLoginActivity
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.tasks.await
@@ -35,6 +38,10 @@ class CartFragment : Fragment() {
         val fragmentRootView = inflater.inflate(R.layout.fragment_cart, container, false)
         //context: activity
         //view or fragmentRootView object to use to call findViewById(): fragmentRootView
+
+        fragmentRootView.findViewById<Button>(R.id.ricarica).setOnClickListener {
+            startActivity(Intent(activity, RicaricaActivity::class.java))
+        }
 
         return fragmentRootView //super.onCreateView(inflater, container, savedInstanceState)
     }

@@ -124,7 +124,6 @@ class MainActivity : AppCompatActivity() {
 
             FirebaseAuth.getInstance().signOut() //forzo l'uscita
 
-            //setContentView(R.layout.activity_main) //e mostro la ui di login
         }
     }
 

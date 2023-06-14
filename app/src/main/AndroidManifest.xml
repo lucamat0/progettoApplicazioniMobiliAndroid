@@ -16,6 +16,9 @@
         android:theme="@style/Theme.OggettiUsati"
         tools:targetApi="31">
         <activity
+            android:name=".RicaricaActivity"
+            android:exported="false" />
+        <activity
             android:name=".AggiungiRecensioneActivity"
             android:exported="false" />
         <activity

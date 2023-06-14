@@ -38,19 +38,20 @@ class DettaglioOggettoActivity : AppCompatActivity() {
 
         findViewById<TextView>(R.id.nome).text = myAnnuncio.getTitolo()
         findViewById<TextView>(R.id.categoria).text = myAnnuncio.getCategoria()
+        findViewById<TextView>(R.id.posizione).text = "Coordinate oggetto: Lat ${myAnnuncio.getPosizione().latitude}, Lon ${myAnnuncio.getPosizione().longitude}"
         findViewById<TextView>(R.id.descrizione).text = myAnnuncio.getDescrizione()
         findViewById<TextView>(R.id.prezzo).text = myAnnuncio.getPrezzoToString()
+        // 0 = difettoso, 1 = qualche lieve difetto, 2 = usato ma in perfette condizioni, 3 = nuovo
+        findViewById<TextView>(R.id.stato).text = if(myAnnuncio.getStato() == 0) "Stato: difettoso" else if(myAnnuncio.getStato() == 1) "Stato: qualche lieve difetto" else if(myAnnuncio.getStato() == 2) "Stato: usato ma in perfette condizioni" else "Stato: nuovo"
+        val spediz = "Spedizione: ${if(myAnnuncio.getDisponibilitaSpedire()) "Si" else "No"}"
+        findViewById<TextView>(R.id.spedizione).text = spediz
+
         var nomeVenditore :String
         val proprietarioAnnuncio = myAnnuncio.getProprietario()
         runBlocking {
             nomeVenditore = "Proprietario: ${UserLoginActivity.recuperaUtente(proprietarioAnnuncio).getNomeCognome()}"
         }
         findViewById<TextView>(R.id.nomeVenditore).text = nomeVenditore
-
-        // 0 = difettoso, 1 = qualche lieve difetto, 2 = usato ma in perfette condizioni, 3 = nuovo
-        findViewById<TextView>(R.id.stato).text = if(myAnnuncio.getStato() == 0) "Stato: difettoso" else if(myAnnuncio.getStato() == 1) "Stato: qualche lieve difetto" else if(myAnnuncio.getStato() == 2) "Stato: usato ma in perfette condizioni" else "Stato: nuovo"
-        val spediz = "Spedizione: ${if(myAnnuncio.getDisponibilitaSpedire()) "Si" else "No"}"
-        findViewById<TextView>(R.id.spedizione).text = spediz
 
         val btnRecensioniVenditore = findViewById<Button>(R.id.visualizza_recensioni_venditore)
         btnRecensioniVenditore.setOnClickListener {
@@ -99,9 +100,10 @@ class DettaglioOggettoActivity : AppCompatActivity() {
                 findViewById<Button>(R.id.modifica_oggetto).visibility = View.VISIBLE
                 // creare funzione e aggiungerlo anche per admin
                 findViewById<Button>(R.id.modifica_oggetto).setOnClickListener {
-                    runBlocking {
-                        //startActivity(Modifica.kt)
-                    }
+                    val i = Intent(this, AggiungiOggettoActivity::class.java)
+                    i.putExtra("editMode", true)
+                    i.putExtra("annuncioId", myAnnuncio.getAnnuncioId())
+                    startActivity(i)
                 }
 
                 findViewById<Button>(R.id.elimina_oggetto).visibility = View.VISIBLE

@@ -201,7 +201,9 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Posizione Oggetto"
-                android:paddingVertical="10dp"/>
+                android:paddingVertical="10dp"
+                android:textSize="18sp"
+                android:paddingHorizontal="10dp"/>
 
             <TextView
                 android:id="@+id/descrizione"
@@ -209,7 +211,8 @@
                 android:layout_height="wrap_content"
                 android:text="Descrizione molto lunga dell'oggetto"
                 android:paddingVertical="10dp"
-                android:textSize="18sp"/>
+                android:textSize="18sp"
+                android:paddingHorizontal="10dp"/>
 
             <TextView
                 android:id="@+id/categoria"
@@ -217,14 +220,17 @@
                 android:layout_height="wrap_content"
                 android:text="Categoria Oggetto"
                 android:paddingVertical="10dp"
-                android:textSize="18sp"/>
+                android:textSize="18sp"
+                android:paddingHorizontal="10dp"/>
 
             <TextView
                 android:id="@+id/infoVenditore"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Info venditore: test@gmail.com, 362 789 4378"
-                android:paddingVertical="10dp"/>
+                android:paddingVertical="10dp"
+                android:paddingHorizontal="10dp"
+                android:textSize="18sp"/>
 
 <!--per amministratore -->
 <!--            <Spinner-->
