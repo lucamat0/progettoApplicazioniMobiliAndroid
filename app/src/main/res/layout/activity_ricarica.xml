@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".RicaricaActivity"
+    android:orientation="vertical">
+
+    <EditText
+        android:id="@+id/cc_name"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Cardholder name"
+        android:inputType="text"
+        android:maxLength="30"/>
+    <EditText
+        android:id="@+id/cc_number"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Card Number (16 digit)"
+        android:inputType="number"
+        android:maxLength="16"
+        />
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="20dp"
+            android:text="Mese scadenza:"/>
+        <Spinner
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:entries="@array/mesi"/>
+        <EditText
+            android:id="@+id/cc_year"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:hint="Anno scadenza"
+            android:inputType="number"
+            android:maxLength="4"
+            />
+
+    </LinearLayout>
+    <EditText
+        android:id="@+id/cvv"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:hint="CVV"
+        android:inputType="number"
+        android:maxLength="4"
+        />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textSize="20dp"
+        android:text="Seleziona importo:"/>
+    <NumberPicker
+        android:id="@+id/importo_ricarica"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        />
+
+    <Button
+        android:id="@+id/richiedi_ricarica"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Esegui ricarica"
+        android:layout_gravity="center"/>
+
+</LinearLayout>

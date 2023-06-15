@@ -397,6 +397,10 @@ data class Annuncio(
         return this.categoria
     }
 
+    fun getPosizione(): Location {
+        return this.posizione
+    }
+
     override fun writeToParcel(parcel: Parcel, flags: Int) {
         parcel.writeString(userId)
         parcel.writeString(titolo)

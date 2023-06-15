@@ -1,5 +1,6 @@
 package it.uniupo.oggettiusati.adapter
 
+import android.content.DialogInterface
 import android.content.Intent
 import android.os.BadParcelableException
 import android.util.Log
@@ -7,8 +8,10 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
+import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
 import androidx.recyclerview.widget.RecyclerView
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.DocumentSnapshot
@@ -38,11 +41,22 @@ class UserAdapter(val userList: ArrayList<UserLoginActivity.Utente>): RecyclerVi
     override fun onBindViewHolder(holder: UserViewHolder, position: Int) {
         val utenteCorrente = userList[position]
         val nomeUtenteCorrente = utenteCorrente.nome
-        holder.nomeCognome.text = "${utenteCorrente.cognome} ${nomeUtenteCorrente}"
 
         if((!utenteCorrente.eliminato) && (!utenteCorrente.sospeso)) {
-            holder.itemView.setOnClickListener { viewClicked ->
-                try {
+            holder.nomeCognome.text = "${utenteCorrente.cognome} ${nomeUtenteCorrente}"
+        } else {
+            holder.nomeCognome.text = "Utente disabilitato"
+        }
+
+        holder.itemView.setOnClickListener { viewClicked ->
+            try {
+                val utenteSospeso: Boolean?
+                val utenteEliminato: Boolean?
+                runBlocking {
+                    utenteSospeso = database.collection(UserLoginActivity.Utente.nomeCollection).document(utenteCorrente.userId).get().await().getBoolean("sospeso")
+                    utenteEliminato = database.collection(UserLoginActivity.Utente.nomeCollection).document(utenteCorrente.userId).get().await().getBoolean("eliminato")
+                }
+                if(utenteSospeso == false && utenteEliminato == false) {
                     val intent =
                         Intent(holder.itemView.context, ChatActivity::class.java)
 
@@ -50,12 +64,14 @@ class UserAdapter(val userList: ArrayList<UserLoginActivity.Utente>): RecyclerVi
                     intent.putExtra("uid", utenteCorrente.userId)
 
                     viewClicked.context.startActivity(intent)
-                } catch (e: BadParcelableException) {
-                    Log.e(
-                        "AnnuncioSerialization",
-                        "Errore nella serializzazione dell'oggetto Annuncio: ${e.message}"
-                    )
+                } else {
+                    holder.nomeCognome.text = "Utente disabilitato"
                 }
+            } catch (e: BadParcelableException) {
+                Log.e(
+                    "AnnuncioSerialization",
+                    "Errore nella serializzazione dell'oggetto Annuncio: ${e.message}"
+                )
             }
         }
 
@@ -91,8 +107,21 @@ class UserAdapter(val userList: ArrayList<UserLoginActivity.Utente>): RecyclerVi
 
         holder.btn_elimina.setOnClickListener {
             //dialog per conferma
-            //elimina utente
-            mostraEliminato(holder)
+            AlertDialog.Builder(holder.itemView.context)
+                .setTitle("Attenzione")
+                .setMessage("Sei sicuro di voler eliminare l'utente?")
+                .setPositiveButton("Si") { dialog : DialogInterface, _:Int ->
+                    dialog.dismiss()
+                    runBlocking {
+//                                eliminaUtente()
+                        //elimina utente
+                        mostraEliminato(holder)
+                    }
+                }
+                .setNegativeButton("No") { dialog : DialogInterface, _:Int ->
+                    dialog.dismiss()
+                }
+                .show()
         }
     }
 
