@@ -36,7 +36,7 @@ import it.uniupo.oggettiusati.UserLoginActivity
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.tasks.await
 
-class HomeFragment : Fragment() {
+class HomeFragment(private val isAdmin: Boolean) : Fragment() {
 
     //--- Inizio informazioni per il collegamento con firebase firestore ---
     val auth = FirebaseAuth.getInstance()
@@ -62,6 +62,8 @@ class HomeFragment : Fragment() {
     var prezzoMin :Slider? = null
     var prezzoMax :Slider? = null
     var shippingSwitch : SwitchCompat? = null
+
+
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -109,7 +111,12 @@ class HomeFragment : Fragment() {
                 requireActivity()
             )
 
-            val myDocumentiRef = UserLoginActivity.recuperaAnnunciFiltrati(null, null, null, null, null, null)
+            val myDocumentiRef: Set<DocumentSnapshot>
+            if(isAdmin)
+                myDocumentiRef = UserLoginActivity.recuperaAnnunciFiltratiPossibileRichiesta(null, null, null, null, null, null)
+            else
+                myDocumentiRef = UserLoginActivity.recuperaAnnunciFiltrati(null, null, null, null, null, null)
+
 
             myAnnunciHome = UserLoginActivity.recuperaAnnunci(myDocumentiRef)
 
@@ -245,9 +252,15 @@ class HomeFragment : Fragment() {
 
                 val myDocumentiRef: Set<DocumentSnapshot>
                 if (selezionaDistanza!!.isChecked)
-                    myDocumentiRef = UserLoginActivity.recuperaAnnunciFiltrati(recuperaTitolo, disponibilitaSpedire, prezzoSuperiore, prezzoInferiore, posizioneUtente, distanceSlider?.value?.toInt()!!)
+                    if(isAdmin)
+                        myDocumentiRef = UserLoginActivity.recuperaAnnunciFiltratiPossibileRichiesta(recuperaTitolo, disponibilitaSpedire, prezzoSuperiore, prezzoInferiore, posizioneUtente, distanceSlider?.value?.toInt()!!)
+                    else
+                        myDocumentiRef = UserLoginActivity.recuperaAnnunciFiltrati(recuperaTitolo, disponibilitaSpedire, prezzoSuperiore, prezzoInferiore, posizioneUtente, distanceSlider?.value?.toInt()!!)
                 else
-                    myDocumentiRef = UserLoginActivity.recuperaAnnunciFiltrati(recuperaTitolo, disponibilitaSpedire, prezzoSuperiore, prezzoInferiore,null, null)
+                    if(isAdmin)
+                        myDocumentiRef = UserLoginActivity.recuperaAnnunciFiltratiPossibileRichiesta(recuperaTitolo, disponibilitaSpedire, prezzoSuperiore, prezzoInferiore,null, null)
+                    else
+                        myDocumentiRef = UserLoginActivity.recuperaAnnunciFiltrati(recuperaTitolo, disponibilitaSpedire, prezzoSuperiore, prezzoInferiore,null, null)
 
                 myAnnunciHome = UserLoginActivity.recuperaAnnunci(myDocumentiRef)
 

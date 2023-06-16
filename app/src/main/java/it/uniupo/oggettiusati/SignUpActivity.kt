@@ -204,7 +204,7 @@ class SignUpActivity : AppCompatActivity() {
                 "cognome" to cognome,
                 "dataNascita" to dataNascita,
                 "numeroDiTelefono" to numeroDiTelefono,
-                "amministratore" to 0,
+                "amministratore" to false,
                 "sospeso" to false,
                 "eliminato" to false,
                 "userId" to utenteDaSalvareId

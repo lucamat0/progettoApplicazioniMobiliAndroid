@@ -15,7 +15,7 @@ import it.uniupo.oggettiusati.UserLoginActivity
 import it.uniupo.oggettiusati.adapter.UserAdapter
 import kotlinx.coroutines.runBlocking
 
-class ChatFragment : Fragment() {
+class ChatFragment(private val isAdmin: Boolean) : Fragment() {
 
     private val auth = FirebaseAuth.getInstance()
 
@@ -43,7 +43,7 @@ class ChatFragment : Fragment() {
             val recyclerViewUtenti = view?.findViewById<RecyclerView>(R.id.recyclerviewUtenti)
             recyclerViewUtenti!!.layoutManager = LinearLayoutManager(activity)
 
-            val adapterUtenti = UserAdapter(myUtenti)
+            val adapterUtenti = UserAdapter(myUtenti, isAdmin)
             recyclerViewUtenti.adapter = adapterUtenti
         }
 

@@ -24,9 +24,9 @@ class ViewPagerAdapter(fragmentManager: FragmentManager, lifecycle: Lifecycle, p
 
     override fun createFragment(position: Int): Fragment {
         return when (position) {
-            0 -> HomeFragment()
+            0 -> HomeFragment(false)
             1 -> CartFragment()
-            2 -> ChatFragment()
+            2 -> ChatFragment(false)
             3 -> FavoritesFragment()
             else -> OwnerObjecsFragment()
         }

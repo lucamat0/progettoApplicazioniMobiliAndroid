@@ -26,7 +26,7 @@ import it.uniupo.oggettiusati.chat.ChatActivity
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.tasks.await
 
-class UserAdapter(private val userList: ArrayList<UserLoginActivity.Utente>): RecyclerView.Adapter<UserAdapter.UserViewHolder>() {
+class UserAdapter(private val userList: ArrayList<UserLoginActivity.Utente>, private val isAdmin: Boolean): RecyclerView.Adapter<UserAdapter.UserViewHolder>() {
 
     val auth = FirebaseAuth.getInstance()
     private val database = Firebase.firestore
@@ -45,12 +45,7 @@ class UserAdapter(private val userList: ArrayList<UserLoginActivity.Utente>): Re
         val utenteCorrente = userList[position]
         val nomeUtenteCorrente = utenteCorrente.nome
 
-        val utenteAdmin :Boolean
-        runBlocking {
-            utenteAdmin = database.collection(UserLoginActivity.Utente.nomeCollection).document(auth.uid!!).get().await().get("amministratore").toString().toInt() == 1
-        }
-
-        if(((!utenteCorrente.eliminato) && (!utenteCorrente.sospeso)) || utenteAdmin) {
+        if(((!utenteCorrente.eliminato) && (!utenteCorrente.sospeso)) || isAdmin) {
             holder.nomeCognome.text = "${utenteCorrente.cognome} ${nomeUtenteCorrente}"
         } else {
             holder.nomeCognome.text = "Utente disabilitato"
@@ -79,7 +74,7 @@ class UserAdapter(private val userList: ArrayList<UserLoginActivity.Utente>): Re
 
                     viewClicked.context.startActivity(intent)
                 } else {
-                    if(!utenteAdmin) {
+                    if(!isAdmin) {
                         holder.nomeCognome.text = "Utente disabilitato"
                     }
                     rimuoviColoreLayoutUtente(holder)
@@ -99,7 +94,7 @@ class UserAdapter(private val userList: ArrayList<UserLoginActivity.Utente>): Re
             }
         }
 
-        if (utenteAdmin) {
+        if (isAdmin) {
             holder.stats.visibility = View.VISIBLE
             holder.sospendiElimina.visibility = View.VISIBLE
 

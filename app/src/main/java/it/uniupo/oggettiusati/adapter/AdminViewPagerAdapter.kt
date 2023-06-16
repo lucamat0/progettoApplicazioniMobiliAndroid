@@ -25,8 +25,8 @@ class AdminViewPagerAdapter(fragmentManager: FragmentManager, lifecycle: Lifecyc
 
     override fun createFragment(position: Int): Fragment {
         return when (position) {
-            0 -> HomeFragment()
-            1 -> ChatFragment()
+            0 -> HomeFragment(true)
+            1 -> ChatFragment(true)
             else -> UsersStatisticsFragment()
         }
     }

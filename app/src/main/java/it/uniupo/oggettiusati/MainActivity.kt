@@ -146,21 +146,14 @@ class MainActivity : AppCompatActivity() {
 
         userCollection.get().addOnSuccessListener { document ->
                 if (document != null) {
-                    when (document.get("amministratore").toString()) {
-                        "0" -> {
-                            Toast.makeText(this, "Caricamento...", Toast.LENGTH_SHORT).show()
-                            startActivity(Intent(this, UserLoginActivity::class.java))
-                            finish()
-                        }
-                        "1" -> {
-                            Toast.makeText(this, "Caricamento...", Toast.LENGTH_SHORT).show()
-
-                            startActivity(Intent(this, AdminLoginActivity::class.java))
-                        }
-                        else -> {
-                            //Toast.makeText(this, "Errore: isAdmin vale ${isAdmin}", Toast.LENGTH_LONG).show()
-                            Log.w("admin field error", "Errore: isAdmin vale ${userId}")
-                        }
+                    if(document.getBoolean("amministratore") as Boolean) {
+                        Toast.makeText(this, "Caricamento...", Toast.LENGTH_SHORT).show()
+                        startActivity(Intent(this, AdminLoginActivity::class.java))
+                    }
+                    else{
+                        Toast.makeText(this, "Caricamento...", Toast.LENGTH_SHORT).show()
+                        startActivity(Intent(this, UserLoginActivity::class.java))
+                        finish()
                     }
                 } else {
                     Log.w("document error", "Error: document is null")

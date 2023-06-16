@@ -3,6 +3,7 @@ package it.uniupo.oggettiusati
 import android.content.Intent
 import android.location.Location
 import android.os.Bundle
+import android.text.BoringLayout
 import android.util.Log
 import android.view.Menu
 import android.view.MenuInflater
@@ -89,9 +90,7 @@ open class UserLoginActivity : AppCompatActivity() {
         ): Set<DocumentSnapshot> {
 
             var myDocumentiFiltrati = database.collection(Annuncio.nomeCollection)
-                .whereNotEqualTo("userId", auth.currentUser?.uid).get().await().documents
-                .intersect(database.collection(Annuncio.nomeCollection).whereEqualTo("userIdAcquirente",null)
-                    .get().await().documents.toSet())
+                .whereNotEqualTo("userId", auth.currentUser?.uid).get().await().documents.toSet()
 
             //siamo nel caso in cui deve essere compreso
             if (prezzoSuperiore != null && prezzoInferiore != null)
@@ -120,10 +119,10 @@ open class UserLoginActivity : AppCompatActivity() {
             return myDocumentiFiltrati
         }
 
-        suspend fun recuperaAnnunciFiltrati(titoloAnnuncio: String?, disponibilitaSpedire: Boolean?, prezzoSuperiore: Int?, prezzoInferiore: Int?, posizioneUtente: Location?, distanzaKmMax: Int?): Set<DocumentSnapshot> {
+        suspend fun recuperaAnnunciFiltratiPossibileRichiesta(titoloAnnuncio: String?, disponibilitaSpedire: Boolean?, prezzoSuperiore: Int?, prezzoInferiore: Int?, posizioneUtente: Location?, distanzaKmMax: Int?): Set<DocumentSnapshot> {
 
             //-- Recupero i riferimenti ai miei documenti --
-            var myDocumentiRef = definisciQuery(disponibilitaSpedire, prezzoInferiore, prezzoSuperiore )
+            var myDocumentiRef = definisciQuery(disponibilitaSpedire, prezzoInferiore, prezzoSuperiore)
 
             myDocumentiRef -= CartFragment.recuperaAnnunciRefCarrelloFirebaseFirestore(auth.uid!!).toSet()
 
@@ -165,6 +164,11 @@ open class UserLoginActivity : AppCompatActivity() {
         }
 
 
+        suspend fun recuperaAnnunciFiltrati(titoloAnnuncio: String?, disponibilitaSpedire: Boolean?, prezzoSuperiore: Int?, prezzoInferiore: Int?, posizioneUtente: Location?, distanzaKmMax: Int?): Set<DocumentSnapshot> {
+            return recuperaAnnunciFiltratiPossibileRichiesta(titoloAnnuncio, disponibilitaSpedire, prezzoSuperiore, prezzoInferiore, posizioneUtente, distanzaKmMax).intersect(database.collection(Annuncio.nomeCollection).whereEqualTo("userIdAcquirente",null)
+                .get().await().documents.toSet())
+        }
+
         //Recupero tutti gli utenti, eccetto quello che e' loggato
         suspend fun recuperaUtenti(userId: String): ArrayList<Utente> {
 
@@ -186,7 +190,7 @@ open class UserLoginActivity : AppCompatActivity() {
                 myDocumento.id,
                 myDocumento.getString("nome") as String,
                 myDocumento.getString("cognome") as String,
-                (myDocumento.getLong("amministratore") as Long).toInt(),
+                myDocumento.getBoolean("amministratore") as Boolean,
                 myDocumento.getString("numeroDiTelefono") as String,
                 myDocumento.getBoolean("sospeso") as Boolean,
                 myDocumento.getString("dataNascita") as String,
@@ -427,7 +431,7 @@ open class UserLoginActivity : AppCompatActivity() {
         val userId: String,
         val nome: String,
         val cognome: String,
-        val amministratore: Int,
+        val amministratore: Boolean,
         val numeroDiTelefono: String,
         val sospeso: Boolean,
         val dataNascita: String,
