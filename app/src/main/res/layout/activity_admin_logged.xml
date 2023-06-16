@@ -1,68 +1,30 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:orientation="vertical">
 
-    <TextView
-        android:id="@+id/welcomeMessage"
-        android:layout_width="wrap_content"
+    <com.google.android.material.tabs.TabLayout
+        android:id="@+id/tabLayout_admin"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_gravity="center"
-        android:text="Hello World Admin!"
-        tools:ignore="MissingConstraints" />
+        >
+    </com.google.android.material.tabs.TabLayout>
 
-    <Button
-        android:id="@+id/modifica"
-        android:layout_width="wrap_content"
+    <androidx.viewpager2.widget.ViewPager2
+        android:id="@+id/viewPager2_admin"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Modifica"
-        app:layout_constraintBottom_toTopOf="@+id/elimina"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
-
-    <Button
-        android:id="@+id/elimina"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Elimina"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
-
-    <Button
-        android:id="@+id/sospendi"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Sospendi utente"
-        app:layout_constraintBottom_toTopOf="@+id/modifica"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        android:layout_weight="1" />
 
     <Button
         android:id="@+id/logout"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Logout"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintBottom_toBottomOf="parent"
+
         />
 
-
-
-    <!--
-    btn_log_out.setOnClickListener {
-    Toast.makeText(baseContext, "Click on signOUT btn.",
-    Toast.LENGTH_SHORT).show()
-
-    FirebaseAuth.getInstance().signOut()
-    startActivity(Intent(this,LoginActivity::class.java))
-    }
-    */
-    -->
-</androidx.constraintlayout.widget.ConstraintLayout>
+</LinearLayout>

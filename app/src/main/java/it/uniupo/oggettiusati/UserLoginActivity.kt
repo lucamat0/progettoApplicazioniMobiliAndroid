@@ -27,13 +27,7 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.tasks.await
 import java.util.*
 
-
-val pageTitlesArray = arrayOf(
-    "Home",
-    "Carrello",
-    "Chat",
-    "Preferiti",
-)
+//val pageTitlesArray = arrayOf("Home", "Carrello", "Chat", "Preferiti")
 
 private val tabIcons :IntArray= intArrayOf(
     R.drawable.baseline_home_50,
@@ -129,19 +123,19 @@ open class UserLoginActivity : AppCompatActivity() {
         suspend fun recuperaAnnunciFiltrati(titoloAnnuncio: String?, disponibilitaSpedire: Boolean?, prezzoSuperiore: Int?, prezzoInferiore: Int?, posizioneUtente: Location?, distanzaKmMax: Int?): Set<DocumentSnapshot> {
 
             //-- Recupero i riferimenti ai miei documenti --
-            var myDocumentiRef = UserLoginActivity.definisciQuery(disponibilitaSpedire, prezzoInferiore, prezzoSuperiore )
+            var myDocumentiRef = definisciQuery(disponibilitaSpedire, prezzoInferiore, prezzoSuperiore )
 
             myDocumentiRef -= CartFragment.recuperaAnnunciRefCarrelloFirebaseFirestore(auth.uid!!).toSet()
 
             if(titoloAnnuncio != null || posizioneUtente != null) {
-                var myAnnunciRef = ArrayList<DocumentSnapshot>()
+                val myAnnunciRef = ArrayList<DocumentSnapshot>()
                 for (myDocRef in myDocumentiRef) {
 
                     if (titoloAnnuncio != null && posizioneUtente != null) {
 
                         val posizioneGeoPoint = myDocRef.getGeoPoint("posizione") as GeoPoint
 
-                        var posizioneDocRef = Location("provider")
+                        val posizioneDocRef = Location("provider")
                         posizioneDocRef.latitude = posizioneGeoPoint.latitude
                         posizioneDocRef.longitude = posizioneGeoPoint.longitude
 
@@ -156,7 +150,7 @@ open class UserLoginActivity : AppCompatActivity() {
 
                         val posizioneGeoPoint = myDocRef.getGeoPoint("posizione") as GeoPoint
 
-                        var posizioneDocRef = Location("provider")
+                        val posizioneDocRef = Location("provider")
                         posizioneDocRef.latitude = posizioneGeoPoint.latitude
                         posizioneDocRef.longitude = posizioneGeoPoint.longitude
 
@@ -230,12 +224,12 @@ open class UserLoginActivity : AppCompatActivity() {
         //end fragments
 
         //logica bottone logout
-        val logoutButton = findViewById<Button>(R.id.logout_activity)
+/*        val logoutButton = findViewById<Button>(R.id.logout_activity)
         logoutButton?.setOnClickListener {
             Toast.makeText(this, "Uscita...", Toast.LENGTH_SHORT).show()
             FirebaseAuth.getInstance().signOut()
             startActivity(Intent(this, MainActivity::class.java))
-        }
+        }*/
 
         val fabAggiungiOggetto = findViewById<FloatingActionButton>(R.id.aggiungi_oggetto)
         fabAggiungiOggetto.setOnClickListener {
@@ -264,7 +258,7 @@ open class UserLoginActivity : AppCompatActivity() {
         runBlocking {
             //recuperaRicercheSalvateFirebaseFirestore(auth.uid!!)
             //posizione temporanea per test
-            var posizioneUtente: Location = Location("provider")
+            val posizioneUtente = Location("provider")
             posizioneUtente.latitude = 44.922
             posizioneUtente.longitude = 8.617
             controllaStatoRicercheAnnunci(auth.uid!!, posizioneUtente)
@@ -333,10 +327,10 @@ open class UserLoginActivity : AppCompatActivity() {
 
         for (myDocumento in myDocumentiRicerca.documents) {
 
-            val titoloAnnuncio = myDocumento.getString("titoloAnnuncio") as String?
+            val titoloAnnuncio = myDocumento.getString("titoloAnnuncio")
             val disponibilitaSpedire = myDocumento.getBoolean("disponibilitaSpedire")
-            val prezzoSuperiore = (myDocumento.getLong("prezzoSuperiore") as Long?)?.toInt()
-            val prezzoInferiore = (myDocumento.getLong("prezzoMinore") as Long?)?.toInt()
+            val prezzoSuperiore = (myDocumento.getLong("prezzoSuperiore") )?.toInt()
+            val prezzoInferiore = (myDocumento.getLong("prezzoMinore") )?.toInt()
             val distanzaMax = myDocumento.getLong("distanzaMax")?.toInt()
 
             val numeroAnnunciRicerca = (myDocumento.get("numeroAnnunci") as Long).toInt()

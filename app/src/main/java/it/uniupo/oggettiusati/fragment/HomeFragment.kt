@@ -92,14 +92,14 @@ class HomeFragment : Fragment() {
         super.onResume()
         //perform here operation when fragment changes and this become visible (i.e. do updates dynamically when fragment is again visible)
 
-        distanceSlider = view?.findViewById<Slider>(R.id.distanceSlider)
-        testoDistanza = view?.findViewById<TextView>(R.id.maxDistance)
-        testoPrezzo = view?.findViewById<TextView>(R.id.priceRange)
-        radioGroupPrezzo = view?.findViewById<RadioGroup>(R.id.rGroup_prezzo)!!
-        priceSlider = view?.findViewById<RangeSlider>(R.id.price_range_slider)
-        prezzoMin = view?.findViewById<Slider>(R.id.price_min_slider)
-        prezzoMax = view?.findViewById<Slider>(R.id.price_max_slider)
-        shippingSwitch = view?.findViewById<SwitchCompat>(R.id.shipping_switch)
+        distanceSlider = view?.findViewById(R.id.distanceSlider)
+        testoDistanza = view?.findViewById(R.id.maxDistance)
+        testoPrezzo = view?.findViewById(R.id.priceRange)
+        radioGroupPrezzo = view?.findViewById(R.id.rGroup_prezzo)!!
+        priceSlider = view?.findViewById(R.id.price_range_slider)
+        prezzoMin = view?.findViewById(R.id.price_min_slider)
+        prezzoMax = view?.findViewById(R.id.price_max_slider)
+        shippingSwitch = view?.findViewById(R.id.shipping_switch)
 
         runBlocking {
 
@@ -126,20 +126,14 @@ class HomeFragment : Fragment() {
             recyclerVu?.adapter = adapter
         }
 
-
 //        distanceSlider?.isEnabled = false
-
 
         var updTxt = "Distanza max: ${distanceSlider?.value}km"
         testoDistanza?.text = updTxt
 
-
         setEnabledRadioGroup(radioGroupPrezzo, false)
 
-
-
         val selezionePrezzo = requireView().findViewById<CheckBox>(R.id.select_price)
-
 
         updTxt = "Fascia di prezzo: ${priceSlider!!.values[0]}€ - ${priceSlider!!.values[1]}€"
         testoPrezzo?.text = updTxt
@@ -249,7 +243,7 @@ class HomeFragment : Fragment() {
                 posizioneUtente.latitude = 44.922
                 posizioneUtente.longitude = 8.617
 
-                var myDocumentiRef: Set<DocumentSnapshot>
+                val myDocumentiRef: Set<DocumentSnapshot>
                 if (selezionaDistanza!!.isChecked)
                     myDocumentiRef = UserLoginActivity.recuperaAnnunciFiltrati(recuperaTitolo, disponibilitaSpedire, prezzoSuperiore, prezzoInferiore, posizioneUtente, distanceSlider?.value?.toInt()!!)
                 else

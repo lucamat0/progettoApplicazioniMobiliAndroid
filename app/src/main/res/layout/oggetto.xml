@@ -62,7 +62,7 @@
             </LinearLayout>
 
             <LinearLayout
-                android:id="@+id/layout_aggiungi_contatta"
+                android:id="@+id/layout_contatta_aggiungi"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
@@ -103,6 +103,7 @@
                 >
 
                 <TextView
+                    android:id="@+id/titolo_richiesta"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     android:text="Ricevuta richiesta di acquisto"
@@ -119,6 +120,7 @@
                     />
 
                 <LinearLayout
+                    android:id="@+id/accetta_rifiuta"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="horizontal">

@@ -2,14 +2,17 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:orientation="vertical">
+    android:orientation="vertical"
+    android:background="@color/material_dynamic_neutral_variant95"
+    android:id="@+id/user_layout_chat">
 
         <LinearLayout
+            android:id="@+id/layout_sospendi_elimina"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
-            android:gravity="end">
-
+            android:gravity="end"
+            android:visibility="gone">
 
                 <Button
                     android:id="@+id/btn_sospendi"
@@ -17,7 +20,9 @@
                     android:layout_height="wrap_content"
                     android:text="sospendi"
                     android:layout_marginHorizontal="5dp"
-                    android:visibility="gone"
+                    android:visibility="visible"
+                    android:backgroundTint="@color/yellow"
+                    android:textColor="@color/black"
                     />
                 <Button
                     android:id="@+id/btn_attiva"
@@ -26,6 +31,7 @@
                     android:text="attiva"
                     android:layout_marginHorizontal="5dp"
                     android:visibility="gone"
+                    android:backgroundTint="@color/sky_blue"
                     />
                 <Button
                     android:id="@+id/btn_elimina"
@@ -33,37 +39,52 @@
                     android:layout_height="wrap_content"
                     android:text="elimina"
                     android:layout_marginHorizontal="5dp"
-                    android:visibility="gone"
+                    android:visibility="visible"
+                    android:backgroundTint="@color/red"
                     />
 
         </LinearLayout>
 
         <TextView
-            android:layout_marginTop="5dp"
             android:id="@+id/nomeCognome"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Nome e cognome utente"
             android:textSize="30sp"
             android:textStyle="bold"
-            android:layout_marginLeft="10dp"/>
+            android:layout_marginStart="10dp"/>
 
-        <Button
-            android:id="@+id/btn_statistiche"
-            android:layout_width="wrap_content"
+        <LinearLayout
+            android:id="@+id/layout_statistiche"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Statistiche utente"
-            android:layout_marginHorizontal="5dp"
+            android:orientation="horizontal"
             android:visibility="gone"
-            android:layout_gravity="end"
-            />
+            android:layout_marginStart="10dp">
+                <TextView
+                    android:id="@+id/punteggio_utente"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:text="Punteggio: "
+                    android:textSize="20sp"
+                    android:layout_weight="1"
+                    android:layout_gravity="center"/>
+                <TextView
+                    android:id="@+id/num_ogg_in_vendita_utente"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:text="Oggetti in vendita"
+                    android:layout_marginHorizontal="5dp"
+                    android:textSize="20sp"
+                    android:layout_weight="1"
+                    />
+
+        </LinearLayout>
 
         <View
-            android:layout_below="@id/nomeCognome"
             android:layout_marginTop="5dp"
             android:layout_width="match_parent"
             android:layout_height="1dp"
             android:background="@color/black" />
-
 
 </LinearLayout>

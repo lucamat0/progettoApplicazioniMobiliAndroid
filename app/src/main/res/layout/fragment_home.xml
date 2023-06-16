@@ -86,9 +86,8 @@
                 android:layout_height="wrap_content"
                 android:text="Distanza max: ... km"
                 android:layout_gravity="end"
-
                 android:textSize="20sp"
-                android:layout_marginRight="5dp"
+                android:layout_marginEnd="5dp"
                 android:enabled="false"
                 />
             <com.google.android.material.divider.MaterialDivider

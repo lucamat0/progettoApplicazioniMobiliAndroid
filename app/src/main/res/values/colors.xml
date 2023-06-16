@@ -11,4 +11,6 @@
     <color name="red">#F44336</color>
     <color name="orange">#FFC107</color>
     <color name="grey">#808080</color>
+    <color name="yellow">#FFEB3B</color>
+    <color name="sky_blue">#2196F3</color>
 </resources>

@@ -5,8 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context=".MainActivity"
-    android:orientation="vertical"
-    >
+    android:orientation="vertical">
 
     <com.google.android.material.tabs.TabLayout
         android:layout_width="match_parent"
@@ -14,6 +13,7 @@
         android:id="@+id/tabLayout">
     </com.google.android.material.tabs.TabLayout>
 
+    <!-- CoordinatorLayout per il Floating Action Button   -->
     <androidx.coordinatorlayout.widget.CoordinatorLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent">
@@ -35,7 +35,7 @@
                     android:layout_height="wrap_content"
                     android:text="username"
                     android:layout_centerVertical="true"
-                    android:textSize="25dp"/>
+                    android:textSize="25sp"/>
 
                 <Button
                     android:id="@+id/logout_activity"
@@ -43,7 +43,7 @@
                     android:layout_height="wrap_content"
                     android:text="Logout"
                     android:backgroundTint="@color/red"
-                    android:layout_alignParentRight="true"
+                    android:layout_alignParentEnd="true"
                     />
 
             </RelativeLayout>

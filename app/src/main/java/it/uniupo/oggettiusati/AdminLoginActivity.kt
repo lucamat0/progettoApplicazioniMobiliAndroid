@@ -5,7 +5,13 @@ import android.location.Location
 import android.os.Bundle
 import android.util.Log
 import android.widget.Button
+import androidx.core.content.ContextCompat
+import androidx.viewpager2.widget.ViewPager2
+import com.google.android.material.tabs.TabLayout
+import com.google.android.material.tabs.TabLayoutMediator
 import com.google.firebase.auth.FirebaseAuth
+import it.uniupo.oggettiusati.adapter.AdminViewPagerAdapter
+import it.uniupo.oggettiusati.adapter.ViewPagerAdapter
 import it.uniupo.oggettiusati.fragment.HomeFragment
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
@@ -17,6 +23,13 @@ import java.util.LinkedList
 import kotlin.collections.HashMap
 import kotlin.streams.toList
 
+val pageTitlesArray = arrayOf("Home", "Chat", "Personal")
+
+private val tabIcons :IntArray= intArrayOf(
+    R.drawable.baseline_home_50,
+    R.drawable.baseline_chat_bubble_50,
+    R.drawable.baseline_person_50
+)
 
 class AdminLoginActivity : UserLoginActivity() {
 
@@ -24,8 +37,18 @@ class AdminLoginActivity : UserLoginActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_admin_logged)
 
-        val logoutButton = findViewById<Button>(R.id.logout)
+        supportActionBar?.title = "[${supportActionBar?.title}] - admin"
 
+        val viewPager = findViewById<ViewPager2>(R.id.viewPager2_admin)
+        viewPager.adapter = AdminViewPagerAdapter(supportFragmentManager, lifecycle, tabIcons.size)
+
+        val tabLayout = findViewById<TabLayout>(R.id.tabLayout_admin)
+        TabLayoutMediator(tabLayout, viewPager) { tab, position ->
+            tab.text = pageTitlesArray[position]
+            tab.icon = ContextCompat.getDrawable(this, tabIcons[position])
+        }.attach()
+
+        val logoutButton = findViewById<Button>(R.id.logout)
         logoutButton.setOnClickListener {
             FirebaseAuth.getInstance().signOut()
             startActivity(Intent(this, MainActivity::class.java))
@@ -61,7 +84,7 @@ class AdminLoginActivity : UserLoginActivity() {
 
     private suspend fun numeroOggettiInVenditaPerRaggioDistanza(posizioneUtente: Location, distanzaMax: Int): Int {
 
-            val myOggettiInVenditaRef = UserLoginActivity.definisciQuery(null,null,null)
+            val myOggettiInVenditaRef = definisciQuery(null,null,null)
 
             return recuperaAnnunciFiltrati(null,null,null,null,posizioneUtente,distanzaMax).size
     }
@@ -77,7 +100,7 @@ class AdminLoginActivity : UserLoginActivity() {
 
     suspend fun calcolaTempoMedioAnnunciVenduti(): Double{
 
-        var myUtenti = recuperaUtenti(auth.uid!!).stream().filter{ utente-> runBlocking {  utente.calcolaTempoMedioAnnunciVenduti() != 0.0 } }.toList()
+        val myUtenti = recuperaUtenti(auth.uid!!).stream().filter{ utente-> runBlocking {  utente.calcolaTempoMedioAnnunciVenduti() != 0.0 } }.toList()
 
         return myUtenti.sumOf { utente -> runBlocking {  utente.calcolaTempoMedioAnnunciVenduti() } } / myUtenti.size
     }
