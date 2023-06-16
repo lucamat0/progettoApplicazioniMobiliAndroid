@@ -34,7 +34,7 @@ class DettaglioOggettoActivity : AppCompatActivity() {
             supportActionBar?.setTitle(UserLoginActivity.recuperaUtente(auth.uid!!).nome)
         }
 
-        val myAnnuncio: Annuncio = intent.getParcelableExtra<Annuncio>("annuncio")!!
+        val myAnnuncio: Annuncio = intent.getParcelableExtra("annuncio", Annuncio::class.java)!!
 
         findViewById<TextView>(R.id.nome).text = myAnnuncio.getTitolo()
         findViewById<TextView>(R.id.categoria).text = myAnnuncio.getCategoria()

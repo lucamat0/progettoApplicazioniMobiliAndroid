@@ -19,6 +19,8 @@ import kotlin.random.Random
 
 val database = Firebase.firestore
 
+val storage = FirebaseStorage.getInstance()
+
 data class Annuncio(
 
     //Informazioni del proprietario che vuole creare annuncio.
@@ -64,7 +66,7 @@ data class Annuncio(
     }
 
     //--- Inizio variabili utili all'inserimento delle immagini sul cloud ---
-    val storage = FirebaseStorage.getInstance()
+
 
     lateinit var storageRef: StorageReference
     //--- Fine variabili utili all'inserimento delle immagini sul cloud ---
@@ -83,20 +85,21 @@ data class Annuncio(
 
     private var proprietarioRecensito: Boolean = false
 
-    @RequiresApi(Build.VERSION_CODES.Q)
+
     constructor(parcel: Parcel) : this(
             parcel.readString() ?: "",
             parcel.readString() ?: "",
             parcel.readString() ?: "",
             parcel.readDouble(),
             parcel.readInt(),
-            parcel.readByte() != 0.toByte(),
+            parcel.readBoolean(),
             parcel.readString() ?: "",
-            parcel.readParcelable(Location::class.java.classLoader) ?: Location(""),
+            parcel.readValue(Location::class.java.classLoader) as Location
     ) {
         this.annuncioId = parcel.readString() ?: ""
         this.userIdAcquirente = parcel.readString()
         this.timeStampInizioVendita = parcel.readLong()
+        this.timeStampFineVendita = parcel.readValue(Long::class.java.classLoader) as Long?
         this.venduto = parcel.readBoolean()
         this.acquirenteRecensito = parcel.readBoolean()
         this.proprietarioRecensito = parcel.readBoolean()
@@ -404,16 +407,16 @@ data class Annuncio(
         parcel.writeString(descrizione)
         parcel.writeDouble(prezzo)
         parcel.writeInt(stato)
-        parcel.writeByte(if (disponibilitaSpedire) 1 else 0)
+        parcel.writeBoolean(disponibilitaSpedire)
         parcel.writeString(categoria)
-        parcel.writeParcelable(posizione, flags)
+        parcel.writeValue(posizione)
         parcel.writeString(annuncioId)
         parcel.writeString(userIdAcquirente)
-        parcel.writeValue(timeStampInizioVendita)
+        parcel.writeLong(timeStampInizioVendita!!)
         parcel.writeValue(timeStampFineVendita)
-        parcel.writeValue(venduto)
-        parcel.writeValue(acquirenteRecensito)
-        parcel.writeValue(proprietarioRecensito)
+        parcel.writeBoolean(venduto)
+        parcel.writeBoolean(acquirenteRecensito)
+        parcel.writeBoolean(proprietarioRecensito)
     }
 
     override fun describeContents(): Int {
