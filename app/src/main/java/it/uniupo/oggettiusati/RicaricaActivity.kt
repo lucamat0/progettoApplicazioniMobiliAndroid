@@ -17,8 +17,6 @@ class RicaricaActivity : AppCompatActivity() {
         viewImporto.maxValue = 300
         viewImporto.minValue = 5
 
-
-
         findViewById<Button>(R.id.richiedi_ricarica).setOnClickListener {
             val nomeCC = findViewById<EditText>(R.id.cc_name).text.toString()
             val numeroCC = findViewById<EditText>(R.id.cc_number).text.toString()
@@ -48,10 +46,6 @@ class RicaricaActivity : AppCompatActivity() {
                 Toast.makeText(this, "Alcuni campi sono vuoti, compilali tutti per ricaricare.", Toast.LENGTH_SHORT).show()
             }
         }
-
-
-
-
 
     }
 }

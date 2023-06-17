@@ -18,7 +18,7 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.tasks.await
 import java.util.HashMap
 
-class OwnerObjecsFragment : Fragment() {
+class OwnerObjecsFragment(private val isAdmin: Boolean) : Fragment() {
     private val database = Firebase.firestore
     private val auth = FirebaseAuth.getInstance()
 
@@ -46,7 +46,7 @@ class OwnerObjecsFragment : Fragment() {
             val annunciProprietario = recuperaMieiAnnunci(auth.uid!!)
 
             //this will pass the ArrayList to our Adapter
-            val adapter = CustomAdapter(annunciProprietario, R.layout.card_view_design)
+            val adapter = CustomAdapter(annunciProprietario, R.layout.card_view_design, isAdmin)
 
             //setting the Adapter with the recyclerView
             recyclerVu?.adapter = adapter
@@ -54,7 +54,7 @@ class OwnerObjecsFragment : Fragment() {
     }
 
     //--- Inizio metodo da spostare nel fragment che visualizza i miei annunci ---
-    suspend fun recuperaMieiAnnunci(userId: String): HashMap<String, Annuncio> {
+    private suspend fun recuperaMieiAnnunci(userId: String): HashMap<String, Annuncio> {
 
         val documentoAnnunci = database.collection(Annuncio.nomeCollection).whereEqualTo("userId", userId).get().await()
 

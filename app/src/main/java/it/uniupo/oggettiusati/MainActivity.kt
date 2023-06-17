@@ -10,6 +10,7 @@ import android.widget.Toast
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.firestore.DocumentReference
+import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.GeoPoint
 import com.google.firebase.firestore.ktx.firestore
@@ -120,18 +121,29 @@ class MainActivity : AppCompatActivity() {
         else{
             Log.d("Sign in", "User is suspended or deleted")
 
-            Toast.makeText(baseContext, "Authentication failed: l'utente e' sospeso o eliminato.", Toast.LENGTH_SHORT).show()
+            if(getEliminato(userId))
+                Toast.makeText(baseContext, "Authentication failed: l'utente non esiste.", Toast.LENGTH_SHORT).show()
+            else
+                Toast.makeText(baseContext, "Authentication failed: l'utente e' sospeso.", Toast.LENGTH_SHORT).show()
 
             FirebaseAuth.getInstance().signOut() //forzo l'uscita
-
         }
     }
 
     private suspend fun isSuspendDelete(userId: String): Boolean {
+        return getSospeso(userId) || getEliminato(userId)
+    }
 
-        val myDocumentUtente = database.collection(UserLoginActivity.Utente.nomeCollection).document(userId).get().await()
+    private suspend fun getUtente(userId: String): DocumentSnapshot? {
+        return database.collection(UserLoginActivity.Utente.nomeCollection).document(userId).get().await()
+    }
 
-        return myDocumentUtente.getBoolean("sospeso")!! || myDocumentUtente.getBoolean("eliminato")!!
+    private suspend fun getEliminato(userId: String): Boolean {
+        return getUtente(userId)!!.getBoolean("eliminato")!!
+    }
+
+    private suspend fun getSospeso(userId: String): Boolean {
+        return getUtente(userId)!!.getBoolean("sospeso")!!
     }
 
     /**

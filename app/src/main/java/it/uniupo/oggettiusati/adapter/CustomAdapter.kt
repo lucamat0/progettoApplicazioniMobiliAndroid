@@ -24,7 +24,7 @@ import it.uniupo.oggettiusati.fragment.CartFragment
 import it.uniupo.oggettiusati.fragment.FavoritesFragment
 import kotlinx.coroutines.runBlocking
 
-class CustomAdapter(private val myArrayList: HashMap<String, Annuncio>, val layout: Int) : RecyclerView.Adapter<CustomAdapter.ViewHolder>() {
+class CustomAdapter(private val myArrayList: HashMap<String, Annuncio>, private val layout: Int, private val isAdmin: Boolean) : RecyclerView.Adapter<CustomAdapter.ViewHolder>() {
     val auth = FirebaseAuth.getInstance()
 
     //create new views
@@ -55,6 +55,7 @@ class CustomAdapter(private val myArrayList: HashMap<String, Annuncio>, val layo
                         Intent(holder.itemView.context, DettaglioOggettoActivity::class.java)
 
                     intent.putExtra("annuncio", annuncioCorrente)
+                    intent.putExtra("isAdmin", isAdmin)
 
                     viewClicked.context.startActivity(intent)
                 } catch (e: BadParcelableException) {
@@ -145,7 +146,7 @@ class CustomAdapter(private val myArrayList: HashMap<String, Annuncio>, val layo
         }
     }
 
-    private fun uiRequestFromCurrentUser(holder: CustomAdapter.ViewHolder) {
+    private fun uiRequestFromCurrentUser(holder: ViewHolder) {
         holder.btnRequest?.visibility = View.GONE
         holder.btnRemove?.visibility = View.GONE
         holder.imgReqSent?.visibility = View.VISIBLE

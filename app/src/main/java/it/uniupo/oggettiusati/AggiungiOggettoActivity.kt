@@ -14,12 +14,15 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.widget.SwitchCompat
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.ktx.firestore
+import com.google.firebase.ktx.Firebase
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.tasks.await
 
 class AggiungiOggettoActivity : AppCompatActivity() {
 
     private val auth = FirebaseAuth.getInstance()
+    val database = Firebase.firestore
 
     private var myImmaginiAnnuncio = ArrayList<Uri>()
     override fun onCreate(savedInstanceState: Bundle?) {

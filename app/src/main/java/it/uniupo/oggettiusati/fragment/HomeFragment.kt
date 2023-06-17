@@ -43,8 +43,8 @@ class HomeFragment(private val isAdmin: Boolean) : Fragment() {
     val database = Firebase.firestore
 
     //HashMap che mi memorizza gli annunci che devo mostrare, a seconda della pagina in cui mi trovo mi vengono mostrati i 10 elementi
-    var myAnnunciHome = HashMap<String, Annuncio>()
-    var myListenerAnnunciHome: MutableList<ListenerRegistration> = mutableListOf()
+    private var myAnnunciHome = HashMap<String, Annuncio>()
+    private var myListenerAnnunciHome: MutableList<ListenerRegistration> = mutableListOf()
 
     //--- Variabili utili per filtrare gli annunci ---
     private var titoloAnnuncio: String? = null
@@ -57,11 +57,11 @@ class HomeFragment(private val isAdmin: Boolean) : Fragment() {
     var distanceSlider :Slider? = null
     var testoDistanza :TextView? = null
     var testoPrezzo :TextView? = null
-    lateinit var radioGroupPrezzo :RadioGroup
-    var priceSlider :RangeSlider? = null
+    private lateinit var radioGroupPrezzo :RadioGroup
+    private var priceSlider :RangeSlider? = null
     var prezzoMin :Slider? = null
     var prezzoMax :Slider? = null
-    var shippingSwitch : SwitchCompat? = null
+    private var shippingSwitch : SwitchCompat? = null
 
 
 
@@ -111,11 +111,10 @@ class HomeFragment(private val isAdmin: Boolean) : Fragment() {
                 requireActivity()
             )
 
-            val myDocumentiRef: Set<DocumentSnapshot>
-            if(isAdmin)
-                myDocumentiRef = UserLoginActivity.recuperaAnnunciFiltratiPossibileRichiesta(null, null, null, null, null, null)
+            val myDocumentiRef: Set<DocumentSnapshot> = if(isAdmin)
+                UserLoginActivity.recuperaAnnunciFiltratiPossibileRichiesta(null, null, null, null, null, null)
             else
-                myDocumentiRef = UserLoginActivity.recuperaAnnunciFiltrati(null, null, null, null, null, null)
+                UserLoginActivity.recuperaAnnunciFiltrati(null, null, null, null, null, null)
 
 
             myAnnunciHome = UserLoginActivity.recuperaAnnunci(myDocumentiRef)
@@ -128,12 +127,15 @@ class HomeFragment(private val isAdmin: Boolean) : Fragment() {
             //this creates a vertical layout Manager
             recyclerVu?.layoutManager = LinearLayoutManager(activity)
             //this will pass the ArrayList to our Adapter
-            val adapter = CustomAdapter(myAnnunciHome, R.layout.card_view_design)
+            val adapter = CustomAdapter(myAnnunciHome, R.layout.card_view_design, isAdmin)
             //setting the Adapter with the recyclerView
             recyclerVu?.adapter = adapter
         }
 
-//        distanceSlider?.isEnabled = false
+        distanceSlider?.isEnabled = false
+        priceSlider?.isEnabled = false
+        prezzoMin?.isEnabled = false
+        prezzoMax?.isEnabled = false
 
         var updTxt = "Distanza max: ${distanceSlider?.value}km"
         testoDistanza?.text = updTxt
@@ -250,24 +252,23 @@ class HomeFragment(private val isAdmin: Boolean) : Fragment() {
                 posizioneUtente.latitude = 44.922
                 posizioneUtente.longitude = 8.617
 
-                val myDocumentiRef: Set<DocumentSnapshot>
-                if (selezionaDistanza!!.isChecked)
+                val myDocumentiRef: Set<DocumentSnapshot> = if (selezionaDistanza!!.isChecked)
                     if(isAdmin)
-                        myDocumentiRef = UserLoginActivity.recuperaAnnunciFiltratiPossibileRichiesta(recuperaTitolo, disponibilitaSpedire, prezzoSuperiore, prezzoInferiore, posizioneUtente, distanceSlider?.value?.toInt()!!)
+                        UserLoginActivity.recuperaAnnunciFiltratiPossibileRichiesta(recuperaTitolo, disponibilitaSpedire, prezzoSuperiore, prezzoInferiore, posizioneUtente, distanceSlider?.value?.toInt()!!)
                     else
-                        myDocumentiRef = UserLoginActivity.recuperaAnnunciFiltrati(recuperaTitolo, disponibilitaSpedire, prezzoSuperiore, prezzoInferiore, posizioneUtente, distanceSlider?.value?.toInt()!!)
+                        UserLoginActivity.recuperaAnnunciFiltrati(recuperaTitolo, disponibilitaSpedire, prezzoSuperiore, prezzoInferiore, posizioneUtente, distanceSlider?.value?.toInt()!!)
                 else
                     if(isAdmin)
-                        myDocumentiRef = UserLoginActivity.recuperaAnnunciFiltratiPossibileRichiesta(recuperaTitolo, disponibilitaSpedire, prezzoSuperiore, prezzoInferiore,null, null)
+                        UserLoginActivity.recuperaAnnunciFiltratiPossibileRichiesta(recuperaTitolo, disponibilitaSpedire, prezzoSuperiore, prezzoInferiore,null, null)
                     else
-                        myDocumentiRef = UserLoginActivity.recuperaAnnunciFiltrati(recuperaTitolo, disponibilitaSpedire, prezzoSuperiore, prezzoInferiore,null, null)
+                        UserLoginActivity.recuperaAnnunciFiltrati(recuperaTitolo, disponibilitaSpedire, prezzoSuperiore, prezzoInferiore,null, null)
 
                 myAnnunciHome = UserLoginActivity.recuperaAnnunci(myDocumentiRef)
 
                 //-- Definisco i nuovi listener, per i documenti che ho ora nella Home --
                 myListenerAnnunciHome = subscribeRealTimeDatabase(myDocumentiRef,myListenerAnnunciHome,myAnnunciHome)
 
-                val adapterRicerca = CustomAdapter(myAnnunciHome, R.layout.card_view_design)
+                val adapterRicerca = CustomAdapter(myAnnunciHome, R.layout.card_view_design, isAdmin)
                 val recyclerVu = view?.findViewById<RecyclerView>(R.id.recyclerview)
                 //setting the Adapter with the recyclerView
                 recyclerVu?.adapter = adapterRicerca
@@ -329,11 +330,10 @@ class HomeFragment(private val isAdmin: Boolean) : Fragment() {
                 if(recuperaTitolo.isEmpty())
                     titoloAnnuncio = null
 
-                val distMax:Int?
-                if (selezionaDistanza!!.isChecked)
-                    distMax = distanceSlider?.value?.toInt()
+                val distMax: Int? = if (selezionaDistanza!!.isChecked)
+                    distanceSlider?.value?.toInt()
                 else
-                    distMax = null
+                    null
 
                 if(selezionePrezzo.isChecked) {
                     when (radioGroupPrezzo.checkedRadioButtonId) {
@@ -356,10 +356,10 @@ class HomeFragment(private val isAdmin: Boolean) : Fragment() {
                     prezzoInferiore = null
                 }
 
-                if(selezionaSpedizione!!.isChecked)
-                    disponibilitaSpedire = shippingSwitch?.isChecked
+                disponibilitaSpedire = if(selezionaSpedizione!!.isChecked)
+                    shippingSwitch?.isChecked
                 else
-                    disponibilitaSpedire = null
+                    null
 
                 val posizioneUtente = Location("provider")
                 posizioneUtente.latitude = 44.922
@@ -443,7 +443,7 @@ class HomeFragment(private val isAdmin: Boolean) : Fragment() {
         this.disponibilitaSpedire = disponibilitaSpedire
     }
 
-    fun subscribeRealTimeDatabase(
+    private fun subscribeRealTimeDatabase(
         myDocumentiRef: Set<DocumentSnapshot>,
         myListenerPrec: MutableList<ListenerRegistration>,
         myAnnunci: HashMap<String,Annuncio>
@@ -476,7 +476,7 @@ class HomeFragment(private val isAdmin: Boolean) : Fragment() {
 
     //--- Mi notifica quando il numero di annunci, che rispettano i criteri cambia ---
 
-    suspend fun inserisciRicercaSuFirebaseFirestore(
+    private suspend fun inserisciRicercaSuFirebaseFirestore(
         idUtente: String,
         titoloAnnuncio: String?, disponibilitaSpedire: Boolean?, prezzoSuperiore: Int?, prezzoInferiore: Int?, distanzaMax : Int?, posizioneUtente: Location
     ): String {

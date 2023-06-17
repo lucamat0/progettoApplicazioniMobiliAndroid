@@ -14,7 +14,7 @@ import it.uniupo.oggettiusati.adapter.MessageAdapter
 class ChatActivity: AppCompatActivity() {
 
     val auth = FirebaseAuth.getInstance()
-    val database = FirebaseDatabase.getInstance().getReference()
+    val database = FirebaseDatabase.getInstance().reference
 
     private lateinit var messageAdapter: MessageAdapter
     private lateinit var messageList: ArrayList<Messaggio>
@@ -22,8 +22,8 @@ class ChatActivity: AppCompatActivity() {
     private lateinit var messaggioBox: EditText
     private lateinit var sendButton: ImageView
 
-    var receiverRoom: String? = null
-    var senderRoom: String? = null
+    private var receiverRoom: String? = null
+    private var senderRoom: String? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -65,6 +65,7 @@ class ChatActivity: AppCompatActivity() {
                     }
 
                     messageAdapter.notifyDataSetChanged()
+//                    messageAdapter.notifyItemChanged(0)
                 }
 
                 override fun onCancelled(error: DatabaseError) {

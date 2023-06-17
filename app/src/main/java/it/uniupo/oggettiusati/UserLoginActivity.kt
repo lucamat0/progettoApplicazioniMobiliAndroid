@@ -122,9 +122,8 @@ open class UserLoginActivity : AppCompatActivity() {
         suspend fun recuperaAnnunciFiltratiPossibileRichiesta(titoloAnnuncio: String?, disponibilitaSpedire: Boolean?, prezzoSuperiore: Int?, prezzoInferiore: Int?, posizioneUtente: Location?, distanzaKmMax: Int?): Set<DocumentSnapshot> {
 
             //-- Recupero i riferimenti ai miei documenti --
-            var myDocumentiRef = definisciQuery(disponibilitaSpedire, prezzoInferiore, prezzoSuperiore)
-
-            myDocumentiRef -= CartFragment.recuperaAnnunciRefCarrelloFirebaseFirestore(auth.uid!!).toSet()
+            var myDocumentiRef =
+                definisciQuery(disponibilitaSpedire, prezzoInferiore, prezzoSuperiore) - CartFragment.recuperaAnnunciRefCarrelloFirebaseFirestore(auth.uid!!).toSet()
 
             if(titoloAnnuncio != null || posizioneUtente != null) {
                 val myAnnunciRef = ArrayList<DocumentSnapshot>()
@@ -185,7 +184,7 @@ open class UserLoginActivity : AppCompatActivity() {
             return myUtenti
         }
 
-        fun documentoUtenteToObject(myDocumento: DocumentSnapshot): Utente {
+        private fun documentoUtenteToObject(myDocumento: DocumentSnapshot): Utente {
             return Utente(
                 myDocumento.id,
                 myDocumento.getString("nome") as String,
@@ -319,7 +318,7 @@ open class UserLoginActivity : AppCompatActivity() {
         return myArrayList
     }
 
-    suspend fun controllaStatoRicercheAnnunci(userId: String, posizioneUtente: Location): Boolean {
+    private suspend fun controllaStatoRicercheAnnunci(userId: String, posizioneUtente: Location): Boolean {
 
         val myCollection = database.collection(Utente.nomeCollection)
 
@@ -438,7 +437,7 @@ open class UserLoginActivity : AppCompatActivity() {
         val eliminato: Boolean
     ) {
 
-        companion object {  val nomeCollection = "utente" }
+        companion object {  const val nomeCollection = "utente" }
 
         fun getNomeCognome(): String {
             return "$nome $cognome"

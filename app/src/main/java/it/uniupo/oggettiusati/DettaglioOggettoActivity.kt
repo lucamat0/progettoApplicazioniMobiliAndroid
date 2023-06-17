@@ -35,6 +35,7 @@ class DettaglioOggettoActivity : AppCompatActivity() {
         }
 
         val myAnnuncio: Annuncio = intent.getParcelableExtra("annuncio", Annuncio::class.java)!!
+        val isAdmin = intent.getBooleanExtra("isAdmin", false)
 
         findViewById<TextView>(R.id.nome).text = myAnnuncio.getTitolo()
         findViewById<TextView>(R.id.categoria).text = myAnnuncio.getCategoria()
@@ -67,14 +68,9 @@ class DettaglioOggettoActivity : AppCompatActivity() {
             startActivity(intent)
         }
 
-        val utenteAdmin :Boolean
-        runBlocking {
-            utenteAdmin = database.collection(UserLoginActivity.Utente.nomeCollection).document(auth.uid!!).get().await().get("amministratore").toString().toInt() == 1
-        }
-
         val utenteProprietario = myAnnuncio.isProprietario(auth.uid!!)
 
-        if(utenteProprietario || utenteAdmin) { //l'annuncio appartiene all'utente autenticato:
+        if(utenteProprietario || isAdmin) { //l'annuncio appartiene all'utente autenticato:
             if(utenteProprietario)
                 btnRecensioniVenditore.visibility = View.GONE //Must be one of: View.VISIBLE, View.INVISIBLE, View.GONE
             // non e' possibile inserirlo nei preferiti ne metterlo nel carrello per acquistarlo
@@ -89,7 +85,7 @@ class DettaglioOggettoActivity : AppCompatActivity() {
                 if(!myAnnuncio.isVenduto()) {
                     Log.d("venduto", "${myAnnuncio.isVenduto()}")
                     findViewById<LinearLayout>(R.id.layout_richiesta).visibility = View.VISIBLE
-                    if(utenteAdmin){
+                    if(isAdmin) {
                         findViewById<TextView>(R.id.titolo_richiesta).text = "Richiesta di acquisto"
                         findViewById<LinearLayout>(R.id.accetta_rifiuta).visibility = View.GONE
                         listOf(findViewById<Button>(R.id.accetta),
@@ -175,7 +171,7 @@ class DettaglioOggettoActivity : AppCompatActivity() {
         }
     }
 
-    suspend fun isPreferito(userId: String, annuncioId: String): Boolean{
+    private suspend fun isPreferito(userId: String, annuncioId: String): Boolean{
 
         val myCollectionPreferito = this.database.collection(UserLoginActivity.Utente.nomeCollection).document(userId).collection("preferito")
 
@@ -185,7 +181,7 @@ class DettaglioOggettoActivity : AppCompatActivity() {
         return false
     }
 
-    suspend fun isCarrello(userId: String, annuncioId: String): Boolean{
+    private suspend fun isCarrello(userId: String, annuncioId: String): Boolean{
 
         val myCollectionPreferito = this.database.collection(UserLoginActivity.Utente.nomeCollection).document(userId).collection("carrello")
 

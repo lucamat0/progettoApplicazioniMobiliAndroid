@@ -23,7 +23,7 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.tasks.await
 import java.util.Date
 
-class FavoritesFragment : Fragment() {
+class FavoritesFragment(private val isAdmin: Boolean) : Fragment() {
 
     //--- Inizio informazioni per il collegamento con firebase firestore ---
     val auth = FirebaseAuth.getInstance()
@@ -64,7 +64,7 @@ class FavoritesFragment : Fragment() {
 
                 val queryPreferiti = myCollectionAnnuncio.whereIn(FieldPath.documentId(), myListaId)
 
-                myAnnunciPreferiti = UserLoginActivity.recuperaAnnunci(queryPreferiti.get().await().documents.toSet());
+                myAnnunciPreferiti = UserLoginActivity.recuperaAnnunci(queryPreferiti.get().await().documents.toSet())
 
                 //Rimuovo, il possibile listener che avevo inserito precedentemnte, per definirne uno nuovo,
                 //sulla base dei possibili nuovi elementi
@@ -159,7 +159,7 @@ class FavoritesFragment : Fragment() {
             myAnnunciPreferiti = recuperaAnnunciPreferitiFirebaseFirestore(auth.uid!!, requireActivity())
 
             //this will pass the ArrayList to our Adapter
-            val adapter = CustomAdapter(myAnnunciPreferiti, R.layout.card_view_remove_design)
+            val adapter = CustomAdapter(myAnnunciPreferiti, R.layout.card_view_remove_design, isAdmin)
 
             //setting the Adapter with the recyclerView
             recyclerVu?.adapter = adapter

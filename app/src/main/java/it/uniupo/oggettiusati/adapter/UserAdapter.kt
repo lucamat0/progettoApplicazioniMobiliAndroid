@@ -3,7 +3,6 @@ package it.uniupo.oggettiusati.adapter
 import android.content.DialogInterface
 import android.content.Intent
 import android.content.res.ColorStateList
-import android.content.res.Resources.Theme
 import android.graphics.Color
 import android.os.BadParcelableException
 import android.util.Log
@@ -15,7 +14,6 @@ import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
-import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.RecyclerView
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.ktx.firestore
@@ -100,20 +98,20 @@ class UserAdapter(private val userList: ArrayList<UserLoginActivity.Utente>, pri
 
             setUpEliminatoSospeso(utenteCorrente, holder)
 
-            holder.btn_sospendi.setOnClickListener {
+            holder.btnSospendi.setOnClickListener {
                 //sospendi utente
                 Toast.makeText(holder.itemView.context, "Sospendo", Toast.LENGTH_SHORT).show()
                 mostraSospeso(holder)
                 rimuoviColoreLayoutUtente(holder)
             }
 
-            holder.btn_attiva.setOnClickListener {
+            holder.btnAttiva.setOnClickListener {
                 //attiva
                 mostraUtenteNormale(holder)
                 Toast.makeText(holder.itemView.context, "Attivo", Toast.LENGTH_SHORT).show()
             }
 
-            holder.btn_elimina.setOnClickListener {
+            holder.btnElimina.setOnClickListener {
                 //dialog per conferma
                 AlertDialog.Builder(holder.itemView.context)
                     .setTitle("Attenzione")
@@ -147,8 +145,8 @@ class UserAdapter(private val userList: ArrayList<UserLoginActivity.Utente>, pri
 
 //        holder.btn_elimina.backgroundTintList = ColorStateList.valueOf(holder.itemView.context.resources.getColor(R.color.red, holder.itemView.context.theme))
 
-        holder.btn_sospendi.visibility = View.VISIBLE
-        holder.btn_attiva.visibility = View.GONE
+        holder.btnSospendi.visibility = View.VISIBLE
+        holder.btnAttiva.visibility = View.GONE
         aggiungiColoreLayoutUtente(holder)
 
     }
@@ -166,16 +164,16 @@ class UserAdapter(private val userList: ArrayList<UserLoginActivity.Utente>, pri
     }
 
     private fun mostraEliminato(holder: UserViewHolder) {
-        holder.btn_sospendi.visibility = View.GONE
-        holder.btn_attiva.visibility = View.GONE
+        holder.btnSospendi.visibility = View.GONE
+        holder.btnAttiva.visibility = View.GONE
 
-        holder.btn_sospendi.isEnabled = false
-        holder.btn_attiva.isEnabled = false
+        holder.btnSospendi.isEnabled = false
+        holder.btnAttiva.isEnabled = false
 
         //holder.btn_elimina.visibility = View.VISIBLE // da controllare se serve
-        holder.btn_elimina.isEnabled = false
-        holder.btn_elimina.text = "rimosso"
-        holder.btn_elimina.backgroundTintList = ColorStateList.valueOf(holder.itemView.context.resources.getColor(androidx.appcompat.R.color.button_material_light, holder.itemView.context.theme))
+        holder.btnElimina.isEnabled = false
+        holder.btnElimina.text = "rimosso"
+        holder.btnElimina.backgroundTintList = ColorStateList.valueOf(holder.itemView.context.resources.getColor(androidx.appcompat.R.color.button_material_light, holder.itemView.context.theme))
 
 //        holder.btn_attiva.setBackgroundColor(Color.TRANSPARENT)
 //        holder.btn_sospendi.setBackgroundColor(Color.TRANSPARENT)
@@ -193,8 +191,8 @@ class UserAdapter(private val userList: ArrayList<UserLoginActivity.Utente>, pri
 
     private fun mostraSospeso(holder: UserViewHolder) {
 
-        holder.btn_sospendi.visibility = View.GONE
-        holder.btn_attiva.visibility = View.VISIBLE
+        holder.btnSospendi.visibility = View.GONE
+        holder.btnAttiva.visibility = View.VISIBLE
         //holder.btn_elimina.visibility = View.VISIBLE // da controllare
     }
 
@@ -212,9 +210,9 @@ class UserAdapter(private val userList: ArrayList<UserLoginActivity.Utente>, pri
 
     class UserViewHolder(ItemView: View): RecyclerView.ViewHolder(ItemView){
         val nomeCognome = itemView.findViewById<TextView>(R.id.nomeCognome)
-        val btn_sospendi = itemView.findViewById<Button>(R.id.btn_sospendi)!!
-        val btn_attiva = itemView.findViewById<Button>(R.id.btn_attiva)
-        val btn_elimina = itemView.findViewById<Button>(R.id.btn_elimina)
+        val btnSospendi = itemView.findViewById<Button>(R.id.btn_sospendi)!!
+        val btnAttiva = itemView.findViewById<Button>(R.id.btn_attiva)
+        val btnElimina = itemView.findViewById<Button>(R.id.btn_elimina)
         val numOggUtente = itemView.findViewById<TextView>(R.id.num_ogg_in_vendita_utente)
         val punteggioUtente = itemView.findViewById<TextView>(R.id.punteggio_utente)
         val stats = itemView.findViewById<LinearLayout>(R.id.layout_statistiche)

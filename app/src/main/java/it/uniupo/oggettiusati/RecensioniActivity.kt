@@ -6,6 +6,8 @@ import android.widget.TextView
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.ktx.firestore
+import com.google.firebase.ktx.Firebase
 import it.uniupo.oggettiusati.adapter.RecensioniAdapter
 import it.uniupo.oggettiusati.fragment.CartFragment
 import kotlinx.coroutines.runBlocking
@@ -15,6 +17,7 @@ import java.util.LinkedList
 class RecensioniActivity : AppCompatActivity() {
 
     private val auth = FirebaseAuth.getInstance()
+    val database = Firebase.firestore
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_recensioni)
@@ -42,7 +45,7 @@ class RecensioniActivity : AppCompatActivity() {
         }
     }
 
-    suspend fun recuperaRecensioniFirebaseFirestore(userId: String): LinkedList<Recensione> {
+    private suspend fun recuperaRecensioniFirebaseFirestore(userId: String): LinkedList<Recensione> {
         val queryRecensioni = database.collection(UserLoginActivity.Utente.nomeCollection).document(userId).collection("recensione").get().await()
         val myRecensioni = LinkedList<Recensione>()
         for (myRecensione in queryRecensioni.documents) {

@@ -10,11 +10,11 @@ import com.google.firebase.auth.FirebaseAuth
 import it.uniupo.oggettiusati.chat.Messaggio
 import it.uniupo.oggettiusati.R
 
-class MessageAdapter(val context: Context, val myMessaggi: ArrayList<Messaggio>):
+class MessageAdapter(val context: Context, private val myMessaggi: ArrayList<Messaggio>):
     RecyclerView.Adapter<RecyclerView.ViewHolder>() {
 
-    val ITEM_RECIVE = 1
-    val ITEM_SENT = 2
+    private val ITEM_RECIVE = 1
+    private val ITEM_SENT = 2
 
         override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
 
@@ -22,8 +22,7 @@ class MessageAdapter(val context: Context, val myMessaggi: ArrayList<Messaggio>)
                 val view: View = LayoutInflater.from(parent.context).inflate(R.layout.ricevuto, parent, false)
 
                 return RicevutiVieHolder(view)
-            }
-            else{
+            } else {
                 val view: View = LayoutInflater.from(parent.context).inflate(R.layout.inviato, parent, false)
 
                 return InviatiVieHolder(view)
@@ -35,8 +34,7 @@ class MessageAdapter(val context: Context, val myMessaggi: ArrayList<Messaggio>)
 
         if(FirebaseAuth.getInstance().currentUser?.uid.equals(messaggioCorrente.userId)){
             return ITEM_SENT
-        }
-        else{
+        } else {
             return ITEM_RECIVE
         }
 
@@ -50,18 +48,17 @@ class MessageAdapter(val context: Context, val myMessaggi: ArrayList<Messaggio>)
 
             val messaggioCorrente = myMessaggi[position]
 
-            if(holder.javaClass == InviatiVieHolder::class.java){
+            if(holder.javaClass == InviatiVieHolder::class.java) {
 
                 val viewHolder = holder as InviatiVieHolder
 
-                holder.messaggioInviato.text = messaggioCorrente.messaggio
+                viewHolder.messaggioInviato.text = messaggioCorrente.messaggio
 
-            }
-            else{
+            } else {
 
                 val viewHolder = holder as RicevutiVieHolder
 
-                holder.messaggioRicevuto.text = messaggioCorrente.messaggio
+                viewHolder.messaggioRicevuto.text = messaggioCorrente.messaggio
             }
         }
 

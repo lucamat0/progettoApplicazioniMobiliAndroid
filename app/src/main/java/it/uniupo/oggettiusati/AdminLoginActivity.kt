@@ -10,6 +10,8 @@ import androidx.viewpager2.widget.ViewPager2
 import com.google.android.material.tabs.TabLayout
 import com.google.android.material.tabs.TabLayoutMediator
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.ktx.firestore
+import com.google.firebase.ktx.Firebase
 import it.uniupo.oggettiusati.adapter.AdminViewPagerAdapter
 import it.uniupo.oggettiusati.adapter.ViewPagerAdapter
 import it.uniupo.oggettiusati.fragment.HomeFragment
@@ -32,7 +34,7 @@ private val tabIcons :IntArray= intArrayOf(
 )
 
 class AdminLoginActivity : UserLoginActivity() {
-
+    private val database = Firebase.firestore
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_admin_logged)
@@ -47,12 +49,6 @@ class AdminLoginActivity : UserLoginActivity() {
             tab.text = pageTitlesArray[position]
             tab.icon = ContextCompat.getDrawable(this, tabIcons[position])
         }.attach()
-
-        val logoutButton = findViewById<Button>(R.id.logout)
-        logoutButton.setOnClickListener {
-            FirebaseAuth.getInstance().signOut()
-            startActivity(Intent(this, MainActivity::class.java))
-        }
     }
 
     //--- Deve poter eliminare utenti o sospenderli dalle attività ---
@@ -72,7 +68,7 @@ class AdminLoginActivity : UserLoginActivity() {
 
     //--- Accesso a dati statistici ---
 
-    val myAnnunciVenduti = database.collection(Annuncio.nomeCollection).whereEqualTo("venduto", false)
+    private val myAnnunciVenduti = database.collection(Annuncio.nomeCollection).whereEqualTo("venduto", false)
 
     suspend fun numeroOggettiInVendita(): Int {
         return myAnnunciVenduti.get().await().size()
@@ -84,9 +80,9 @@ class AdminLoginActivity : UserLoginActivity() {
 
     private suspend fun numeroOggettiInVenditaPerRaggioDistanza(posizioneUtente: Location, distanzaMax: Int): Int {
 
-            val myOggettiInVenditaRef = definisciQuery(null,null,null)
+            /*val myOggettiInVenditaRef =*/ definisciQuery(null,null,null)
 
-            return recuperaAnnunciFiltrati(null,null,null,null,posizioneUtente,distanzaMax).size
+            return recuperaAnnunciFiltrati(null, null, null, null, posizioneUtente, distanzaMax).size
     }
 
     suspend fun classificaUtentiRecensitiConVotoPiuAlto(): List<Utente> {

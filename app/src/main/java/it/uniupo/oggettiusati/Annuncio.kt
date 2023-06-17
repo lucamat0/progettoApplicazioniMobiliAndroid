@@ -17,10 +17,6 @@ import it.uniupo.oggettiusati.fragment.CartFragment
 import kotlinx.coroutines.tasks.await
 import kotlin.random.Random
 
-val database = Firebase.firestore
-
-val storage = FirebaseStorage.getInstance()
-
 data class Annuncio(
 
     //Informazioni del proprietario che vuole creare annuncio.
@@ -49,12 +45,15 @@ data class Annuncio(
     private var posizione: Location = Location("provider")
 ) : Parcelable {
 
+    private val storage = FirebaseStorage.getInstance()
+    val database = Firebase.firestore
+
     //collegamento con il mio database, variabile statica.
     companion object {
-        val nomeCollection = "annuncio"
+        const val nomeCollection = "annuncio"
 
         @JvmField val CREATOR = object : Parcelable.Creator<Annuncio> {
-            @RequiresApi(Build.VERSION_CODES.Q)
+
             override fun createFromParcel(parcel: Parcel): Annuncio {
                 return Annuncio(parcel)
             }
@@ -68,7 +67,7 @@ data class Annuncio(
     //--- Inizio variabili utili all'inserimento delle immagini sul cloud ---
 
 
-    lateinit var storageRef: StorageReference
+    private lateinit var storageRef: StorageReference
     //--- Fine variabili utili all'inserimento delle immagini sul cloud ---
 
     private lateinit var annuncioId: String

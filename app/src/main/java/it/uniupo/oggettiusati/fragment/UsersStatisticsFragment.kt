@@ -19,8 +19,8 @@ import kotlinx.coroutines.runBlocking
 
 
 class UsersStatisticsFragment : Fragment() {
-    private val database = Firebase.firestore
-    private val auth = FirebaseAuth.getInstance()
+//    private val database = Firebase.firestore
+//    private val auth = FirebaseAuth.getInstance()
 
     override fun onCreateView(
         inflater: LayoutInflater,

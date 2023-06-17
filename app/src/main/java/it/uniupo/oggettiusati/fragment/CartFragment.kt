@@ -25,7 +25,7 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.tasks.await
 import java.util.Date
 
-class CartFragment : Fragment() {
+class CartFragment(private val isAdmin: Boolean) : Fragment() {
 
     private val auth = FirebaseAuth.getInstance()
 
@@ -56,7 +56,7 @@ class CartFragment : Fragment() {
             //this creates a vertical layout Manager
             recyclerVu?.layoutManager = LinearLayoutManager(activity)
             //this will pass the ArrayList to our Adapter
-            val adapter = CustomAdapter(recuperaAnnunciCarrelloFirebaseFirestore(auth.uid!!), R.layout.card_view_remove_buy_design)
+            val adapter = CustomAdapter(recuperaAnnunciCarrelloFirebaseFirestore(auth.uid!!), R.layout.card_view_remove_buy_design, isAdmin)
             //setting the Adapter with the recyclerView
             recyclerVu?.adapter = adapter
         }
@@ -182,7 +182,7 @@ class CartFragment : Fragment() {
                 database.collection(UserLoginActivity.Utente.nomeCollection).document(userId)
             val myElementiCarrello = myDocumentRef.collection("carrello").get().await()
 
-            var myDocumentRefAnnunci = ArrayList<DocumentSnapshot>()
+            val myDocumentRefAnnunci = ArrayList<DocumentSnapshot>()
             if (myElementiCarrello.size() > 0) {
 
                 val myCollectionAnnuncio = database.collection(Annuncio.nomeCollection)
