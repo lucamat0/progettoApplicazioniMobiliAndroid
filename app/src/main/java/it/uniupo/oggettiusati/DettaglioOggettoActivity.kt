@@ -38,9 +38,9 @@ class DettaglioOggettoActivity : AppCompatActivity() {
         val isAdmin = intent.getBooleanExtra("isAdmin", false)
 
         findViewById<TextView>(R.id.nome).text = myAnnuncio.getTitolo()
-        findViewById<TextView>(R.id.categoria).text = myAnnuncio.getCategoria()
+        findViewById<TextView>(R.id.categoria).text = "Categoria: ${myAnnuncio.getCategoria()}"
         findViewById<TextView>(R.id.posizione).text = "Coordinate oggetto: Lat ${myAnnuncio.getPosizione().latitude}, Lon ${myAnnuncio.getPosizione().longitude}"
-        findViewById<TextView>(R.id.descrizione).text = myAnnuncio.getDescrizione()
+        findViewById<TextView>(R.id.descrizione).text = "Descrizione: ${myAnnuncio.getDescrizione()}"
         findViewById<TextView>(R.id.prezzo).text = myAnnuncio.getPrezzoToString()
         // 0 = difettoso, 1 = qualche lieve difetto, 2 = usato ma in perfette condizioni, 3 = nuovo
         findViewById<TextView>(R.id.stato).text = if(myAnnuncio.getStato() == 0) "Stato: difettoso" else if(myAnnuncio.getStato() == 1) "Stato: qualche lieve difetto" else if(myAnnuncio.getStato() == 2) "Stato: usato ma in perfette condizioni" else "Stato: nuovo"

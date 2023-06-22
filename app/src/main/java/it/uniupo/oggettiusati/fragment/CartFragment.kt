@@ -169,8 +169,10 @@ class CartFragment(private val isAdmin: Boolean) : Fragment() {
             val myHashMap = HashMap<String, Annuncio>()
 
             recuperaAnnunciRefCarrelloFirebaseFirestore(userId).stream().forEach { doc ->
-                val myAnnuncio = UserLoginActivity.documentoAnnuncioToObject(doc)
-                myHashMap[myAnnuncio.getAnnuncioId()] = myAnnuncio
+                runBlocking {
+                    val myAnnuncio = UserLoginActivity.documentoAnnuncioToObject(doc)
+                    myHashMap[myAnnuncio.getAnnuncioId()] = myAnnuncio
+                }
             }
 
             return myHashMap

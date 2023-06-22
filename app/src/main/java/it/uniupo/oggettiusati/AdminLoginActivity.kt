@@ -14,6 +14,7 @@ import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 import it.uniupo.oggettiusati.adapter.AdminViewPagerAdapter
 import it.uniupo.oggettiusati.adapter.ViewPagerAdapter
+import it.uniupo.oggettiusati.fragment.CartFragment
 import it.uniupo.oggettiusati.fragment.HomeFragment
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
@@ -53,7 +54,15 @@ class AdminLoginActivity : UserLoginActivity() {
 
     //--- Deve poter eliminare utenti o sospenderli dalle attività ---
     private suspend fun eliminaUtente(userId: String) {
+
         database.collection(Utente.nomeCollection).document(userId).update("eliminato", true).await()
+
+        database.collection(Annuncio.nomeCollection).get().await().documents.stream().forEach {
+            doc -> if(doc.getString("userId") as String == userId){
+                if(doc.getString("userIdAcquirente") != null && !(doc.getBoolean("venduto") as Boolean)!!)
+                    runBlocking {  CartFragment.salvaTransazioneSuFirestoreFirebase(doc.getString("userIdAcquirente") as String, doc.getDouble("prezzo") as Double, true) }
+            }
+        }
     }
 
     suspend fun sospendiUtente(userId: String) {
@@ -79,8 +88,6 @@ class AdminLoginActivity : UserLoginActivity() {
     }
 
     private suspend fun numeroOggettiInVenditaPerRaggioDistanza(posizioneUtente: Location, distanzaMax: Int): Int {
-
-            /*val myOggettiInVenditaRef =*/ definisciQuery(null,null,null)
 
             return recuperaAnnunciFiltrati(null, null, null, null, posizioneUtente, distanzaMax).size
     }
