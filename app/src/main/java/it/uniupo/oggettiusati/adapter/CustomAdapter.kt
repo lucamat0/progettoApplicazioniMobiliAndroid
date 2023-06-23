@@ -140,7 +140,7 @@ class CustomAdapter(private val myArrayList: HashMap<String, Annuncio>, private 
             val myArrayListImmagini = annuncioCorrente.recuperaImmaginiSuFirebase()
             if (myArrayListImmagini.size > 0) {
                 Glide.with(holder.itemView.context)
-                    .load(myArrayListImmagini.get(0))
+                    .load(myArrayListImmagini[0])
                     .into(holder.imageView)
             }
         }

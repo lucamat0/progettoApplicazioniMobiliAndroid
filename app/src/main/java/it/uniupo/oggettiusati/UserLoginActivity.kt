@@ -3,12 +3,10 @@ package it.uniupo.oggettiusati
 import android.content.Intent
 import android.location.Location
 import android.os.Bundle
-import android.text.BoringLayout
 import android.util.Log
 import android.view.Menu
 import android.view.MenuInflater
 import android.view.MenuItem
-import android.widget.Button
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
@@ -23,10 +21,11 @@ import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 import it.uniupo.oggettiusati.adapter.ViewPagerAdapter
 import it.uniupo.oggettiusati.fragment.CartFragment
-import it.uniupo.oggettiusati.fragment.HomeFragment
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.tasks.await
 import java.util.*
+import java.util.stream.Collectors
+import kotlin.collections.ArrayList
 
 //val pageTitlesArray = arrayOf("Home", "Carrello", "Chat", "Preferiti")
 
@@ -46,23 +45,50 @@ open class UserLoginActivity : AppCompatActivity() {
 
         val auth = FirebaseAuth.getInstance()
 
-        fun recuperaAnnunci(myDocumenti: Set<DocumentSnapshot>): HashMap<String, Annuncio> {
+        suspend fun recuperaCategorieFirebase(): MutableSet<Categoria>? {
+            return database.collection("categorie").get().await().documents.stream().map {
+                myDocument ->
+                Categoria(
+                    myDocument.id,
+                    myDocument.getString("nome") as String,
+
+                    runBlocking {
+                        myDocument.reference.collection("sottocategoria").get().await().documents.stream().map {
+                            documentoSottocategoria -> documentoSottocategoria.getString("nome") as String
+                        }
+                    }.collect(Collectors.toSet()))
+            }.collect(Collectors.toSet())
+        }
+
+        suspend fun recuperaAnnunci(myDocumenti: Set<DocumentSnapshot>): HashMap<String, Annuncio> {
 
             //Inizializzo HashMap vuota, la chiave sarà il suo Id, l'elemento associato alla chiave sarà oggetto Annuncio.
             val myAnnunci = HashMap<String, Annuncio>()
 
             for (myDocumentoAnnuncio in myDocumenti) {
-                myAnnunci[myDocumentoAnnuncio.id] = documentoAnnuncioToObject(myDocumentoAnnuncio)
+                val myDocumentUtente = database.collection(Utente.nomeCollection).document(myDocumentoAnnuncio.getString("userId") as String).get().await()
+
+                if(!myDocumentUtente.getBoolean("sospeso")!! && !myDocumentUtente.getBoolean("eliminato")!!)
+                    myAnnunci[myDocumentoAnnuncio.id] = documentoAnnuncioToObject(myDocumentoAnnuncio)
             }
 
             return myAnnunci
         }
 
-        fun documentoAnnuncioToObject(myDocumentoAnnuncio: DocumentSnapshot): Annuncio {
+        suspend fun documentoAnnuncioToObject(myDocumentoAnnuncio: DocumentSnapshot): Annuncio {
 
             val userIdAcquirente: String? = myDocumentoAnnuncio.get("userIdAcquirente") as String?
 
             val timeStampFineVendita: Long? = myDocumentoAnnuncio.getLong("timeStampFineVendita")
+
+            val myDocumentoCategoria = database.collection("categoria").document(myDocumentoAnnuncio.getString("categoria") as String)
+
+            val myIdSottocategoria = myDocumentoAnnuncio.getString("sottocategoria") as String?
+
+            var myNomeCategoria = myDocumentoCategoria.get().await().getString("nome") as String
+            if(myIdSottocategoria != null)
+                myNomeCategoria += ": " +
+                    myDocumentoCategoria.collection("sottocategoria").document(myIdSottocategoria).get().await().getString("nome")!!
 
             return Annuncio(
                 myDocumentoAnnuncio.getString("userId") as String,
@@ -71,7 +97,7 @@ open class UserLoginActivity : AppCompatActivity() {
                 myDocumentoAnnuncio.getDouble("prezzo") as Double,
                 (myDocumentoAnnuncio.getLong("stato") as Long).toInt(),
                 myDocumentoAnnuncio.getBoolean("disponibilitaSpedire") as Boolean,
-                myDocumentoAnnuncio.getString("categoria") as String,
+                myNomeCategoria,
                 myDocumentoAnnuncio.getGeoPoint("posizione") as GeoPoint,
                 myDocumentoAnnuncio.getLong("timeStampInizioVendita") as Long,
                 timeStampFineVendita,
@@ -174,7 +200,7 @@ open class UserLoginActivity : AppCompatActivity() {
             val myUtenti = ArrayList<Utente>()
 
             val myDocumenti =
-                database.collection(Utente.nomeCollection).whereNotEqualTo("userId", userId).get().await()
+                database.collection(Utente.nomeCollection).whereNotEqualTo("userId", userId).whereEqualTo("sospeso",false).whereEqualTo("eliminato", false).get().await()
 
             for (myDocumento in myDocumenti.documents) {
                 myUtenti.add(
@@ -426,6 +452,10 @@ open class UserLoginActivity : AppCompatActivity() {
         val distanzaMax: Int?
     )
 
+    data class Categoria(val id: String,
+                         val nome: String,
+                         val sottocategorie: MutableSet<String>? = null)
+
     data class Utente(
         val userId: String,
         val nome: String,
@@ -436,12 +466,13 @@ open class UserLoginActivity : AppCompatActivity() {
         val dataNascita: String,
         val eliminato: Boolean
     ) {
-
         companion object {  const val nomeCollection = "utente" }
 
         fun getNomeCognome(): String {
             return "$nome $cognome"
         }
+
+
 
         suspend fun recuperaPunteggioRecensioniFirebase(): Double {
 
@@ -499,7 +530,5 @@ open class UserLoginActivity : AppCompatActivity() {
             }
             return 0.0
         }
-
-
     }
 }

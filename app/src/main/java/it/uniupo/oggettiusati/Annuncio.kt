@@ -15,7 +15,12 @@ import com.google.firebase.storage.FirebaseStorage
 import com.google.firebase.storage.StorageReference
 import it.uniupo.oggettiusati.fragment.CartFragment
 import kotlinx.coroutines.tasks.await
+import java.io.File
 import kotlin.random.Random
+
+val database = Firebase.firestore
+
+val storage = FirebaseStorage.getInstance()
 
 data class Annuncio(
 
@@ -45,15 +50,12 @@ data class Annuncio(
     private var posizione: Location = Location("provider")
 ) : Parcelable {
 
-    private val storage = FirebaseStorage.getInstance()
-    val database = Firebase.firestore
-
     //collegamento con il mio database, variabile statica.
     companion object {
-        const val nomeCollection = "annuncio"
+        val nomeCollection = "annuncio"
 
         @JvmField val CREATOR = object : Parcelable.Creator<Annuncio> {
-
+            @RequiresApi(Build.VERSION_CODES.Q)
             override fun createFromParcel(parcel: Parcel): Annuncio {
                 return Annuncio(parcel)
             }
@@ -67,7 +69,7 @@ data class Annuncio(
     //--- Inizio variabili utili all'inserimento delle immagini sul cloud ---
 
 
-    private lateinit var storageRef: StorageReference
+    lateinit var storageRef: StorageReference
     //--- Fine variabili utili all'inserimento delle immagini sul cloud ---
 
     private lateinit var annuncioId: String
@@ -83,7 +85,6 @@ data class Annuncio(
     private var acquirenteRecensito: Boolean = false
 
     private var proprietarioRecensito: Boolean = false
-
 
     constructor(parcel: Parcel) : this(
             parcel.readString() ?: "",
@@ -172,7 +173,7 @@ data class Annuncio(
             //Log.d("DEBUG", "Dopo")
 
             this.annuncioId = myDocument.id
-            this.storageRef = storage.reference.child(annuncioId + "\\")
+            this.storageRef = storage.reference.child(annuncioId)
 
             Log.d("SALVA ANNUNCIO SU FIREBASE", annuncioId)
 
@@ -200,8 +201,7 @@ data class Annuncio(
 
         for(immagineUri in myImmagini) {
 
-            //Utilizzo il randomizzatore per generare un valore pseudocasuale, dedotto dal tempo, questo valore lo converto in una stringa. Questo valore sará associato al immagine.
-            val immagineRef = storageRef.child(Random(System.currentTimeMillis()).toString())
+            val immagineRef = storageRef.child(File(immagineUri.path).name)
 
             // Carica l'immagine sul bucket di archiviazione Firebase
             val uploadTask = immagineRef.putFile(immagineUri)
@@ -228,11 +228,15 @@ data class Annuncio(
 
         val myListImmaginiRef = storageRef.listAll().await()
 
+        //Log.d("Mostra immagini: ${titolo} ",storageRef.name)
+
         val myImmagini = ArrayList<Uri>()
 
         for(item in myListImmaginiRef.items) {
             myImmagini.add(item.downloadUrl.await())
         }
+
+        //Log.d("Mostra immagini: ${titolo} ",myImmagini.size.toString())
 
         return myImmagini
     }

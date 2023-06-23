@@ -466,7 +466,7 @@ class HomeFragment(private val isAdmin: Boolean) : Fragment() {
                 }
                 if (snapshot != null && snapshot.exists()) {
                     // Il documento è stato modificato, sostituiscilo !
-                    myAnnunci[snapshot.id] = UserLoginActivity.documentoAnnuncioToObject(snapshot)
+                    myAnnunci[snapshot.id] = runBlocking {  UserLoginActivity.documentoAnnuncioToObject(snapshot) }
                 }
             }
             )
