@@ -2,28 +2,41 @@ package it.uniupo.oggettiusati
 
 import android.content.DialogInterface
 import android.content.Intent
+import android.location.Location
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
+import android.util.TypedValue
 import android.view.View
+import android.view.ViewGroup
 import android.widget.Button
+import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
+import com.google.android.gms.maps.CameraUpdateFactory
+import com.google.android.gms.maps.GoogleMap
+import com.google.android.gms.maps.OnMapReadyCallback
+import com.google.android.gms.maps.SupportMapFragment
+import com.google.android.gms.maps.model.LatLng
+import com.google.android.gms.maps.model.MarkerOptions
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 import it.uniupo.oggettiusati.chat.ChatActivity
 import it.uniupo.oggettiusati.fragment.CartFragment
 import it.uniupo.oggettiusati.fragment.FavoritesFragment
+
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.tasks.await
 
-class DettaglioOggettoActivity : AppCompatActivity() {
+
+class DettaglioOggettoActivity : AppCompatActivity(), OnMapReadyCallback {
 
     private val auth = FirebaseAuth.getInstance()
     private val database = Firebase.firestore
+    private lateinit var coordinateOgg: Location
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -53,6 +66,54 @@ class DettaglioOggettoActivity : AppCompatActivity() {
             nomeVenditore = "Proprietario: ${UserLoginActivity.recuperaUtente(proprietarioAnnuncio).getNomeCognome()}"
         }
         findViewById<TextView>(R.id.nomeVenditore).text = nomeVenditore
+
+        //immagini oggetto
+//        val imgScaricate = arrayOf("img1", "img2")
+//        for(imgEl in imgScaricate) {
+//            val img = ImageView(this)
+//            img.setImageResource(R.drawable.sea_wave_beautifully_1920x1080)
+//            img.adjustViewBounds = true
+//            val lP = LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT,LinearLayout.LayoutParams.WRAP_CONTENT)
+//            lP.setMargins(
+//                (this.resources.displayMetrics.density * 10).toInt(),
+//                TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 10f, this.resources.displayMetrics).toInt(),
+//                resources.getDimension(R.dimen.photo_margin).toInt(),
+//                resources.getDimension(R.dimen.photo_margin).toInt()
+//            )
+//            img.layoutParams = lP
+//            findViewById<LinearLayout>(R.id.contenitore_immagini).addView(img)
+//        }
+        coordinateOgg = myAnnuncio.getPosizione()
+        val mapFragment = supportFragmentManager
+            .findFragmentById(R.id.object_position) as SupportMapFragment
+        mapFragment.getMapAsync(this)
+
+        val img = ImageView(this)
+        img.setImageResource(R.drawable.sea_wave_beautifully_1920x1080)
+        img.adjustViewBounds = true
+        img.layoutParams = ViewGroup.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT,LinearLayout.LayoutParams.WRAP_CONTENT)
+
+        val lP = LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT,LinearLayout.LayoutParams.WRAP_CONTENT)
+        lP.setMargins(
+            (this.resources.displayMetrics.density * 10).toInt(),
+            TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 10f, this.resources.displayMetrics).toInt(),
+            resources.getDimension(R.dimen.photo_margin).toInt(),
+            resources.getDimension(R.dimen.photo_margin).toInt())
+
+        img.layoutParams = lP
+
+        findViewById<LinearLayout>(R.id.contenitore_immagini).addView(img)
+
+//        img.layoutParams.height = LinearLayout.LayoutParams.WRAP_CONTENT
+//        img.layoutParams.width = LinearLayout.LayoutParams.WRAP_CONTENT
+//        img.requestLayout()
+
+        val img2 = ImageView(this)
+        img2.setImageResource(R.drawable.sea_wave_beautifully_1920x1080)
+        img2.adjustViewBounds = true
+        img2.layoutParams = lP
+        findViewById<LinearLayout>(R.id.contenitore_immagini).addView(img2)
+        //fine immagini
 
         val btnRecensioniVenditore = findViewById<Button>(R.id.visualizza_recensioni_venditore)
         btnRecensioniVenditore.setOnClickListener {
@@ -189,6 +250,18 @@ class DettaglioOggettoActivity : AppCompatActivity() {
             if (myDocument.id == annuncioId)
                 return true
         return false
+    }
+
+    override fun onMapReady(googleMap: GoogleMap) {
+        val posiz = LatLng(coordinateOgg.latitude, coordinateOgg.longitude)
+        googleMap.addMarker(
+            MarkerOptions()
+                .position(posiz)
+                .title("Posizione oggetto")
+                .snippet("")
+        )
+
+        googleMap.moveCamera(CameraUpdateFactory.newLatLng(posiz))
     }
 
 }

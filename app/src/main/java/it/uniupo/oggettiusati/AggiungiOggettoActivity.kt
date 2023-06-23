@@ -1,6 +1,8 @@
 package it.uniupo.oggettiusati
 
 import android.content.Intent
+import android.location.Address
+import android.location.Geocoder
 import android.location.Location
 import android.net.Uri
 import androidx.appcompat.app.AppCompatActivity
@@ -13,11 +15,13 @@ import android.widget.Switch
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.widget.SwitchCompat
+import com.google.android.gms.maps.model.LatLng
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.tasks.await
+import java.io.IOException
 
 class AggiungiOggettoActivity : AppCompatActivity() {
 
@@ -51,7 +55,25 @@ class AggiungiOggettoActivity : AppCompatActivity() {
                     viewNomeOgg.setText(annuncioCorrente.getString("titolo"))
                     viewCategoriaOgg.setText(annuncioCorrente.getString("categoria"))
                     val posizione = annuncioCorrente.getGeoPoint("posizione")
-                    viewTestoPosizioneOgg.setText("${posizione?.latitude} ${posizione?.longitude}")
+
+                    var geocodeAddressesMatches: List<Address>? = null
+
+                    try {
+                        geocodeAddressesMatches = Geocoder(this@AggiungiOggettoActivity).getFromLocation(posizione!!.latitude, posizione.longitude, 1)
+                    } catch (e: IOException) {
+                        e.printStackTrace()
+                    }
+                    val locality: String?
+
+
+                    if (!geocodeAddressesMatches.isNullOrEmpty()) {
+                        locality = geocodeAddressesMatches[0].locality //comune
+                        viewTestoPosizioneOgg.setText("$locality")
+                    } else
+                        Toast.makeText(this@AggiungiOggettoActivity, "Error getting address ", Toast.LENGTH_LONG).show()
+
+//                    viewTestoPosizioneOgg.setText("${posizione?.latitude} ${posizione?.longitude}")
+
                     viewDescrizioneOgg.setText(annuncioCorrente.getString("descrizione"))
                     viewTestoPrezzoOgg.setText(annuncioCorrente.getDouble("prezzo").toString())
                     viewStatoOgg.setSelection(annuncioCorrente.getLong("stato")!!.toInt())
@@ -86,8 +108,24 @@ class AggiungiOggettoActivity : AppCompatActivity() {
                     testoPrezzoOgg).all { s -> AggiungiRecensioneActivity.validString(s)} /*&& almenoUnaFotoCaricata()*/) {
                 //da testoPosizioneOgg (indirizzo) creare oggetto con coordinate
                 val posizioneOgg = Location("provider")
-                posizioneOgg.latitude = 45.37
-                posizioneOgg.longitude = 8.22
+
+//                var markerInItaly = LatLng(45.0, 8.0)
+
+                var geocodeCoordinatesMatches: List<Address>? = null
+                try {
+                    geocodeCoordinatesMatches = Geocoder(this).getFromLocationName(testoPosizioneOgg, 1)
+                } catch (e: IOException) {
+                    e.printStackTrace()
+                }
+
+                if (!geocodeCoordinatesMatches.isNullOrEmpty()) {
+                    posizioneOgg.latitude = geocodeCoordinatesMatches[0].latitude
+                    posizioneOgg.longitude = geocodeCoordinatesMatches[0].longitude
+                } else {
+                    Toast.makeText(this, "Errore, indirizzo non valido", Toast.LENGTH_SHORT).show()
+                    posizioneOgg.latitude = 45.37
+                    posizioneOgg.longitude = 8.22
+                }
 
                 val prezzoOgg = testoPrezzoOgg.toDouble()
                 val newAnnuncio = Annuncio(auth.uid!!, nomeOgg, descrizioneOgg, prezzoOgg, viewStatoOgg.selectedItemPosition, viewSpedizioneOgg.isChecked, categoriaOgg, posizioneOgg)
