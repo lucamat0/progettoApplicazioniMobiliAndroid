@@ -128,7 +128,7 @@ class AggiungiOggettoActivity : AppCompatActivity() {
                 }
 
                 val prezzoOgg = testoPrezzoOgg.toDouble()
-                val newAnnuncio = Annuncio(auth.uid!!, nomeOgg, descrizioneOgg, prezzoOgg, viewStatoOgg.selectedItemPosition, viewSpedizioneOgg.isChecked, categoriaOgg, posizioneOgg)
+                val newAnnuncio = Annuncio(auth.uid!!, nomeOgg, descrizioneOgg, prezzoOgg, viewStatoOgg.selectedItemPosition, viewSpedizioneOgg.isChecked, categoriaOgg, null, posizioneOgg)
 
                 runBlocking {
                     if(flagModifica == true) {

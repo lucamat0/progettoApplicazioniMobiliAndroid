@@ -28,12 +28,23 @@ import kotlin.streams.toList
 
 val pageTitlesArray = arrayOf("Home", "Chat", "Personal")
 
+/**
+ * Array che memorizza le icone che verranno mostrate nel menu principale
+ *
+ * @author Busto Matteo
+ */
 private val tabIcons :IntArray= intArrayOf(
     R.drawable.baseline_home_50,
     R.drawable.baseline_chat_bubble_50,
     R.drawable.baseline_person_50
 )
 
+/**
+ * Activity che viene utilizzata nel momento in cui il login va a buon fine e l'utente è un Amministratore
+ *
+ * @author Amato Luca
+ * @author Busto Matteo
+ */
 class AdminLoginActivity : UserLoginActivity() {
     private val database = Firebase.firestore
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -52,23 +63,40 @@ class AdminLoginActivity : UserLoginActivity() {
         }.attach()
     }
 
-    //--- Deve poter eliminare utenti o sospenderli dalle attività ---
+    /**
+     * Elimina l'utente specificato, nel caso in cui ci fosse stata una richiesta di acquisto ai suoi annunci i soldi vengono riaccreditati
+     *
+     * @author Amato Luca
+     * @param userId Identificativo dell'utente
+     */
     private suspend fun eliminaUtente(userId: String) {
 
         database.collection(Utente.nomeCollection).document(userId).update("eliminato", true).await()
 
         database.collection(Annuncio.nomeCollection).get().await().documents.stream().forEach {
             doc -> if(doc.getString("userId") as String == userId){
-                if(doc.getString("userIdAcquirente") != null && !(doc.getBoolean("venduto") as Boolean)!!)
+                if(doc.getString("userIdAcquirente") != null && !(doc.getBoolean("venduto") as Boolean))
                     runBlocking {  CartFragment.salvaTransazioneSuFirestoreFirebase(doc.getString("userIdAcquirente") as String, doc.getDouble("prezzo") as Double, true) }
             }
         }
     }
 
+    /**
+     * Sospende l'utente specificato
+     *
+     * @author Amato Luca
+     * @param userId Identificativo dell'utente
+     */
     suspend fun sospendiUtente(userId: String) {
         database.collection(Utente.nomeCollection).document(userId).update("sospeso", true).await()
     }
 
+    /**
+     * Riammette l'utente specificato
+     *
+     * @author Amato Luca
+     * @param userId Identificativo dell'utente
+     */
     suspend fun attivaUtente(userId: String){
         database.collection(Utente.nomeCollection).document(userId).update("sospeso", false).await()
     }
@@ -79,19 +107,45 @@ class AdminLoginActivity : UserLoginActivity() {
 
     private val myAnnunciVenduti = database.collection(Annuncio.nomeCollection).whereEqualTo("venduto", false)
 
+    /**
+     * Restituisce il numero di oggetti attualmente in vendita
+     *
+     * @author Amato Luca
+     * @return Numero di oggetti
+     */
     suspend fun numeroOggettiInVendita(): Int {
         return myAnnunciVenduti.get().await().size()
     }
 
+    /**
+     * Restituisce il numero di oggetti attualmente in vendita per un particolare utente
+     *
+     * @author Amato Luca
+     * @param userId Identificativo dell'utente
+     * @return Numero di oggetti
+     */
     suspend fun numeroOggettiInVenditaPerSpecificoUtente(userId: String): Int {
            return myAnnunciVenduti.whereEqualTo("userId", userId).get().await().size()
     }
 
-    private suspend fun numeroOggettiInVenditaPerRaggioDistanza(posizioneUtente: Location, distanzaMax: Int): Int {
-
-            return recuperaAnnunciFiltrati(null, null, null, null, posizioneUtente, distanzaMax).size
+    /**
+     * Restituisce il numero di oggetti attualmente in vendita entro una certa distanza dalla posizione dell'utente
+     *
+     * @author Amato Luca
+     * @param posizioneUtente Posizione dell'utente
+     * @param distanzaKmMax Distanza massima in km entro cui cercare gli oggetti in vendita
+     * @return Numero di oggetti
+     */
+    private suspend fun numeroOggettiInVenditaPerRaggioDistanza(posizioneUtente: Location, distanzaKmMax: Int): Int {
+            return recuperaAnnunciFiltrati(null, null, null, null, posizioneUtente, distanzaKmMax).size
     }
 
+    /**
+     * Restituisce una lista di utenti ordinati in base al punteggio delle recensioni, in maniera decrescente.
+     *
+     * @author Amato Luca
+     * @return Lista di oggetti Utente
+     */
     suspend fun classificaUtentiRecensitiConVotoPiuAlto(): List<Utente> {
 
         var myUtenti = recuperaUtenti(auth.uid!!)
@@ -101,6 +155,12 @@ class AdminLoginActivity : UserLoginActivity() {
         return myUtenti
     }
 
+    /**
+     * Calcola il tempo medio degli Annunci che sono stati venduti
+     *
+     * @author Amato Luca
+     * @return tempo medio annunci venduti
+     */
     suspend fun calcolaTempoMedioAnnunciVenduti(): Double{
 
         val myUtenti = recuperaUtenti(auth.uid!!).stream().filter{ utente-> runBlocking {  utente.calcolaTempoMedioAnnunciVenduti() != 0.0 } }.toList()
