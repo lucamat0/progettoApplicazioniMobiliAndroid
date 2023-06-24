@@ -69,8 +69,8 @@ class AggiungiOggettoActivity : AppCompatActivity() {
                     if(UserLoginActivity.hasSottocategorie(categoriaSelezionata)) {
                         findViewById<LinearLayout>(R.id.layout_sottocategoria).visibility = View.VISIBLE
 
-                        val sottoCategorie = categoriaSelezionata.sottocategorie!!.toList()
-                        val spinnerSottoCategAdapter: ArrayAdapter<UserLoginActivity.Categoria> = ArrayAdapter(this@AggiungiOggettoActivity, android.R.layout.simple_spinner_dropdown_item, sottoCategorie)
+                        val sottoCategorie = categoriaSelezionata.sottocategorie!!.stream().map { sottocategoria -> sottocategoria.nome }.collect(Collectors.toList())
+                        val spinnerSottoCategAdapter: ArrayAdapter<String> = ArrayAdapter(this@AggiungiOggettoActivity, android.R.layout.simple_spinner_dropdown_item, sottoCategorie)
                         spinnerSottoCategAdapter.setDropDownViewResource(android.R.layout.simple_spinner_item)
                         viewSottoCategOgg.adapter = spinnerSottoCategAdapter
                     } else {
