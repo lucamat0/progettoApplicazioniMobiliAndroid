@@ -26,7 +26,6 @@ import kotlinx.coroutines.tasks.await
 import java.util.*
 import java.util.stream.Collectors
 import kotlin.collections.ArrayList
-import kotlin.collections.HashSet
 
 /**
  * Array che memorizza le icone che verranno mostrate nel menu principale
@@ -589,9 +588,16 @@ open class UserLoginActivity : AppCompatActivity() {
      * @property nome Nome della categoria
      * @property sottocategorie Insieme di elementi contenenti le sottocategorie
      */
-    data class Categoria(val id: String,
-                         val nome: String,
-                         val sottocategorie: MutableSet<Categoria>? = null)
+    data class Categoria(
+        val id: String,
+        val nome: String? = null,
+        val sottocategorie: MutableSet<Categoria>? = null){
+        override fun equals(other: Any?): Boolean {
+            return if (this === other) true
+            else if(other == null || other !is Categoria) false
+            else this.id == other.id
+        }
+    }
 
     /**
      * Rappresenta un utente

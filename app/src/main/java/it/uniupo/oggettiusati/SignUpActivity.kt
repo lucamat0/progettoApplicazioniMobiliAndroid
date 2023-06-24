@@ -1,12 +1,9 @@
 package it.uniupo.oggettiusati
 
-import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
 import android.util.Log
-import android.view.MotionEvent
 import android.view.View
-import android.view.ViewParent
 import android.widget.Button
 import android.widget.DatePicker
 import android.widget.EditText
@@ -161,33 +158,17 @@ class SignUpActivity : AppCompatActivity() {
         }
     }
 
-//    private fun validaDataGgMmAaaa(dataNascita: String): Boolean {
-//        if(dataNascita.length != 10 || !(dataNascita.replace("/","").all{ char -> char.isDigit() /*it in '0'..'9'*/}/*.isDigitsOnly()*/) || !dataNascita.contains("/"))
-//            return false
-//        val numEl = arrayOf(2, 2, 4)
-//        val numDate = arrayOf(31, 12, 2022)
-//        val monthNotThirtyOneDay = arrayOf(2, 4, 6, 9, 11)
-//        val dayNumMonthNotThirtyOne = arrayOf(28, 30)
-//
-//        val dateToken = dataNascita.split("/")
-//        for ((i, token) in dateToken.withIndex()){
-//            if(token.length != numEl[i] || token.toInt() > numDate[i])
-//                return false
-//        }
-//
-//        val month = dateToken[1].toInt()
-//        val day = dateToken[0].toInt()
-//        if(month in monthNotThirtyOneDay) {
-//            if(month == monthNotThirtyOneDay[0] && day > dayNumMonthNotThirtyOne[0])
-//                return false
-//            if(monthNotThirtyOneDay.indexOf(month) >= 1 && day > dayNumMonthNotThirtyOne[1])
-//                return false
-//        }
-//
-//        return true
-//    }
-
-    //Se tutto è andato bene ritorna idDocumento appena creato, che coincide con id del utente che si trova in autentication.
+    /**
+     * Salva i dettagli dell'utente su Firebase
+     *
+     * @author Amato Luca
+     * @param utenteDaSalvareId Identificativo dell'utente da salvare, equivale a quello generato da auth
+     * @param nome Nome dell'utente
+     * @param cognome Cognome dell'utente
+     * @param dataNascita Data di nascita dell'utente
+     * @param numeroDiTelefono Numero di telefono dell'utente
+     * @return Identificato dell'utente salvato se l'operazione ha avuto successo altrimenti null
+     */
     suspend fun salvaUtenteSuFirebaseFirestore(
         utenteDaSalvareId: String,
         nome: String,

@@ -387,7 +387,7 @@ data class Annuncio(
     /**
      * Verifica se il proprietario ha recensito l'acquirente
      *
-     * @author Busto Matteo
+     * @author Amato Luca
      * @return true se acquirente è stato recensito altrimenti false
      */
     fun getAcquirenteRecensito(): Boolean {
@@ -397,7 +397,7 @@ data class Annuncio(
     /**
      * Verifica se l'acquirente ha recensito il proprietario
      *
-     * @author Busto Matteo
+     * @author Amato Luca
      * @return true se il proprietario è stato recensito altrimenti false
      */
     fun getProprietarioRecensito(): Boolean {
@@ -419,6 +419,12 @@ data class Annuncio(
         }
     }
 
+    /**
+     * Elimina la richiesta di acquisto se l'utente specificato è il proprietario
+     *
+     * @author Amato Luca
+     * @param userId identificativo della persona che vuole eliminare la richiesta
+     */
     suspend fun setEliminaRichiesta(userId: String){
         if(this.userIdAcquirente != null && isProprietario(userId)){
 
@@ -434,6 +440,13 @@ data class Annuncio(
         //non sono il proprietario o/e non c'è stata nessuna richiesta
     }
 
+    /**
+     * Imposta il nuovo titolo dell'annuncio se l'utente specificato è il proprietario o amministratore
+     *
+     * @author Amato Luca
+     * @param newTitolo Nuovo titolo dell'annuncio
+     * @param userId Identificativo della persona che vuole modificare il titolo dell'annuncio
+     */
     suspend fun setTitolo(newTitolo: String, userId: String) {
         if(isProprietario(userId)) {
             this.titolo = newTitolo
@@ -442,6 +455,12 @@ data class Annuncio(
         }
     }
 
+    /**
+     * Imposta la nuova descrizione dell'annuncio se l'utente specificato è il proprietario o amministratore
+     *
+     * @param newDescrizione Nuova descrizione dell'annuncio
+     * @param userId Identificativo della persona che vuole modificare il titolo dell'annuncio
+     */
     suspend fun setDescrizione(newDescrizione: String, userId: String) {
         if(isProprietario(userId)) {
             this.descrizione = newDescrizione
@@ -450,6 +469,12 @@ data class Annuncio(
         }
     }
 
+    /**
+     * Imposta la nuova categoria dell'annuncio se l'utente specificato è il proprietario o amministratore
+     *
+     * @param newCategoria Nuova categoria dell'annuncio
+     * @param userId Identificativo della persona che vuole modificare la categoria dell'annuncio
+     */
     suspend fun setCategoria(newCategoria: String, userId: String) {
         if(isProprietario(userId)) {
             this.categoria = newCategoria
@@ -458,8 +483,14 @@ data class Annuncio(
         }
     }
 
+    /**
+     * Imposta il nuovo prezzo dell'annuncio se l'utente specificato è il proprietario o amministratore e se non c'è stata una richiesta di acquisto
+     *
+     * @param newPrezzo Nuovo prezzo dell'annuncio
+     * @param userId Identificativo della persona che vuole modificare il prezzo dell'annuncio
+     */
     suspend fun setPrezzo(newPrezzo: Double, userId: String) {
-        if(isProprietario(userId)) {
+        if(isProprietario(userId) && userIdAcquirente == null) {
             this.prezzo = newPrezzo
 
             modificaAnnuncioSuFirebase()
@@ -517,6 +548,12 @@ data class Annuncio(
         return this.posizione
     }
 
+    /**
+     * Scrive i dati dell'oggetto in un Parcel
+     *
+     * @param parcel
+     * @param flags Opzioni aggiuntive per il processo di scrittura.
+     */
     override fun writeToParcel(parcel: Parcel, flags: Int) {
         parcel.writeString(this.userId)
         parcel.writeString(this.titolo)
