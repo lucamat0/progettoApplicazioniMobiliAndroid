@@ -7,21 +7,24 @@ import android.location.Location
 import android.net.Uri
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import android.util.Log
+import android.view.View
+import android.widget.AdapterView
+import android.widget.AdapterView.OnItemSelectedListener
+import android.widget.ArrayAdapter
 import android.widget.Button
 import android.widget.EditText
+import android.widget.LinearLayout
 import android.widget.Spinner
-import android.widget.Switch
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.widget.SwitchCompat
-import com.google.android.gms.maps.model.LatLng
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.tasks.await
 import java.io.IOException
+import java.util.stream.Collectors
 
 class AggiungiOggettoActivity : AppCompatActivity() {
 
@@ -37,12 +40,45 @@ class AggiungiOggettoActivity : AppCompatActivity() {
         val annuncioId = intent.extras?.getString("annuncioId")
 
         val viewNomeOgg = findViewById<EditText>(R.id.nome)
-        val viewCategoriaOgg = findViewById<EditText>(R.id.categoria)
+        val viewCategoriaOgg = findViewById<Spinner>(R.id.categoria)
+        val viewSottoCategOgg = findViewById<Spinner>(R.id.sottocategoria)
         val viewTestoPosizioneOgg = findViewById<EditText>(R.id.posizione)
         val viewDescrizioneOgg = findViewById<EditText>(R.id.descrizione)
         val viewTestoPrezzoOgg = findViewById<EditText>(R.id.prezzo)
         val viewStatoOgg = findViewById<Spinner>(R.id.stato)
         val viewSpedizioneOgg = findViewById<SwitchCompat>(R.id.spedizione)
+
+        val categorie: List<UserLoginActivity.Categoria>
+
+        runBlocking {
+            categorie = UserLoginActivity.recuperaCategorieFirebase()
+            val spinnerCategorieAdapter: ArrayAdapter<String> = ArrayAdapter(this@AggiungiOggettoActivity, android.R.layout.simple_spinner_dropdown_item, categorie.stream().map { categoria -> categoria.nome }.collect(Collectors.toList()))
+            spinnerCategorieAdapter.setDropDownViewResource(android.R.layout.simple_spinner_item)
+            viewCategoriaOgg.adapter = spinnerCategorieAdapter
+
+            viewCategoriaOgg.onItemSelectedListener = object : OnItemSelectedListener {
+                override fun onItemSelected(
+                    parent: AdapterView<*>?,
+                    view: View?,
+                    position: Int,
+                    id: Long
+                ) {
+                    val categoriaSelezionata = categorie[viewCategoriaOgg.selectedItemPosition]
+                    if(UserLoginActivity.hasSottocategorie(categoriaSelezionata)) {
+                        findViewById<LinearLayout>(R.id.layout_sottocategoria).visibility = View.VISIBLE
+
+                        val sottoCategorie = categoriaSelezionata.sottocategorie!!.toList()
+                        val spinnerSottoCategAdapter: ArrayAdapter<String> = ArrayAdapter(this@AggiungiOggettoActivity, android.R.layout.simple_spinner_dropdown_item, sottoCategorie)
+                        spinnerSottoCategAdapter.setDropDownViewResource(android.R.layout.simple_spinner_item)
+                        viewSottoCategOgg.adapter = spinnerSottoCategAdapter
+                    } else {
+                        findViewById<LinearLayout>(R.id.layout_sottocategoria).visibility = View.GONE
+                    }
+                }
+                override fun onNothingSelected(parent: AdapterView<*>?) { }
+            }
+        }
+
 
         val btnCreaOggetto = findViewById<Button>(R.id.crea_nuovo_oggetto)
         if(flagModifica == true) {
@@ -53,7 +89,7 @@ class AggiungiOggettoActivity : AppCompatActivity() {
                     val annuncioCorrente = database.collection(Annuncio.nomeCollection).document(annuncioId).get().await()
 
                     viewNomeOgg.setText(annuncioCorrente.getString("titolo"))
-                    viewCategoriaOgg.setText(annuncioCorrente.getString("categoria"))
+                    //viewCategoriaOgg.setSelection(/*indice dello spinner che contiene il nome della categoria il cui id e' indcato nell annuncio*/)
                     val posizione = annuncioCorrente.getGeoPoint("posizione")
 
                     var geocodeAddressesMatches: List<Address>? = null
@@ -97,7 +133,8 @@ class AggiungiOggettoActivity : AppCompatActivity() {
         btnCreaOggetto.setOnClickListener {
             //qui codice per creare un nuovo oggetto su firebase
             val nomeOgg = viewNomeOgg.text.toString()
-            val categoriaOgg = viewCategoriaOgg.text.toString()
+            val categoriaOgg = categorie[viewCategoriaOgg.selectedItemPosition].id
+            val sottoCategOgg = categorie[viewCategoriaOgg.selectedItemPosition].sottocategorie?.toList()?.get(viewSottoCategOgg.selectedItemPosition)//.id
             val testoPosizioneOgg = viewTestoPosizioneOgg.text.toString()
             val descrizioneOgg = viewDescrizioneOgg.text.toString()
             val testoPrezzoOgg = viewTestoPrezzoOgg.text.toString()
@@ -121,23 +158,23 @@ class AggiungiOggettoActivity : AppCompatActivity() {
                 if (!geocodeCoordinatesMatches.isNullOrEmpty()) {
                     posizioneOgg.latitude = geocodeCoordinatesMatches[0].latitude
                     posizioneOgg.longitude = geocodeCoordinatesMatches[0].longitude
+
+                    val prezzoOgg = testoPrezzoOgg.toDouble()
+                    val newAnnuncio = Annuncio(auth.uid!!, nomeOgg, descrizioneOgg, prezzoOgg, viewStatoOgg.selectedItemPosition, viewSpedizioneOgg.isChecked, ""/*categoriaOgg il nome della categoria individuata dall'id corrispondente all'indice dell'elemento selezionato*/,/*sottocategoria,*/ posizioneOgg)
+
+                    runBlocking {
+                        if(flagModifica == true) {
+                            // modificaAnnuncio()
+                            Toast.makeText(this@AggiungiOggettoActivity, "Modifico...", Toast.LENGTH_LONG).show()
+                        } else {
+                            newAnnuncio.salvaAnnuncioSuFirebase(myImmaginiAnnuncio)
+                        }
+                        startActivity(Intent(this@AggiungiOggettoActivity, UserLoginActivity::class.java))
+                    }
                 } else {
                     Toast.makeText(this, "Errore, indirizzo non valido", Toast.LENGTH_SHORT).show()
-                    posizioneOgg.latitude = 45.37
-                    posizioneOgg.longitude = 8.22
-                }
-
-                val prezzoOgg = testoPrezzoOgg.toDouble()
-                val newAnnuncio = Annuncio(auth.uid!!, nomeOgg, descrizioneOgg, prezzoOgg, viewStatoOgg.selectedItemPosition, viewSpedizioneOgg.isChecked, categoriaOgg, posizioneOgg)
-
-                runBlocking {
-                    if(flagModifica == true) {
-                        // modificaAnnuncio()
-                        Toast.makeText(this@AggiungiOggettoActivity, "Modifico...", Toast.LENGTH_LONG).show()
-                    } else {
-                        newAnnuncio.salvaAnnuncioSuFirebase(myImmaginiAnnuncio)
-                    }
-                    startActivity(Intent(this@AggiungiOggettoActivity, UserLoginActivity::class.java))
+//                    posizioneOgg.latitude = 45.37
+//                    posizioneOgg.longitude = 8.22
                 }
             } else {
                 Toast.makeText(this, "Riempi tutti i campi, alcuni sono vuoti.", Toast.LENGTH_LONG).show()

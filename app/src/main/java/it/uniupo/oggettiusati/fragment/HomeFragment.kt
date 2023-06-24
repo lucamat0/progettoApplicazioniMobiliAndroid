@@ -1,5 +1,6 @@
 package it.uniupo.oggettiusati.fragment
 
+import android.content.pm.PackageManager
 import android.location.Location
 import android.os.Bundle
 import android.util.Log
@@ -16,10 +17,20 @@ import android.widget.RadioGroup
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.widget.SwitchCompat
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.google.android.gms.location.LocationServices
+import com.google.android.gms.location.Priority
+import com.google.android.gms.maps.GoogleMap
+import com.google.android.gms.maps.OnMapReadyCallback
+import com.google.android.gms.maps.SupportMapFragment
+import com.google.android.gms.tasks.CancellationToken
+import com.google.android.gms.tasks.CancellationTokenSource
+import com.google.android.gms.tasks.OnTokenCanceledListener
 import com.google.android.material.slider.RangeSlider
 import com.google.android.material.slider.Slider
 import com.google.firebase.auth.FirebaseAuth
@@ -33,8 +44,13 @@ import it.uniupo.oggettiusati.Annuncio
 import it.uniupo.oggettiusati.adapter.CustomAdapter
 import it.uniupo.oggettiusati.R
 import it.uniupo.oggettiusati.UserLoginActivity
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.MainScope
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.tasks.await
+import kotlinx.coroutines.withContext
 
 class HomeFragment(private val isAdmin: Boolean) : Fragment() {
 
@@ -63,7 +79,7 @@ class HomeFragment(private val isAdmin: Boolean) : Fragment() {
     var prezzoMax :Slider? = null
     private var shippingSwitch : SwitchCompat? = null
 
-
+    private val LOCATION_REQUEST_CODE = 101
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -215,6 +231,10 @@ class HomeFragment(private val isAdmin: Boolean) : Fragment() {
         }
 
         selezionaDistanza?.setOnClickListener {
+            val permission = ActivityCompat.checkSelfPermission(requireActivity(), android.Manifest.permission.ACCESS_FINE_LOCATION)
+            if (permission != PackageManager.PERMISSION_GRANTED) {
+                requestPermission(android.Manifest.permission.ACCESS_FINE_LOCATION, LOCATION_REQUEST_CODE)
+            }
             distanceSlider?.isEnabled = selezionaDistanza.isChecked
             testoDistanza?.isEnabled = selezionaDistanza.isChecked
         }
@@ -247,31 +267,72 @@ class HomeFragment(private val isAdmin: Boolean) : Fragment() {
 
             runBlocking {
 
-                //-- Location simulata x test ---
+                //-- posizione utente ---
                 val posizioneUtente = Location("provider")
-                posizioneUtente.latitude = 44.922
-                posizioneUtente.longitude = 8.617
+                MainScope().launch {
 
-                val myDocumentiRef: Set<DocumentSnapshot> = if (selezionaDistanza!!.isChecked)
-                    if(isAdmin)
-                        UserLoginActivity.recuperaAnnunciFiltratiPossibileRichiesta(recuperaTitolo, disponibilitaSpedire, prezzoSuperiore, prezzoInferiore, posizioneUtente, distanceSlider?.value?.toInt()!!)
+                if (selezionaDistanza!!.isChecked) {
+                        withContext(Dispatchers.Main){
+                            val fusedLocationClient = LocationServices.getFusedLocationProviderClient(requireActivity())
+
+                            val lastUserLocation = fusedLocationClient.lastLocation.await()
+                            if(lastUserLocation != null) {
+                                posizioneUtente.latitude = lastUserLocation.latitude //44.922
+                                posizioneUtente.longitude = lastUserLocation.longitude //8.617
+                            } else {
+                                posizioneUtente.latitude = 44.922
+                                posizioneUtente.longitude = 8.617
+                            }
+
+
+                            val currentUserLocation = fusedLocationClient.getCurrentLocation(Priority.PRIORITY_HIGH_ACCURACY, object : CancellationToken() {
+                                override fun onCanceledRequested(listener: OnTokenCanceledListener): CancellationToken {
+                                    return CancellationTokenSource().token
+                                }
+
+                                override fun isCancellationRequested(): Boolean {
+                                    return false
+                                }
+                            }).await()
+
+                            if(lastUserLocation != null) {
+                                posizioneUtente.latitude = currentUserLocation.latitude //44.922
+                                posizioneUtente.longitude = currentUserLocation.longitude //8.617
+                            } else {
+                                posizioneUtente.latitude = 44.922
+                                posizioneUtente.longitude = 8.617
+                            }
+
+                            Toast.makeText(activity, "${posizioneUtente.latitude} ${posizioneUtente.longitude}", Toast.LENGTH_SHORT).show()
+                        }
+                    }
+
+                    val myDocumentiRef: Set<DocumentSnapshot> = if (selezionaDistanza.isChecked)
+                        if(isAdmin)
+                            UserLoginActivity.recuperaAnnunciFiltratiPossibileRichiesta(recuperaTitolo, disponibilitaSpedire, prezzoSuperiore, prezzoInferiore, posizioneUtente, distanceSlider?.value?.toInt()!!)
+                        else
+                            UserLoginActivity.recuperaAnnunciFiltrati(recuperaTitolo, disponibilitaSpedire, prezzoSuperiore, prezzoInferiore, posizioneUtente, distanceSlider?.value?.toInt()!!)
                     else
-                        UserLoginActivity.recuperaAnnunciFiltrati(recuperaTitolo, disponibilitaSpedire, prezzoSuperiore, prezzoInferiore, posizioneUtente, distanceSlider?.value?.toInt()!!)
-                else
-                    if(isAdmin)
-                        UserLoginActivity.recuperaAnnunciFiltratiPossibileRichiesta(recuperaTitolo, disponibilitaSpedire, prezzoSuperiore, prezzoInferiore,null, null)
-                    else
-                        UserLoginActivity.recuperaAnnunciFiltrati(recuperaTitolo, disponibilitaSpedire, prezzoSuperiore, prezzoInferiore,null, null)
+                        if(isAdmin)
+                            UserLoginActivity.recuperaAnnunciFiltratiPossibileRichiesta(recuperaTitolo, disponibilitaSpedire, prezzoSuperiore, prezzoInferiore,null, null)
+                        else
+                            UserLoginActivity.recuperaAnnunciFiltrati(recuperaTitolo, disponibilitaSpedire, prezzoSuperiore, prezzoInferiore,null, null)
 
-                myAnnunciHome = UserLoginActivity.recuperaAnnunci(myDocumentiRef)
+                    myAnnunciHome = UserLoginActivity.recuperaAnnunci(myDocumentiRef)
 
-                //-- Definisco i nuovi listener, per i documenti che ho ora nella Home --
-                myListenerAnnunciHome = subscribeRealTimeDatabase(myDocumentiRef,myListenerAnnunciHome,myAnnunciHome)
+                    //-- Definisco i nuovi listener, per i documenti che ho ora nella Home --
+                    myListenerAnnunciHome = subscribeRealTimeDatabase(myDocumentiRef,myListenerAnnunciHome,myAnnunciHome)
 
-                val adapterRicerca = CustomAdapter(myAnnunciHome, R.layout.card_view_design, isAdmin)
-                val recyclerVu = view?.findViewById<RecyclerView>(R.id.recyclerview)
-                //setting the Adapter with the recyclerView
-                recyclerVu?.adapter = adapterRicerca
+                    val adapterRicerca = CustomAdapter(myAnnunciHome, R.layout.card_view_design, isAdmin)
+                    val recyclerVu = view?.findViewById<RecyclerView>(R.id.recyclerview)
+                    //setting the Adapter with the recyclerView
+                    recyclerVu?.adapter = adapterRicerca
+
+                }
+//                posizioneUtente.latitude = 44.922
+//                posizioneUtente.longitude = 8.617
+
+                //fine posizione Utente
             }
         }
 
@@ -406,6 +467,10 @@ class HomeFragment(private val isAdmin: Boolean) : Fragment() {
         for (i in 0 until radioGroup.childCount) {
             (radioGroup.getChildAt(i)).isEnabled = enabled
         }
+    }
+
+    private fun requestPermission(permissioType: String, requestCode: Int) {
+        ActivityCompat.requestPermissions(requireActivity(), arrayOf(permissioType), requestCode)
     }
 
     //Sospendo il metodo, per aspettare che la lista dei documenti sia stata recuperata e insirita nel arrayList

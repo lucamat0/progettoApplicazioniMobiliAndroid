@@ -24,11 +24,63 @@
         android:layout_height="wrap_content"
         android:hint="Nome Oggetto"
         android:maxLines="4"/>
-    <EditText
-        android:id="@+id/categoria"
-        android:layout_width="match_parent"
+
+    <LinearLayout
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:hint="Categoria Oggetto"/>
+        android:orientation="horizontal"
+        android:padding="10dp">
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="17sp"
+            android:text="Seleziona la categoria:"
+            android:layout_gravity="center"
+
+            android:textStyle="bold"
+            />
+        <!--     0 = difettoso, 1 = qualche lieve difetto, 2 = usato ma in perfette condizioni, 3 = nuovo-->
+        <Spinner
+            android:id="@+id/categoria"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:entries="@array/categoriaOggetto"
+            android:layout_gravity="center"
+            />
+<!--        style="@style/Widget.AppCompat.Spinner.Underlined"-->
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/layout_sottocategoria"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:padding="10dp"
+        android:visibility="gone">
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="17sp"
+            android:text="Seleziona la sottocategoria:"
+            android:layout_gravity="center"
+
+            android:textStyle="bold"
+            />
+        <!--     0 = difettoso, 1 = qualche lieve difetto, 2 = usato ma in perfette condizioni, 3 = nuovo-->
+        <Spinner
+            android:id="@+id/sottocategoria"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:entries="@array/categoriaOggetto"
+            android:layout_gravity="center"
+            />
+        <!--        style="@style/Widget.AppCompat.Spinner.Underlined"-->
+    </LinearLayout>
+<!--    <EditText-->
+<!--        android:id="@+id/categoria"-->
+<!--        android:layout_width="match_parent"-->
+<!--        android:layout_height="wrap_content"-->
+<!--        android:hint="Categoria Oggetto"/>-->
     <EditText
         android:id="@+id/posizione"
         android:layout_width="match_parent"

@@ -201,7 +201,7 @@ data class Annuncio(
 
         for(immagineUri in myImmagini) {
 
-            val immagineRef = storageRef.child(File(immagineUri.path).name)
+            val immagineRef = storageRef.child(File(immagineUri.path!!).name)
 
             // Carica l'immagine sul bucket di archiviazione Firebase
             val uploadTask = immagineRef.putFile(immagineUri)

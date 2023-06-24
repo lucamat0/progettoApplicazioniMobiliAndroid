@@ -12,6 +12,9 @@
         <item>usato</item>
         <item>nuovo</item>
     </string-array>
+    <string-array name="categoriaOggetto">
+        <item>seleziona una categoria</item>
+    </string-array>
     <string-array name="mesi">
         <item>gennaio</item>
         <item>febbraio</item>
@@ -29,7 +32,7 @@
 
     <array name="initial_slider_values">
         <item>20.0</item>
-        <item>70.0</item>
+        <item>700.0</item>
     </array>
     <string name="title_activity_aggiungi_oggetto">AggiungiOggettoActivity</string>
 </resources>

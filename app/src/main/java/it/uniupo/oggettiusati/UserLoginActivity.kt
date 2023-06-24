@@ -26,6 +26,7 @@ import kotlinx.coroutines.tasks.await
 import java.util.*
 import java.util.stream.Collectors
 import kotlin.collections.ArrayList
+import kotlin.collections.HashSet
 
 //val pageTitlesArray = arrayOf("Home", "Carrello", "Chat", "Preferiti")
 
@@ -45,8 +46,8 @@ open class UserLoginActivity : AppCompatActivity() {
 
         val auth = FirebaseAuth.getInstance()
 
-        suspend fun recuperaCategorieFirebase(): MutableSet<Categoria>? {
-            return database.collection("categorie").get().await().documents.stream().map {
+        suspend fun recuperaCategorieFirebase(): List<Categoria> {
+            return database.collection("categoria").get().await().documents.stream().map {
                 myDocument ->
                 Categoria(
                     myDocument.id,
@@ -57,7 +58,11 @@ open class UserLoginActivity : AppCompatActivity() {
                             documentoSottocategoria -> documentoSottocategoria.getString("nome") as String
                         }
                     }.collect(Collectors.toSet()))
-            }.collect(Collectors.toSet())
+            }.collect(Collectors.toList())
+        }
+
+        fun hasSottocategorie(myCategoria: Categoria): Boolean {
+            return myCategoria.sottocategorie!!.size > 0
         }
 
         suspend fun recuperaAnnunci(myDocumenti: Set<DocumentSnapshot>): HashMap<String, Annuncio> {
@@ -83,7 +88,7 @@ open class UserLoginActivity : AppCompatActivity() {
 
             val myDocumentoCategoria = database.collection("categoria").document(myDocumentoAnnuncio.getString("categoria") as String)
 
-            val myIdSottocategoria = myDocumentoAnnuncio.getString("sottocategoria") as String?
+            val myIdSottocategoria = myDocumentoAnnuncio.getString("sottocategoria")
 
             var myNomeCategoria = myDocumentoCategoria.get().await().getString("nome") as String
             if(myIdSottocategoria != null)

@@ -59,7 +59,7 @@ class AdminLoginActivity : UserLoginActivity() {
 
         database.collection(Annuncio.nomeCollection).get().await().documents.stream().forEach {
             doc -> if(doc.getString("userId") as String == userId){
-                if(doc.getString("userIdAcquirente") != null && !(doc.getBoolean("venduto") as Boolean)!!)
+                if(doc.getString("userIdAcquirente") != null && !(doc.getBoolean("venduto") as Boolean))
                     runBlocking {  CartFragment.salvaTransazioneSuFirestoreFirebase(doc.getString("userIdAcquirente") as String, doc.getDouble("prezzo") as Double, true) }
             }
         }
