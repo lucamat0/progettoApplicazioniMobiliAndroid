@@ -28,8 +28,11 @@ import java.util.stream.Collectors
 import kotlin.collections.ArrayList
 import kotlin.collections.HashSet
 
-//val pageTitlesArray = arrayOf("Home", "Carrello", "Chat", "Preferiti")
-
+/**
+ * Array che memorizza le icone che verranno mostrate nel menu principale
+ *
+ * @author Busto Matteo
+ */
 private val tabIcons :IntArray= intArrayOf(
     R.drawable.baseline_home_50,
     R.drawable.baseline_shopping_cart_50,
@@ -38,6 +41,12 @@ private val tabIcons :IntArray= intArrayOf(
     R.drawable.baseline_person_50
 )
 
+/**
+ * Activity che viene utilizzata nel momento in cui il login va a buon fine e l'utente non è un Amministratore
+ *
+ * @author Amato Luca
+ * @author Busto Matteo
+ */
 open class UserLoginActivity : AppCompatActivity() {
 
     companion object {
@@ -46,6 +55,12 @@ open class UserLoginActivity : AppCompatActivity() {
 
         val auth = FirebaseAuth.getInstance()
 
+        /**
+         * Recupera le categorie e sottocategorie da Firebase.
+         *
+         * @author Amato Luca
+         * @return Un insieme modificabile di oggetti Categoria
+         */
         suspend fun recuperaCategorieFirebase(): List<Categoria> {
             return database.collection("categoria").get().await().documents.stream().map {
                 myDocument ->
@@ -65,6 +80,13 @@ open class UserLoginActivity : AppCompatActivity() {
             return myCategoria.sottocategorie!!.size > 0
         }
 
+        /**
+         * Crea un insieme di oggetti Annuncio da un insimeme di documenti e li restituisce come una HashMap
+         *
+         * @author Amato Luca
+         * @param myDocumenti L'insieme di documenti da cui recuperare gli annunci.
+         * @return Una HashMap in cui la chiave è l'ID dell'annuncio e il valore è l'oggetto Annuncio corrispondente.
+         */
         suspend fun recuperaAnnunci(myDocumenti: Set<DocumentSnapshot>): HashMap<String, Annuncio> {
 
             //Inizializzo HashMap vuota, la chiave sarà il suo Id, l'elemento associato alla chiave sarà oggetto Annuncio.
@@ -80,6 +102,13 @@ open class UserLoginActivity : AppCompatActivity() {
             return myAnnunci
         }
 
+        /**
+         * Converte il documento del Annuncio in un oggetto Annuncio
+         *
+         * @author Amato Luca
+         * @param myDocumentoAnnuncio Il documento da convertire
+         * @return Un oggetto Annuncio creato dai dati del documento
+         */
         suspend fun documentoAnnuncioToObject(myDocumentoAnnuncio: DocumentSnapshot): Annuncio {
 
             val userIdAcquirente: String? = myDocumentoAnnuncio.get("userIdAcquirente") as String?
@@ -102,7 +131,8 @@ open class UserLoginActivity : AppCompatActivity() {
                 myDocumentoAnnuncio.getDouble("prezzo") as Double,
                 (myDocumentoAnnuncio.getLong("stato") as Long).toInt(),
                 myDocumentoAnnuncio.getBoolean("disponibilitaSpedire") as Boolean,
-                myNomeCategoria,
+                myDocumentoAnnuncio.getString("categoria") as String,
+                myDocumentoAnnuncio.getString("sottocategoria") as String?,
                 myDocumentoAnnuncio.getGeoPoint("posizione") as GeoPoint,
                 myDocumentoAnnuncio.getLong("timeStampInizioVendita") as Long,
                 timeStampFineVendita,
@@ -114,6 +144,16 @@ open class UserLoginActivity : AppCompatActivity() {
             )
         }
 
+        /**
+         *
+         * Crea un insieme di documenti filtrati in base alla disponibilità di spedizione e ai limiti di prezzo
+         *
+         * @author Amato Luca
+         * @param disponibilitaSpedire La disponibilità a spedire utilizzato per il filtro, può essere null
+         * @param prezzoSuperiore Il limite superiore utilizzato per il filtro, può essere null
+         * @param prezzoInferiore Il limite inferiore utilizzato per il filtro, può essere null
+         * @return Un insieme di documenti che corrispondono ai criteri specificati
+         */
         suspend fun definisciQuery(
             disponibilitaSpedire: Boolean?,
             prezzoSuperiore: Int?,
@@ -150,6 +190,18 @@ open class UserLoginActivity : AppCompatActivity() {
             return myDocumentiFiltrati
         }
 
+        /**
+         * Recupera i documenti da Firebase in base ai criteri specificati, che non sono nel carrello del utente loggato e che possono avere una richiesta di acquisto
+         *
+         * @author Amato Luca
+         * @param titoloAnnuncio Il titolo utilizzato per il filtro, può essere null
+         * @param disponibilitaSpedire La disponibilità a spedire utilizzato per il filtro, può essere null
+         * @param prezzoSuperiore Il limite superiore utilizzato per il filtro, può essere null
+         * @param prezzoInferiore Il limite inferiore utilizzato per il filtro, può essere null
+         * @param posizioneUtente La posizione del utente per il filtro, può essere null
+         * @param distanzaKmMax La distanza massima in km, può essere null
+         * @return Un insieme di documenti che corrispondono ai criteri specificati
+         */
         suspend fun recuperaAnnunciFiltratiPossibileRichiesta(titoloAnnuncio: String?, disponibilitaSpedire: Boolean?, prezzoSuperiore: Int?, prezzoInferiore: Int?, posizioneUtente: Location?, distanzaKmMax: Int?): Set<DocumentSnapshot> {
 
             //-- Recupero i riferimenti ai miei documenti --
@@ -194,12 +246,31 @@ open class UserLoginActivity : AppCompatActivity() {
         }
 
 
+        /**
+         * Recupera i documenti da Firebase in base ai criteri specificati, che non sono nel carrello del utente loggato e che non hanno una richiesta di acquisto
+         *
+         * @author Amato Luca
+         * @param titoloAnnuncio Il titolo utilizzato per il filtro, può essere null
+         * @param disponibilitaSpedire La disponibilità a spedire utilizzato per il filtro, può essere null
+         * @param prezzoSuperiore Il limite superiore utilizzato per il filtro, può essere null
+         * @param prezzoInferiore Il limite inferiore utilizzato per il filtro, può essere null
+         * @param posizioneUtente La posizione del utente per il filtro, può essere null
+         * @param distanzaKmMax La distanza massima in km, può essere null
+         * @return Documenti in base ai criteri specificati
+         */
         suspend fun recuperaAnnunciFiltrati(titoloAnnuncio: String?, disponibilitaSpedire: Boolean?, prezzoSuperiore: Int?, prezzoInferiore: Int?, posizioneUtente: Location?, distanzaKmMax: Int?): Set<DocumentSnapshot> {
             return recuperaAnnunciFiltratiPossibileRichiesta(titoloAnnuncio, disponibilitaSpedire, prezzoSuperiore, prezzoInferiore, posizioneUtente, distanzaKmMax).intersect(database.collection(Annuncio.nomeCollection).whereEqualTo("userIdAcquirente",null)
                 .get().await().documents.toSet())
         }
 
-        //Recupero tutti gli utenti, eccetto quello che e' loggato
+
+        /**
+         * Recupero tutti gli utenti da Firebase, eccetto quello loggato
+         *
+         * @author Amato Luca
+         * @param userId identificativo del utente da non recuperare
+         * @return Lista di oggetti Utente che sono stati recuperati
+         */
         suspend fun recuperaUtenti(userId: String): ArrayList<Utente> {
 
             val myUtenti = ArrayList<Utente>()
@@ -215,6 +286,13 @@ open class UserLoginActivity : AppCompatActivity() {
             return myUtenti
         }
 
+        /**
+         * Converte un documento in un oggetto Utente
+         *
+         * @author Amato Luca
+         * @param myDocumento Documento da convertire
+         * @return Oggetto Utente creato dai dati del documento
+         */
         private fun documentoUtenteToObject(myDocumento: DocumentSnapshot): Utente {
             return Utente(
                 myDocumento.id,
@@ -228,6 +306,13 @@ open class UserLoginActivity : AppCompatActivity() {
             )
         }
 
+        /**
+         * Recupera un singolo utente da Firebase
+         *
+         * @author Amato Luca
+         * @param userId Identificativo dell'utente da recuperare
+         * @return Oggetto Utente che rappresenta l'utente recuperato
+         */
         suspend fun recuperaUtente(userId: String): Utente {
             return documentoUtenteToObject(
                 database.collection(Utente.nomeCollection).document(userId).get().await()
@@ -322,6 +407,13 @@ open class UserLoginActivity : AppCompatActivity() {
         }
     }
 
+    /**
+     * Recupera una lista di ricerche salvate per un determinato utente
+     *
+     * @author Amato Luca
+     * @param userId Identificativo dell'utente per cui recuperare le ricerche salvate
+     * @return Lista di oggetti Ricerca
+     */
     suspend fun recuperaRicercheSalvateFirebaseFirestore(userId: String): ArrayList<Ricerca> {
 
         val myCollection = database.collection(Utente.nomeCollection)
@@ -349,6 +441,14 @@ open class UserLoginActivity : AppCompatActivity() {
         return myArrayList
     }
 
+    /**
+     * Controlla se il numero degli annunci è aumentato, considerando le ricerche salvate
+     *
+     * @author Amato Luca
+     * @param userId Identificativo dell'utente
+     * @param posizioneUtente Posizione dell'utente
+     * @return true se il numero delle ricerche è cambiato altrimenti false
+     */
     private suspend fun controllaStatoRicercheAnnunci(userId: String, posizioneUtente: Location): Boolean {
 
         val myCollection = database.collection(Utente.nomeCollection)
@@ -413,13 +513,25 @@ open class UserLoginActivity : AppCompatActivity() {
         return false
     }
 
+    /**
+     * Aggiorna il numero di annunci per una specifica ricerca, che era stata salvata precedentemente
+     *
+     * @author Amato Luca
+     * @param userId Identificato dell'utente
+     * @param idRicerca Identificativo della ricerca salvata
+     * @param titoloAnnuncio Il titolo utilizzato per il filtro, può essere null
+     * @param disponibilitaSpedire La disponibilità a spedire utilizzato per il filtro, può essere null
+     * @param prezzoSuperiore Il limite superiore utilizzato per il filtro, può essere null
+     * @param prezzoInferiore Il limite inferiore utilizzato per il filtro, può essere null
+     * @param numeroAnnunci  Il nuovo numero di annunci per la ricerca.
+     */
     private suspend fun aggiornaRicerca(
         userId: String,
         idRicerca: String,
         titoloAnnuncio: String?,
         disponibilitaSpedire: Boolean?,
         prezzoSuperiore: Int?,
-        prezzoMinore: Int?,
+        prezzoInferiore: Int?,
         numeroAnnunci: Int
     ) {
 
@@ -439,28 +551,61 @@ open class UserLoginActivity : AppCompatActivity() {
             "prezzoSuperiore",
             prezzoSuperiore,
             "prezzoMinore",
-            prezzoMinore,
+            prezzoInferiore,
             "numeroAnnunci",
             numeroAnnunci
         ).await()
     }
 
-
+    /**
+     * Rappresenta una ricerca sugli annunci
+     *
+     * @author Amato Luca
+     * @property userId Identificativo dell'utente
+     * @property idRicerca Identificativo della Ricerca
+     * @property titoloAnnuncio Il titolo della ricerca, può essere null
+     * @property disponibilitaSpedire La disponibilità a spedire utilizzato per la ricerca, può essere null
+     * @property prezzoSuperiore Il limite superiore utilizzato per la ricerca, può essere null
+     * @property prezzoInferiore Il limite inferiore utilizzato per la ricerca, può essere null
+     * @property numeroAnnunci Il numero di annunci che abbiamo ottenuto dopo il filtro
+     * @property distanzaKmMax La distanza massima in km utilizzata per la ricerca, può essere null
+     */
     data class Ricerca(
         val userId: String,
         val idRicerca: String,
         val titoloAnnuncio: String?,
         val disponibilitaSpedire: Boolean?,
         val prezzoSuperiore: Int?,
-        val prezzoMinore: Int?,
+        val prezzoInferiore: Int?,
         val numeroAnnunci: Int,
-        val distanzaMax: Int?
+        val distanzaKmMax: Int?
     )
 
+    /**
+     * Rappresenta una categoria con le sue sottocategorie
+     *
+     * @author Amato Luca
+     * @property id Identificativo della Categoria
+     * @property nome Nome della categoria
+     * @property sottocategorie Insieme di elementi contenenti le sottocategorie
+     */
     data class Categoria(val id: String,
                          val nome: String,
-                         val sottocategorie: MutableSet<String>? = null)
+                         val sottocategorie: MutableSet<Categoria>? = null)
 
+    /**
+     * Rappresenta un utente
+     *
+     * @author Amato Luca
+     * @property userId Identificativo dell'utente
+     * @property nome Nome dell'utente
+     * @property cognome Cognome dell'utente
+     * @property amministratore  Indica se l'utente è un amministratore o meno.
+     * @property numeroDiTelefono Numero di telefono dell'utente
+     * @property sospeso Indica se l'utente è sospeso o attivo
+     * @property dataNascita Data di nascita dell'utente
+     * @property eliminato Indica se l'utente è eliminato o no
+     */
     data class Utente(
         val userId: String,
         val nome: String,
@@ -473,12 +618,22 @@ open class UserLoginActivity : AppCompatActivity() {
     ) {
         companion object {  const val nomeCollection = "utente" }
 
+        /**
+         * Restituisce il nome e cognome dell'utente
+         *
+         * @author Amato Luca
+         * @return nome e cognome dell'utente
+         */
         fun getNomeCognome(): String {
             return "$nome $cognome"
         }
 
-
-
+        /**
+         * Recupera il punteggio medio delle recensioni su Firebase per un determinato utente
+         *
+         * @author Amato Luca
+         * @return Punteggio medio delle Recensioni
+         */
         suspend fun recuperaPunteggioRecensioniFirebase(): Double {
 
             val queryRecensioni =
@@ -486,8 +641,6 @@ open class UserLoginActivity : AppCompatActivity() {
                     .await()
 
             val numeroRecensioni = queryRecensioni.documents.size
-
-            //Log.d("RECENSIONI CON VOTO PIÚ ALTO", numeroRecensioni.toString())
 
             if (numeroRecensioni > 0) {
 
@@ -500,6 +653,12 @@ open class UserLoginActivity : AppCompatActivity() {
             return 0.0
         }
 
+        /**
+         * Calcola il tempo medio di vendita degli annunci per un determinato utente
+         *
+         * @author Amato Luca
+         * @return Tempo medio di vendita
+         */
         suspend fun calcolaTempoMedioAnnunciVenduti(): Double{
 
             val myCollectionAnnuncioRef = database.collection(Annuncio.nomeCollection).whereEqualTo("userId", this.userId).whereEqualTo("venduto",true)

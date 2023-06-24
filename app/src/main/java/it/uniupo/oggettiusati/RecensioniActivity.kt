@@ -18,6 +18,7 @@ class RecensioniActivity : AppCompatActivity() {
 
     private val auth = FirebaseAuth.getInstance()
     val database = Firebase.firestore
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_recensioni)

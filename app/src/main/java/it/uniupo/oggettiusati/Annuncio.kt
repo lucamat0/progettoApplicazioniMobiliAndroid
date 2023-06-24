@@ -1,6 +1,5 @@
 package it.uniupo.oggettiusati
 
-
 import android.location.Location
 import android.net.Uri
 import android.os.Build
@@ -16,41 +15,46 @@ import com.google.firebase.storage.StorageReference
 import it.uniupo.oggettiusati.fragment.CartFragment
 import kotlinx.coroutines.tasks.await
 import java.io.File
-import kotlin.random.Random
 
 val database = Firebase.firestore
 
 val storage = FirebaseStorage.getInstance()
 
+/**
+ * Rappresenta un Annuncio
+ *
+ * @author Amato Luca
+ * @property userId Identificativo dell'utente che ha creato l'annuncio
+ * @property titolo Titolo dell'annuncio
+ * @property descrizione Descrizione dell'annuncio
+ * @property prezzo Prezzo dell'annuncio
+ * @property stato Stato dell'annuncio (0 = difettoso, 1 = qualche lieve difetto, 2 = usato ma in perfette condizioni, 3 = nuovo)
+ * @property disponibilitaSpedire Indica se l'oggetto dell'annuncio è disponibile per la spedizione
+ * @property categoria Categoria dell'annuncio
+ * @property sottocategoria Sottocategoria dell'annuncio, parametro opzionale
+ * @property posizione Posizione geografica dell'annuncio, parametro opzionale
+ */
 data class Annuncio(
 
-    //Informazioni del proprietario che vuole creare annuncio.
     private var userId: String,
 
-    //Titolo Annuncio
     private var titolo: String,
 
-    //Descrizione Annuncio
     private var descrizione: String,
-    
-    //Prezzo della vendita
+
     private var prezzo: Double,
 
-    // 0 = difettoso, 1 = qualche lieve difetto, 2 = usato ma in perfette condizioni, 3 = nuovo
     private var stato: Int,
 
-    //false = No, true = Si
     private var disponibilitaSpedire: Boolean,
 
-    //Categoria del annuncio: Es.  libri/libriPerBambini
     private var categoria: String,
 
-    //Viene utilizzata, per rappresentare la posizione geografica, metodi che mi gestiscono la posizione come latitudine e longitudine
-    //Parametro NON obbligatorio, per il costruttore secondario.
+    private var sottocategoria: String? = null,
+
     private var posizione: Location = Location("provider")
 ) : Parcelable {
 
-    //collegamento con il mio database, variabile statica.
     companion object {
         val nomeCollection = "annuncio"
 
@@ -66,11 +70,7 @@ data class Annuncio(
         }
     }
 
-    //--- Inizio variabili utili all'inserimento delle immagini sul cloud ---
-
-
     lateinit var storageRef: StorageReference
-    //--- Fine variabili utili all'inserimento delle immagini sul cloud ---
 
     private lateinit var annuncioId: String
 
@@ -86,6 +86,12 @@ data class Annuncio(
 
     private var proprietarioRecensito: Boolean = false
 
+    /**
+     * Costruttore aggiuntivo che crea un oggetto Annuncio da un oggetto Parcel
+     *
+     * @author Amato Luca
+     * @param parcel Oggetto Parcel contenente i dati dell'annuncio.
+     */
     constructor(parcel: Parcel) : this(
             parcel.readString() ?: "",
             parcel.readString() ?: "",
@@ -94,6 +100,7 @@ data class Annuncio(
             parcel.readInt(),
             parcel.readBoolean(),
             parcel.readString() ?: "",
+            parcel.readString() ?: null,
             parcel.readValue(Location::class.java.classLoader) as Location
     ) {
         this.annuncioId = parcel.readString() ?: ""
@@ -105,10 +112,30 @@ data class Annuncio(
         this.proprietarioRecensito = parcel.readBoolean()
     }
 
-    //--- Costruttore secondario utilizzato per inizializzare gli annunci, una volta che sono stati scaricati da FirebaseFirestore ---
+    /**
+     * Costruttore secondario utilizzato per inizializzare gli annunci una volta che sono stati scaricati da Firebase
+     *
+     * @author Amato Luca
+     * @param userId Identificativo dell'utente che ha creato l'annuncio
+     * @param titolo Titolo dell'annuncio
+     * @param descrizione Descrizione dell'annuncio
+     * @param prezzo Prezzo dell'annuncio
+     * @param stato Stato dell'annuncio (0 = difettoso, 1 = qualche lieve difetto, 2 = usato ma in perfette condizioni, 3 = nuovo)
+     * @param disponibilitaSpedire Indica se l'annuncio è disponibile per la spedizione
+     * @param categoria Categoria dell'annuncio
+     * @param sottocategoria Sottocategoria dell'annuncio, parametro opzionale
+     * @param posizione Posizione geografica dell'annuncio
+     * @param timeStampInizioVendita Timestamp di inizio della vendita
+     * @param timeStampFineVendita Timestamp di fine della vendita, parametro opzionale
+     * @param userIdAcquirente Identificativo dell'utente acquirente, parametro opzionale
+     * @param annuncioId Identificativo dell'annuncio
+     * @param venduto Indica se l'annuncio è stato venduto oppure no
+     * @param acquirenteRecensito Indica se l'acquirente ha lasciato una recensione al venditore
+     * @param proprietarioRecensito Indica se il proprietario ha lasciato una recensione al acquirente
+     */
     constructor(
         userId: String, titolo: String, descrizione: String, prezzo: Double, stato: Int, disponibilitaSpedire: Boolean,
-        categoria: String, posizione: GeoPoint, timeStampInizioVendita: Long, timeStampFineVendita: Long?, userIdAcquirente: String?, annuncioId: String, venduto: Boolean, acquirenteRecensito: Boolean, proprietarioRecensito: Boolean) : this(userId, titolo, descrizione, prezzo, stato, disponibilitaSpedire, categoria) {
+        categoria: String, sottocategoria: String?, posizione: GeoPoint, timeStampInizioVendita: Long, timeStampFineVendita: Long?, userIdAcquirente: String?, annuncioId: String, venduto: Boolean, acquirenteRecensito: Boolean, proprietarioRecensito: Boolean) : this(userId, titolo, descrizione, prezzo, stato, disponibilitaSpedire, categoria, sottocategoria) {
         this.annuncioId = annuncioId
 
         this.userIdAcquirente = userIdAcquirente
@@ -123,6 +150,7 @@ data class Annuncio(
         this.storageRef = storage.reference.child(annuncioId)
     }
 
+    /*
     //--- Costruttore secondario utilizzato per inizializzare gli annunci nei test ---
     constructor(
         userId: String, titolo: String, descrizione: String, prezzo: Double, stato: Int, disponibilitaSpedire: Boolean,
@@ -138,27 +166,33 @@ data class Annuncio(
         this.acquirenteRecensito = acquirenteRecensito
         this.proprietarioRecensito = proprietarioRecensito
     }
+    */
 
-    //Funzione che mi permette di scrivere sul cloud, FireBase, i dati del singolo annuncio, passo anche la posizione dell'immagine che voglio caricare sul cloud.
+    /**
+     * Salva annuncio corrente su Firebase
+     *
+     * @author Amato Luca
+     * @param myImmagini Lista di immagini associate all'annuncio, parametro opzionale.
+     */
     suspend fun salvaAnnuncioSuFirebase(myImmagini: ArrayList<Uri>?) {
-    //public suspend fun salvaAnnuncioSuFirebase() {
 
             val geo = GeoPoint(posizione.latitude, posizione.longitude)
 
             this.timeStampInizioVendita = System.currentTimeMillis()
 
             val annuncio = hashMapOf(
-                "userId" to userId,
-                "titolo" to titolo,
-                "descrizione" to descrizione,
-                "prezzo" to prezzo,
-                "stato" to stato,
-                "disponibilitaSpedire" to disponibilitaSpedire,
-                "categoria" to categoria,
+                "userId" to this.userId,
+                "titolo" to this.titolo,
+                "descrizione" to this.descrizione,
+                "prezzo" to this.prezzo,
+                "stato" to this.stato,
+                "disponibilitaSpedire" to this.disponibilitaSpedire,
+                "categoria" to this.categoria,
+                "sottocategoria" to this.sottocategoria,
                 "posizione" to geo,
-                "timeStampInizioVendita" to timeStampInizioVendita,
-                "timeStampFineVendita" to timeStampFineVendita,
-                "userIdAcquirente" to userIdAcquirente,
+                "timeStampInizioVendita" to this.timeStampInizioVendita,
+                "timeStampFineVendita" to this.timeStampFineVendita,
+                "userIdAcquirente" to this.userIdAcquirente,
                 "venduto" to false,
                 "acquirenteRecensito" to false,
                 "proprietarioRecensito" to false
@@ -173,21 +207,31 @@ data class Annuncio(
             //Log.d("DEBUG", "Dopo")
 
             this.annuncioId = myDocument.id
-            this.storageRef = storage.reference.child(annuncioId)
+            this.storageRef = storage.reference.child(this.annuncioId)
 
-            Log.d("SALVA ANNUNCIO SU FIREBASE", annuncioId)
+            Log.d("SALVA ANNUNCIO SU FIREBASE", this.annuncioId)
 
             if(myImmagini != null)
                 caricaImmaginiSuFirebase(myImmagini)
     }
 
+    /**
+     * Aggiorna annuncio corrente su Firebase
+     *
+     * @author Amato Luca
+     */
     private suspend fun modificaAnnuncioSuFirebase() {
 
         val adRif = database.collection(nomeCollection).document(this.annuncioId)
 
-        adRif.update("userId", userId, "titolo", titolo, "descrizione", descrizione, "prezzo", prezzo, "stato", stato, "disponibilitaSpedire", disponibilitaSpedire, "categoria", categoria, "venduto", venduto, "userIdAcquirente", userIdAcquirente, "timeStampFineVendita", timeStampFineVendita, "acquirenteRecensito", this.acquirenteRecensito, "proprietarioRecensito", this.proprietarioRecensito).await()
+        adRif.update("userId", userId, "titolo", titolo, "descrizione", descrizione, "prezzo", prezzo, "stato", stato, "disponibilitaSpedire", disponibilitaSpedire, "categoria", categoria, "venduto", venduto, "userIdAcquirente", userIdAcquirente, "timeStampFineVendita", timeStampFineVendita, "acquirenteRecensito", this.acquirenteRecensito, "proprietarioRecensito", this.proprietarioRecensito, "sottocategoria", this.sottocategoria).await()
     }
 
+    /**
+     * Elimina annuncio corrente da Firebase
+     *
+     * @author Amato Luca
+     */
     suspend fun eliminaAnnuncioDaFirebase() {
 
         val myCollection = database.collection(nomeCollection)
@@ -197,6 +241,12 @@ data class Annuncio(
         myDocument.delete().await()
     }
 
+    /**
+     * Carica le immagini specificate su Firebase Storage
+     *
+     * @author Amato Luca
+     * @param myImmagini La lista delle URI delle immagini da caricare.
+     */
     private fun caricaImmaginiSuFirebase(myImmagini: ArrayList<Uri>) {
 
         for(immagineUri in myImmagini) {
@@ -223,7 +273,12 @@ data class Annuncio(
         }
     }
 
-
+    /**
+     * Recupera le immagini dell'annuncio corrente da Firebase Storage
+     *
+     * @author Amato Luca
+     * @return Lista di URI delle immagini recuperate
+     */
     suspend fun recuperaImmaginiSuFirebase(): ArrayList<Uri> {
 
         val myListImmaginiRef = storageRef.listAll().await()
@@ -241,6 +296,11 @@ data class Annuncio(
         return myImmagini
     }
 
+    /**
+     * Imposta lo stato dell'annuncio come "venduto" e aggiorna il timestamp di fine vendita.
+     *
+     * @author Amato Luca
+     */
     suspend fun setVenduto() {
         //aggiunta di un nuovo campo booleano che viene settato a true quando acquirente ha dato ok
         if(this.userIdAcquirente != null /*&& this.venduto == false*/){
@@ -252,6 +312,12 @@ data class Annuncio(
         //Errore, dove si informa che non è stata avanzata nessuna richiesta
     }
 
+    /**
+     * Imposta identificativo dell'acquirente che ha fatto la richiesta di acquisto, elimina dal carrello Annuncio nel caso in cui qualcunaltro ha provato a inoltrare la richiesta di acquisto
+     *
+     * @author Amato Luca
+     * @param userIdAcquirente Identificativo dell'acquirente
+     */
     suspend fun setRichiesta(userIdAcquirente: String){
         if(this.userIdAcquirente == null) {
             this.userIdAcquirente = userIdAcquirente
@@ -264,33 +330,76 @@ data class Annuncio(
         }
     }
 
-    //ti controlla se è stata effettuata la richiesta da qualcuno
+    /**
+     * Restituisce un valore booleano che indica se c'è stata una richiesta di acquisto
+     *
+     * @author Amato Luca
+     * @return true se identificativo utente dell'acquirente non è nullo altrimenti false
+     */
     fun getRichiesta(): Boolean{
         return this.userIdAcquirente != null
     }
 
+    /**
+     * Restituisce identificativo del proprietario dell'Annuncio
+     *
+     * @author Amato Luca
+     * @return Identificativo del proprietario
+     */
     fun getProprietario() :String {
         return this.userId
     }
 
-    //ti controlla se userId è del proprietario del annuncio
+    /**
+     * Verifica se identificativo dell'utente corrisponde al identificativo del proprietario
+     *
+     * @author Amato Luca
+     * @param userId identificativo utente da verificare
+     * @return true se i due identificativi corrispondono altrimenti false
+     */
     fun isProprietario(userId: String): Boolean{
         return userId == this.userId
     }
 
+    /**
+     * Verifica se identificativo dell'utente specificato corrisponde al identificato del acquirente
+     *
+     * @author Amato Luca
+     * @param userId identificativo utente
+     * @return true se i due identificativi corrispondono altrimenti false
+     */
     fun isAcquirente(userId: String): Boolean{
         return this.userIdAcquirente == userId
     }
 
+    /**
+     * Verifica se l'annuncio corrente è stato venduto
+     *
+     * @author Amato Luca
+     * @return true se l'annuncio è stato venduto altrimenti false
+     */
     fun isVenduto(): Boolean {
         return this.userIdAcquirente != null && this.venduto
     }
 
+
     //ti comunica se e' stata inserita una recensione dopo acquisto del prodotto
+    /**
+     * Verifica se il proprietario ha recensito l'acquirente
+     *
+     * @author Busto Matteo
+     * @return true se acquirente è stato recensito altrimenti false
+     */
     fun getAcquirenteRecensito(): Boolean {
         return this.acquirenteRecensito
     }
 
+    /**
+     * Verifica se l'acquirente ha recensito il proprietario
+     *
+     * @author Busto Matteo
+     * @return true se il proprietario è stato recensito altrimenti false
+     */
     fun getProprietarioRecensito(): Boolean {
         return this.proprietarioRecensito
     }
@@ -400,26 +509,31 @@ data class Annuncio(
         return this.categoria
     }
 
+    fun getSottocategoria(): String? {
+        return this.sottocategoria
+    }
+
     fun getPosizione(): Location {
         return this.posizione
     }
 
     override fun writeToParcel(parcel: Parcel, flags: Int) {
-        parcel.writeString(userId)
-        parcel.writeString(titolo)
-        parcel.writeString(descrizione)
-        parcel.writeDouble(prezzo)
-        parcel.writeInt(stato)
-        parcel.writeBoolean(disponibilitaSpedire)
-        parcel.writeString(categoria)
-        parcel.writeValue(posizione)
-        parcel.writeString(annuncioId)
-        parcel.writeString(userIdAcquirente)
-        parcel.writeLong(timeStampInizioVendita!!)
-        parcel.writeValue(timeStampFineVendita)
-        parcel.writeBoolean(venduto)
-        parcel.writeBoolean(acquirenteRecensito)
-        parcel.writeBoolean(proprietarioRecensito)
+        parcel.writeString(this.userId)
+        parcel.writeString(this.titolo)
+        parcel.writeString(this.descrizione)
+        parcel.writeDouble(this.prezzo)
+        parcel.writeInt(this.stato)
+        parcel.writeBoolean(this.disponibilitaSpedire)
+        parcel.writeString(this.categoria)
+        parcel.writeString(this.sottocategoria)
+        parcel.writeValue(this.posizione)
+        parcel.writeString(this.annuncioId)
+        parcel.writeString(this.userIdAcquirente)
+        parcel.writeLong(this.timeStampInizioVendita!!)
+        parcel.writeValue(this.timeStampFineVendita)
+        parcel.writeBoolean(this.venduto)
+        parcel.writeBoolean(this.acquirenteRecensito)
+        parcel.writeBoolean(this.proprietarioRecensito)
     }
 
     override fun describeContents(): Int {

@@ -31,7 +31,12 @@ import it.uniupo.oggettiusati.fragment.FavoritesFragment
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.tasks.await
 
-
+/**
+ * Activity che ci permette di mostrare i dettagli di un Annuncio
+ *
+ * @author Amato Luca
+ * @author Busto Matteo
+ */
 class DettaglioOggettoActivity : AppCompatActivity(), OnMapReadyCallback {
 
     private val auth = FirebaseAuth.getInstance()
@@ -50,8 +55,24 @@ class DettaglioOggettoActivity : AppCompatActivity(), OnMapReadyCallback {
         val myAnnuncio: Annuncio = intent.getParcelableExtra("annuncio", Annuncio::class.java)!!
         val isAdmin = intent.getBooleanExtra("isAdmin", false)
 
+        val myDocumentRefCategoria = database.collection("categoria").document(myAnnuncio.getCategoria())
+
+        runBlocking {
+            var myIdSottocategoria: String? = myAnnuncio.getSottocategoria()
+            if (myIdSottocategoria != null) {
+                findViewById<TextView>(R.id.categoria).text = "Categoria: ${
+                    myDocumentRefCategoria.get().await().getString("nome")
+                } - ${
+                    myDocumentRefCategoria.collection("sottocategoria").document(myIdSottocategoria)
+                        .get().await().getString("nome")
+                }"
+            } else {
+                findViewById<TextView>(R.id.categoria).text =
+                    "Categoria: ${myDocumentRefCategoria.get().await().getString("nome")}"
+            }
+        }
+
         findViewById<TextView>(R.id.nome).text = myAnnuncio.getTitolo()
-        findViewById<TextView>(R.id.categoria).text = "Categoria: ${myAnnuncio.getCategoria()}"
         findViewById<TextView>(R.id.posizione).text = "Coordinate oggetto: Lat ${myAnnuncio.getPosizione().latitude}, Lon ${myAnnuncio.getPosizione().longitude}"
         findViewById<TextView>(R.id.descrizione).text = "Descrizione: ${myAnnuncio.getDescrizione()}"
         findViewById<TextView>(R.id.prezzo).text = myAnnuncio.getPrezzoToString()
@@ -84,6 +105,7 @@ class DettaglioOggettoActivity : AppCompatActivity(), OnMapReadyCallback {
 //            findViewById<LinearLayout>(R.id.contenitore_immagini).addView(img)
 //        }
         coordinateOgg = myAnnuncio.getPosizione()
+
         val mapFragment = supportFragmentManager
             .findFragmentById(R.id.object_position) as SupportMapFragment
         mapFragment.getMapAsync(this)
@@ -232,6 +254,14 @@ class DettaglioOggettoActivity : AppCompatActivity(), OnMapReadyCallback {
         }
     }
 
+    /**
+     * Verifica se un determinato annuncio è nella lista dei preferiti dell'utente specificato
+     *
+     * @author Amato Luca
+     * @param userId Identificativo dell'utente
+     * @param annuncioId Identificativo dell'annuncio
+     * @return true se l'annuncio è nei preferiti altrimenti false
+     */
     private suspend fun isPreferito(userId: String, annuncioId: String): Boolean{
 
         val myCollectionPreferito = this.database.collection(UserLoginActivity.Utente.nomeCollection).document(userId).collection("preferito")
@@ -242,6 +272,14 @@ class DettaglioOggettoActivity : AppCompatActivity(), OnMapReadyCallback {
         return false
     }
 
+    /**
+     * Verifica se un determinato annuncio è nel carrello dell'utente specificato
+     *
+     * @author Amato Luca
+     * @param userId Identificativo dell'utente
+     * @param annuncioId Identificativo dell'annuncio
+     * @return true se l'annuncio è nel carrello altrimenti false
+     */
     private suspend fun isCarrello(userId: String, annuncioId: String): Boolean{
 
         val myCollectionPreferito = this.database.collection(UserLoginActivity.Utente.nomeCollection).document(userId).collection("carrello")
