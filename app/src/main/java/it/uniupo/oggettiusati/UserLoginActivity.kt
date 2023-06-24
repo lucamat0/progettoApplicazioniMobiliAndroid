@@ -62,15 +62,15 @@ open class UserLoginActivity : AppCompatActivity() {
          * @return Un insieme modificabile di oggetti Categoria
          */
         suspend fun recuperaCategorieFirebase(): List<Categoria> {
-            return database.collection("categoria").get().await().documents.stream().map {
-                myDocument ->
+            return database.collection("categorie").get().await().documents.stream().map {
+                    myDocument ->
                 Categoria(
                     myDocument.id,
                     myDocument.getString("nome") as String,
 
                     runBlocking {
                         myDocument.reference.collection("sottocategoria").get().await().documents.stream().map {
-                            documentoSottocategoria -> documentoSottocategoria.getString("nome") as String
+                                documentoSottocategoria -> Categoria(documentoSottocategoria.id, documentoSottocategoria.getString("nome") as String)
                         }
                     }.collect(Collectors.toSet()))
             }.collect(Collectors.toList())

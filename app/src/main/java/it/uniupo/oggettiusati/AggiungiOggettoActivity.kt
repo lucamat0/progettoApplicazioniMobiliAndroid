@@ -70,7 +70,7 @@ class AggiungiOggettoActivity : AppCompatActivity() {
                         findViewById<LinearLayout>(R.id.layout_sottocategoria).visibility = View.VISIBLE
 
                         val sottoCategorie = categoriaSelezionata.sottocategorie!!.toList()
-                        val spinnerSottoCategAdapter: ArrayAdapter<String> = ArrayAdapter(this@AggiungiOggettoActivity, android.R.layout.simple_spinner_dropdown_item, sottoCategorie)
+                        val spinnerSottoCategAdapter: ArrayAdapter<UserLoginActivity.Categoria> = ArrayAdapter(this@AggiungiOggettoActivity, android.R.layout.simple_spinner_dropdown_item, sottoCategorie)
                         spinnerSottoCategAdapter.setDropDownViewResource(android.R.layout.simple_spinner_item)
                         viewSottoCategOgg.adapter = spinnerSottoCategAdapter
                     } else {
@@ -136,7 +136,7 @@ class AggiungiOggettoActivity : AppCompatActivity() {
             //qui codice per creare un nuovo oggetto su firebase
             val nomeOgg = viewNomeOgg.text.toString()
             val categoriaOgg = categorie[viewCategoriaOgg.selectedItemPosition].id
-            val sottoCategOgg = categorie[viewCategoriaOgg.selectedItemPosition].sottocategorie?.toList()?.get(viewSottoCategOgg.selectedItemPosition)//.id
+            val sottoCategOgg = categorie[viewCategoriaOgg.selectedItemPosition].sottocategorie?.toList()?.get(viewSottoCategOgg.selectedItemPosition)?.id
             val testoPosizioneOgg = viewTestoPosizioneOgg.text.toString()
             val descrizioneOgg = viewDescrizioneOgg.text.toString()
             val testoPrezzoOgg = viewTestoPrezzoOgg.text.toString()
@@ -162,7 +162,7 @@ class AggiungiOggettoActivity : AppCompatActivity() {
                     posizioneOgg.longitude = geocodeCoordinatesMatches[0].longitude
 
                     val prezzoOgg = testoPrezzoOgg.toDouble()
-                    val newAnnuncio = Annuncio(auth.uid!!, nomeOgg, descrizioneOgg, prezzoOgg, viewStatoOgg.selectedItemPosition, viewSpedizioneOgg.isChecked, ""/*categoriaOgg il nome della categoria individuata dall'id corrispondente all'indice dell'elemento selezionato*/,/*sottocategoria,*/ posizioneOgg)
+                    val newAnnuncio = Annuncio(auth.uid!!, nomeOgg, descrizioneOgg, prezzoOgg, viewStatoOgg.selectedItemPosition, viewSpedizioneOgg.isChecked, categoriaOgg, sottoCategOgg, posizioneOgg)
 
                     runBlocking {
                         if(flagModifica == true) {
