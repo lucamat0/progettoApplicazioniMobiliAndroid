@@ -1,29 +1,18 @@
 package it.uniupo.oggettiusati
 
-import android.content.Intent
 import android.location.Location
 import android.os.Bundle
-import android.util.Log
-import android.widget.Button
 import androidx.core.content.ContextCompat
 import androidx.viewpager2.widget.ViewPager2
 import com.google.android.material.tabs.TabLayout
 import com.google.android.material.tabs.TabLayoutMediator
-import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 import it.uniupo.oggettiusati.adapter.AdminViewPagerAdapter
-import it.uniupo.oggettiusati.adapter.ViewPagerAdapter
 import it.uniupo.oggettiusati.fragment.CartFragment
-import it.uniupo.oggettiusati.fragment.HomeFragment
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.tasks.await
 import java.util.ArrayList
-import java.util.LinkedList
-import kotlin.collections.HashMap
 import kotlin.streams.toList
 
 val pageTitlesArray = arrayOf("Home", "Chat", "Personal")

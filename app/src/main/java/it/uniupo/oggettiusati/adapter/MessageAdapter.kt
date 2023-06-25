@@ -10,6 +10,13 @@ import com.google.firebase.auth.FirebaseAuth
 import it.uniupo.oggettiusati.chat.Messaggio
 import it.uniupo.oggettiusati.R
 
+/**
+ * Adapter per la visualizzazione dei messaggi nella RecyclerView.
+ *
+ * @author Amato Luca
+ * @property context Contesto dell'applicazione
+ * @property myMessaggi Lista dei messaggi da visualizzare
+ */
 class MessageAdapter(val context: Context, private val myMessaggi: ArrayList<Messaggio>):
     RecyclerView.Adapter<RecyclerView.ViewHolder>() {
 
@@ -32,10 +39,10 @@ class MessageAdapter(val context: Context, private val myMessaggi: ArrayList<Mes
     override fun getItemViewType(position: Int): Int {
        val messaggioCorrente = myMessaggi[position]
 
-        if(FirebaseAuth.getInstance().currentUser?.uid.equals(messaggioCorrente.userId)){
-            return ITEM_SENT
+        return if(FirebaseAuth.getInstance().currentUser?.uid.equals(messaggioCorrente.userId)){
+            ITEM_SENT
         } else {
-            return ITEM_RECIVE
+            ITEM_RECIVE
         }
 
     }

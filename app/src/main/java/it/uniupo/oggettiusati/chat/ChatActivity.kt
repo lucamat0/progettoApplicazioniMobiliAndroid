@@ -11,6 +11,11 @@ import com.google.firebase.database.*
 import it.uniupo.oggettiusati.R
 import it.uniupo.oggettiusati.adapter.MessageAdapter
 
+/**
+ * Activity per la chat
+ *
+ * @author Amato Luca
+ */
 class ChatActivity: AppCompatActivity() {
 
     val auth = FirebaseAuth.getInstance()

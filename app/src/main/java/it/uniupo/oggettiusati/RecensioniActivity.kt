@@ -2,7 +2,6 @@ package it.uniupo.oggettiusati
 
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import android.widget.TextView
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.firebase.auth.FirebaseAuth
@@ -24,7 +23,7 @@ class RecensioniActivity : AppCompatActivity() {
         setContentView(R.layout.activity_recensioni)
 
         runBlocking{
-            supportActionBar?.setTitle(UserLoginActivity.recuperaUtente(auth.uid!!).nome)
+            supportActionBar?.setTitle(UserLoginActivity.recuperaUtente(auth.uid!!).getNome())
         }
 
 //        recensioniDaMostrare.put("1",Recensione("bel prdotto", "funziona molto bene e mi piace", "marco", 1685238057))
@@ -46,6 +45,13 @@ class RecensioniActivity : AppCompatActivity() {
         }
     }
 
+    /**
+     * Recupera le recensioni associate a un utente
+     *
+     * @author Amato Luca
+     * @param userId Identificativo dell'utente
+     * @return Lista di recensioni rifertite all'utente specificato
+     */
     private suspend fun recuperaRecensioniFirebaseFirestore(userId: String): LinkedList<Recensione> {
         val queryRecensioni = database.collection(UserLoginActivity.Utente.nomeCollection).document(userId).collection("recensione").get().await()
         val myRecensioni = LinkedList<Recensione>()
@@ -62,6 +68,16 @@ class RecensioniActivity : AppCompatActivity() {
 //    -- DA SPOSTARE IN INSERISCI RECENSIONE
 
     //Questo metodo, avrá un voto nella recensione valido, per una maggiore usabilitá si aggiunge comunque il controllo del voto, compreso tra 1 e 5/
+    /**
+     * Inserisce una recensione su Firebase
+     *
+     * @author Amato Luca
+     * @param titoloRecensione Titolo della recensione
+     * @param descrizioneRecensione Descrizione della recensione
+     * @param votoAlUtente Voto assegnato all'utente nella recensione
+     * @param idUtenteRecensito Identificativo dell'utente recensito
+     * @return Identificativo della recensione se il voto e' valido altrimenti null
+     */
     suspend fun inserisciRecensioneSuFirebaseFirestore(
         titoloRecensione: String,
         descrizioneRecensione: String,
@@ -88,11 +104,18 @@ class RecensioniActivity : AppCompatActivity() {
             return myCollectionRecensione.add(myRecensione).await().id
         }
         //se il voto, assegnato dal utente, non é valido...
-        else
-            return null
+        return null
     }
 
 
-
+    /**
+     * Rappresenta una recensione
+     *
+     * @author Amato Luca
+     * @property titoloRecensione Titolo della recensione
+     * @property descrizioniRecensione Descrizione della recensione
+     * @property votoAlUtente voto assegnato all'utente nella recensione
+     * @property idUtenteEspresso Identificativo dell'utente che si e' espresso nella recensione
+     */
     data class Recensione(val titoloRecensione: String, val descrizioniRecensione: String, val votoAlUtente :Int, val idUtenteEspresso: String)
 }

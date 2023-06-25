@@ -15,11 +15,9 @@ import android.widget.Button
 import android.widget.EditText
 import android.widget.LinearLayout
 import android.widget.Spinner
-import android.widget.Switch
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.widget.SwitchCompat
-import com.google.android.gms.maps.model.LatLng
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
@@ -28,6 +26,12 @@ import kotlinx.coroutines.tasks.await
 import java.io.IOException
 import java.util.stream.Collectors
 
+/**
+ * Activity per l'aggiunta o modifica di un oggetto
+ *
+ * @author Amato Luca
+ * @author Busto Matteo
+ */
 class AggiungiOggettoActivity : AppCompatActivity() {
 
     private val auth = FirebaseAuth.getInstance()
@@ -184,6 +188,11 @@ class AggiungiOggettoActivity : AppCompatActivity() {
         }
     }
 
+    /**
+     * Avvia activity per selezionare un insieme di immagini
+     *
+     * @author Amato Luca
+     */
     private fun selezionaImmagini() {
 
         val intent = Intent()
@@ -195,7 +204,14 @@ class AggiungiOggettoActivity : AppCompatActivity() {
         startActivityForResult(Intent.createChooser(intent, "Seleziona immagini"), 100)
     }
 
-    //override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+    /**
+     * Gestisce il risultato del activity chiamata con startActivityForResult()
+     *
+     * @author Amato Luca
+     * @param requestCode Codice della richiesta
+     * @param resultCode Codice di risultato restituito dall'activity
+     * @param data L'intent contenente i dati restituiti dall'activity
+     */
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) = runBlocking {
         super.onActivityResult(requestCode, resultCode, data)
 

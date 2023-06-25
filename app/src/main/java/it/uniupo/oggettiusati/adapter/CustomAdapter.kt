@@ -1,7 +1,6 @@
 package it.uniupo.oggettiusati.adapter
 
 import android.content.Intent
-import android.media.Image
 import android.os.BadParcelableException
 import android.util.Log
 import android.view.LayoutInflater
