@@ -1,10 +1,5 @@
 package it.uniupo.oggettiusati.adapter
 
-//autogenerato, potrebbe essere utile il tipo (classe) da cui eredita
-//class ViewPagerAdapter(supportFragmentManager: FragmentManager, lifecycle: Lifecycle) : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
-//
-//}
-
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentManager
 import androidx.lifecycle.Lifecycle

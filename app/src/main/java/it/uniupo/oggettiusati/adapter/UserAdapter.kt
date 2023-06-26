@@ -24,6 +24,14 @@ import it.uniupo.oggettiusati.chat.ChatActivity
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.tasks.await
 
+/**
+ * Adapter per mostrare una lista di Utenti nella RecyclerView
+ *
+ * @author Amato Luca
+ * @author Busto Matteo
+ * @property userList Lista di utenti da mostrare
+ * @property isAdmin Indica se l'utente corrente e' un amministratore
+ */
 class UserAdapter(private val userList: ArrayList<UserLoginActivity.Utente>, private val isAdmin: Boolean): RecyclerView.Adapter<UserAdapter.UserViewHolder>() {
 
     val auth = FirebaseAuth.getInstance()
@@ -41,15 +49,15 @@ class UserAdapter(private val userList: ArrayList<UserLoginActivity.Utente>, pri
 
     override fun onBindViewHolder(holder: UserViewHolder, position: Int) {
         val utenteCorrente = userList[position]
-        val nomeUtenteCorrente = utenteCorrente.nome
+        val nomeUtenteCorrente = utenteCorrente.getNome()
 
-        if(((!utenteCorrente.eliminato) && (!utenteCorrente.sospeso)) || isAdmin) {
-            holder.nomeCognome.text = "${utenteCorrente.cognome} ${nomeUtenteCorrente}"
+        if(((!utenteCorrente.getEliminato()) && (!utenteCorrente.getSospeso())) || isAdmin) {
+            holder.nomeCognome.text = "${utenteCorrente.getCognome()} ${nomeUtenteCorrente}"
         } else {
             holder.nomeCognome.text = "Utente disabilitato"
         }
 
-        if(utenteCorrente.eliminato || utenteCorrente.sospeso) {
+        if(utenteCorrente.getSospeso() || utenteCorrente.getSospeso()) {
             rimuoviColoreLayoutUtente(holder)
         }
 
@@ -58,17 +66,17 @@ class UserAdapter(private val userList: ArrayList<UserLoginActivity.Utente>, pri
                 val utenteSospeso: Boolean?
                 val utenteEliminato: Boolean?
                 runBlocking {
-                    utenteSospeso = database.collection(UserLoginActivity.Utente.nomeCollection).document(utenteCorrente.userId).get().await().getBoolean("sospeso")
-                    utenteEliminato = database.collection(UserLoginActivity.Utente.nomeCollection).document(utenteCorrente.userId).get().await().getBoolean("eliminato")
+                    utenteSospeso = database.collection(UserLoginActivity.Utente.nomeCollection).document(utenteCorrente.getId()).get().await().getBoolean("sospeso")
+                    utenteEliminato = database.collection(UserLoginActivity.Utente.nomeCollection).document(utenteCorrente.getId()).get().await().getBoolean("eliminato")
                 }
                 if(utenteSospeso == false && utenteEliminato == false) {
                     mostraUtenteNormale(holder)
-                    holder.nomeCognome.text = "${utenteCorrente.cognome} ${nomeUtenteCorrente}"
+                    holder.nomeCognome.text = "${utenteCorrente.getCognome()} ${nomeUtenteCorrente}"
                     val intent =
                         Intent(holder.itemView.context, ChatActivity::class.java)
 
                     intent.putExtra("nome", nomeUtenteCorrente)
-                    intent.putExtra("uid", utenteCorrente.userId)
+                    intent.putExtra("uid", utenteCorrente.getId())
 
                     viewClicked.context.startActivity(intent)
                 } else {
@@ -152,12 +160,12 @@ class UserAdapter(private val userList: ArrayList<UserLoginActivity.Utente>, pri
     }
 
     private fun setUpEliminatoSospeso(utenteCorrente: UserLoginActivity.Utente, holder: UserViewHolder) {
-        if(utenteCorrente.eliminato || utenteCorrente.sospeso)
+        if(utenteCorrente.getEliminato() || utenteCorrente.getSospeso())
             rimuoviColoreLayoutUtente(holder)
-        if(utenteCorrente.eliminato) {
+        if(utenteCorrente.getEliminato()) {
             mostraEliminato(holder)
         } else {
-            if(utenteCorrente.sospeso){
+            if(utenteCorrente.getSospeso()){
                 mostraSospeso(holder)
             }
         }

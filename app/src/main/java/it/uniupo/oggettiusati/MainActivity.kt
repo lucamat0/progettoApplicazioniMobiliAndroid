@@ -8,19 +8,10 @@ import android.widget.Button
 import android.widget.EditText
 import android.widget.Toast
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.auth.FirebaseUser
-import com.google.firebase.firestore.DocumentReference
-import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FirebaseFirestore
-import com.google.firebase.firestore.GeoPoint
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.tasks.await
-
 
 class MainActivity : AppCompatActivity() {
 
@@ -67,28 +58,21 @@ class MainActivity : AppCompatActivity() {
     }
 
     /**
-     * Checks
-     *      if credential aren't blank or empty,
-     *      if exists and are corrects on Firebase Authentication,
-     * and once logged
-     *      if user is *sospended* and if is *admin* through [updateUI]
+     * Verifica le credenziali dell'utente e effettua il login se le credenziali sono valide
      *
-     * Note: admin **can't** be suspend
-     *
-     * @param [email] email as String used to perform authentication (try to login)
-     * @param [password] password as String used to perform authentication (try to login)
-     *
+     * @author Amato Luca
+     * @param email Email dell'utente
+     * @param password Password dell'utente
      */
-    //Da guardare!!!
     private fun checkCredentialsAndLogin(email: String, password: String) {
         if (email.isNotBlank() && password.isNotBlank()) {
             auth.signInWithEmailAndPassword(email, password)
                 .addOnCompleteListener(this) { task ->
                     if (task.isSuccessful) {
-                        // Sign in success, update UI with the signed-in user's information
-                        Log.d("Sign in", "user signed in")
-
                         runBlocking {
+
+                            // Sign in success, update UI with the signed-in user's information
+                            Log.d("Sign in", "user signed in")
 
                             val user = auth.currentUser
 
@@ -113,15 +97,23 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    /**
+     * Effettua il login per l'utente specificato se non e' sospeso e/o eliminato
+     *
+     * @author Amato Luca
+     * @param userId Identificativo dell'utente
+     */
     private suspend fun login(userId: String){
 
-        //se l'utente non è sospeso e neanche elimianato...
-        if (!isSuspendDelete(userId))
+        val myUtente = UserLoginActivity.recuperaUtente(userId)
+
+        if (!(myUtente.getSospeso() || myUtente.getEliminato()))
             updateUI(userId)
         else{
+
             Log.d("Sign in", "User is suspended or deleted")
 
-            if(getEliminato(userId))
+            if(myUtente.getEliminato())
                 Toast.makeText(baseContext, "Authentication failed: l'utente non esiste.", Toast.LENGTH_SHORT).show()
             else
                 Toast.makeText(baseContext, "Authentication failed: l'utente e' sospeso.", Toast.LENGTH_SHORT).show()
@@ -130,27 +122,11 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private suspend fun isSuspendDelete(userId: String): Boolean {
-        return getSospeso(userId) || getEliminato(userId)
-    }
-
-    private suspend fun getUtente(userId: String): DocumentSnapshot? {
-        return database.collection(UserLoginActivity.Utente.nomeCollection).document(userId).get().await()
-    }
-
-    private suspend fun getEliminato(userId: String): Boolean {
-        return getUtente(userId)!!.getBoolean("eliminato")!!
-    }
-
-    private suspend fun getSospeso(userId: String): Boolean {
-        return getUtente(userId)!!.getBoolean("sospeso")!!
-    }
-
     /**
+     * Aggiorna l'interfaccia dell'utente in base al suo identificativo
      *
-     * If user is not sospended the ui should update
-     * This function check if user is admin and loads the corrispondent Activity
-     *
+     * @author Amato Luca
+     * @param userId Identificato dell'utente
      */
     private fun updateUI(userId: String) {
 
@@ -173,6 +149,11 @@ class MainActivity : AppCompatActivity() {
             }
     }
 
+    /**
+     * Callback chiamato quando l'activity sta diventando visibile, effettua il controllo se l'utente è già autenticato e aggiorna l'interfaccia
+     *
+     * @author Amato Luca
+     */
     public override fun onStart() {
         super.onStart()
 
@@ -185,51 +166,4 @@ class MainActivity : AppCompatActivity() {
                 Toast.makeText(this@MainActivity, "Utente non loggato al momento", Toast.LENGTH_SHORT).show()
         }
     }
-
-    //test inserimento manuale
-
-    /*auth.createUserWithEmailAndPassword("admin@gmail.com", "Test+123").addOnCompleteListener(this) { task ->
-                        if (task.isSuccessful) {
-                            // Sign in success, update UI with the signed-in user's information
-                            Log.d("Creazione", "createUserWithEmail:success")
-
-                            val user = auth.currentUser
-
-                            // recupero Id utente appena memorizzato,
-                            // avendolo appena creato NON é possibile che sia null,
-                            // quindi lo specifico con !!
-                            val userId = user!!.uid
-
-                            val userValues = hashMapOf(
-                                "nome" to "admin",
-                                "cognome" to "surmin",
-                                "dataNascita" to "02/04/2008",
-                                "amministratore" to 1,
-                                "sospeso" to false
-                            )
-
-                            database.collection("users").document(userId)
-                                .set(userValues)
-                                .addOnSuccessListener {
-                                    Log.d("Creazione documento utente", "La creazione dell'utente è andata a buon fine!")
-                                    startActivity(Intent(this, MainActivity::class.java))
-                                }
-                                .addOnFailureListener { e ->
-
-                                    Log.w("Creazione documento utente", "Errore durante la creazione del documento associato all'utente", e)
-
-                                    //Se il documento non si é riuscito a creare bisogna eliminare utente
-                                    user.delete()
-
-                                }
-                        } else {
-                            // La registrazione dell'utente non è andata a buon fine
-                            Log.w("Creazione", "createUserWithEmail:failure", task.exception)
-                            Toast.makeText(baseContext, "Authentication failed: error creating user.", Toast.LENGTH_SHORT).show()
-                        }
-                    }
-    */
-
-    //fine test inserimento manuale
-
 }

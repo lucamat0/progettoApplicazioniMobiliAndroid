@@ -40,6 +40,7 @@ private val tabIcons :IntArray= intArrayOf(
     R.drawable.baseline_person_50
 )
 
+
 /**
  * Activity che viene utilizzata nel momento in cui il login va a buon fine e l'utente non è un Amministratore
  *
@@ -51,8 +52,8 @@ open class UserLoginActivity : AppCompatActivity() {
     companion object {
 
         private val database = Firebase.firestore
-
-        val auth = FirebaseAuth.getInstance()
+        @JvmStatic
+        protected val auth = FirebaseAuth.getInstance()
 
         /**
          * Recupera le categorie e sottocategorie da Firebase.
@@ -75,6 +76,14 @@ open class UserLoginActivity : AppCompatActivity() {
             }.collect(Collectors.toList())
         }
 
+        /**
+         * Verifica se la categoria specificata ha delle sottocategorie
+         *
+         * @author Amato Luca
+         * @author Busto Matteo
+         * @param myCategoria Categoria da verificare
+         * @return true se la categoria ha almeno una sottocategoria alrimenti false
+         */
         fun hasSottocategorie(myCategoria: Categoria): Boolean {
             return myCategoria.sottocategorie!!.size > 0
         }
@@ -131,7 +140,7 @@ open class UserLoginActivity : AppCompatActivity() {
                 (myDocumentoAnnuncio.getLong("stato") as Long).toInt(),
                 myDocumentoAnnuncio.getBoolean("disponibilitaSpedire") as Boolean,
                 myDocumentoAnnuncio.getString("categoria") as String,
-                myDocumentoAnnuncio.getString("sottocategoria") as String?,
+                myDocumentoAnnuncio.getString("sottocategoria"),
                 myDocumentoAnnuncio.getGeoPoint("posizione") as GeoPoint,
                 myDocumentoAnnuncio.getLong("timeStampInizioVendita") as Long,
                 timeStampFineVendita,
@@ -153,7 +162,7 @@ open class UserLoginActivity : AppCompatActivity() {
          * @param prezzoInferiore Il limite inferiore utilizzato per il filtro, può essere null
          * @return Un insieme di documenti che corrispondono ai criteri specificati
          */
-        suspend fun definisciQuery(
+        private suspend fun definisciQuery(
             disponibilitaSpedire: Boolean?,
             prezzoSuperiore: Int?,
             prezzoInferiore: Int?
@@ -327,7 +336,7 @@ open class UserLoginActivity : AppCompatActivity() {
 
 //        supportActionBar?.setDisplayShowTitleEnabled(false)
         runBlocking {
-            supportActionBar?.setTitle(recuperaUtente(auth.uid!!).nome)
+            supportActionBar?.setTitle(recuperaUtente(auth.uid!!).getNome())
         }
 
         //fragments
@@ -585,19 +594,13 @@ open class UserLoginActivity : AppCompatActivity() {
      *
      * @author Amato Luca
      * @property id Identificativo della Categoria
-     * @property nome Nome della categoria
+     * @property nome Nome della categoria\
      * @property sottocategorie Insieme di elementi contenenti le sottocategorie
      */
     data class Categoria(
         val id: String,
-        val nome: String? = null,
-        val sottocategorie: MutableSet<Categoria>? = null){
-        override fun equals(other: Any?): Boolean {
-            return if (this === other) true
-            else if(other == null || other !is Categoria) false
-            else this.id == other.id
-        }
-    }
+        val nome: String,
+        val sottocategorie: MutableSet<Categoria>? = null)
 
     /**
      * Rappresenta un utente
@@ -613,14 +616,14 @@ open class UserLoginActivity : AppCompatActivity() {
      * @property eliminato Indica se l'utente è eliminato o no
      */
     data class Utente(
-        val userId: String,
-        val nome: String,
-        val cognome: String,
-        val amministratore: Boolean,
-        val numeroDiTelefono: String,
-        val sospeso: Boolean,
-        val dataNascita: String,
-        val eliminato: Boolean
+        private val userId: String,
+        private val nome: String,
+        private val cognome: String,
+        private val amministratore: Boolean,
+        private val numeroDiTelefono: String,
+        private val sospeso: Boolean,
+        private val dataNascita: String,
+        private val eliminato: Boolean
     ) {
         companion object {  const val nomeCollection = "utente" }
 
@@ -631,7 +634,27 @@ open class UserLoginActivity : AppCompatActivity() {
          * @return nome e cognome dell'utente
          */
         fun getNomeCognome(): String {
-            return "$nome $cognome"
+            return "{$this.nome} ${this.cognome}"
+        }
+
+        fun getEliminato(): Boolean {
+            return this.eliminato
+        }
+
+        fun getSospeso(): Boolean {
+            return this.sospeso
+        }
+
+        fun getNome(): String{
+            return this.nome
+        }
+
+        fun getCognome(): String{
+            return this.cognome
+        }
+
+        fun getId(): String{
+            return this.userId
         }
 
         /**

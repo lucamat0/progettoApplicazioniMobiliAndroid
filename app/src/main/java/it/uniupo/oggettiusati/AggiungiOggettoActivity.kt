@@ -29,6 +29,12 @@ import kotlinx.coroutines.tasks.await
 import java.io.IOException
 import java.util.stream.Collectors
 
+/**
+ * Activity per l'aggiunta o modifica di un oggetto
+ *
+ * @author Amato Luca
+ * @author Busto Matteo
+ */
 class AggiungiOggettoActivity : AppCompatActivity() {
 
     private val auth = FirebaseAuth.getInstance()
@@ -239,6 +245,11 @@ class AggiungiOggettoActivity : AppCompatActivity() {
             viewSottoCategOgg.setSelection(categorie.get(categoria).sottocategorie!!.indexOf(UserLoginActivity.Categoria(annuncioCorrente.getSottocategoria()!!)))
     }
 
+    /**
+     * Avvia activity per selezionare un insieme di immagini
+     *
+     * @author Amato Luca
+     */
     private fun selezionaImmagini() {
 
         val intent = Intent()
@@ -250,7 +261,14 @@ class AggiungiOggettoActivity : AppCompatActivity() {
         startActivityForResult(Intent.createChooser(intent, "Seleziona immagini"), 100)
     }
 
-    //override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+    /**
+     * Gestisce il risultato del activity chiamata con startActivityForResult()
+     *
+     * @author Amato Luca
+     * @param requestCode Codice della richiesta
+     * @param resultCode Codice di risultato restituito dall'activity
+     * @param data L'intent contenente i dati restituiti dall'activity
+     */
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) = runBlocking {
         super.onActivityResult(requestCode, resultCode, data)
 

@@ -13,7 +13,6 @@ import android.widget.Button
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
-import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
@@ -27,7 +26,6 @@ import com.google.firebase.ktx.Firebase
 import it.uniupo.oggettiusati.chat.ChatActivity
 import it.uniupo.oggettiusati.fragment.CartFragment
 import it.uniupo.oggettiusati.fragment.FavoritesFragment
-
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.tasks.await
 
@@ -49,7 +47,7 @@ class DettaglioOggettoActivity : AppCompatActivity(), OnMapReadyCallback {
 
 //        supportActionBar?.setDisplayShowTitleEnabled(false)
         runBlocking{
-            supportActionBar?.setTitle(UserLoginActivity.recuperaUtente(auth.uid!!).nome)
+            supportActionBar?.setTitle(UserLoginActivity.recuperaUtente(auth.uid!!).getNome())
         }
 
         val myAnnuncio: Annuncio = intent.getParcelableExtra("annuncio", Annuncio::class.java)!!
@@ -58,7 +56,7 @@ class DettaglioOggettoActivity : AppCompatActivity(), OnMapReadyCallback {
         val myDocumentRefCategoria = database.collection("categoria").document(myAnnuncio.getCategoria())
 
         runBlocking {
-            var myIdSottocategoria: String? = myAnnuncio.getSottocategoria()
+            val myIdSottocategoria: String? = myAnnuncio.getSottocategoria()
             if (myIdSottocategoria != null) {
                 findViewById<TextView>(R.id.categoria).text = "Categoria: ${
                     myDocumentRefCategoria.get().await().getString("nome")

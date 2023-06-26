@@ -2,11 +2,9 @@ package it.uniupo.oggettiusati
 
 import android.location.Location
 import android.net.Uri
-import android.os.Build
 import android.os.Parcel
 import android.os.Parcelable
 import android.util.Log
-import androidx.annotation.RequiresApi
 import com.google.firebase.firestore.GeoPoint
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
@@ -15,10 +13,6 @@ import com.google.firebase.storage.StorageReference
 import it.uniupo.oggettiusati.fragment.CartFragment
 import kotlinx.coroutines.tasks.await
 import java.io.File
-
-val database = Firebase.firestore
-
-val storage = FirebaseStorage.getInstance()
 
 /**
  * Rappresenta un Annuncio
@@ -56,10 +50,11 @@ data class Annuncio(
 ) : Parcelable {
 
     companion object {
+        private val database = Firebase.firestore
+
         val nomeCollection = "annuncio"
 
         @JvmField val CREATOR = object : Parcelable.Creator<Annuncio> {
-            @RequiresApi(Build.VERSION_CODES.Q)
             override fun createFromParcel(parcel: Parcel): Annuncio {
                 return Annuncio(parcel)
             }
@@ -147,7 +142,7 @@ data class Annuncio(
 
         this.posizione.latitude = posizione.latitude
         this.posizione.longitude = posizione.longitude
-        this.storageRef = storage.reference.child(annuncioId)
+        this.storageRef = FirebaseStorage.getInstance().reference.child(annuncioId)
     }
 
     /*
@@ -207,7 +202,7 @@ data class Annuncio(
             //Log.d("DEBUG", "Dopo")
 
             this.annuncioId = myDocument.id
-            this.storageRef = storage.reference.child(this.annuncioId)
+            this.storageRef = FirebaseStorage.getInstance().reference.child(this.annuncioId)
 
             Log.d("SALVA ANNUNCIO SU FIREBASE", this.annuncioId)
 
@@ -472,6 +467,7 @@ data class Annuncio(
     /**
      * Imposta la nuova categoria dell'annuncio se l'utente specificato è il proprietario o amministratore
      *
+     * @author Amato Luca
      * @param newCategoria Nuova categoria dell'annuncio
      * @param userId Identificativo della persona che vuole modificare la categoria dell'annuncio
      */
@@ -486,6 +482,7 @@ data class Annuncio(
     /**
      * Imposta il nuovo prezzo dell'annuncio se l'utente specificato è il proprietario o amministratore e se non c'è stata una richiesta di acquisto
      *
+     * @author Amato Luca
      * @param newPrezzo Nuovo prezzo dell'annuncio
      * @param userId Identificativo della persona che vuole modificare il prezzo dell'annuncio
      */
@@ -549,10 +546,11 @@ data class Annuncio(
     }
 
     /**
-     * Scrive i dati dell'oggetto in un Parcel
+     * Scrive i dati dell'Annuncio in un Parcel
      *
-     * @param parcel
-     * @param flags Opzioni aggiuntive per il processo di scrittura.
+     * @author Amato Luca
+     * @param parcel Oggetto in cui verranno scritti i dati
+     * @param flags Opzioni aggiuntive
      */
     override fun writeToParcel(parcel: Parcel, flags: Int) {
         parcel.writeString(this.userId)

@@ -1,5 +1,6 @@
 package it.uniupo.oggettiusati
 
+import android.annotation.SuppressLint
 import android.content.Intent
 import android.os.Bundle
 import android.util.Log
@@ -26,6 +27,7 @@ class SignUpActivity : AppCompatActivity() {
 
     private lateinit var user: FirebaseUser
 
+    @SuppressLint("SetTextI18n")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_signup)
@@ -176,7 +178,6 @@ class SignUpActivity : AppCompatActivity() {
         dataNascita: String,
         numeroDiTelefono: String
     ): String? {
-
         //Applico il controllo che il numero deve essere composto da 10 caratteri numerici,
         //per una questione di riusabilità, questo controllo viene comunque effettuato nel front end
         if (numeroDiTelefono.length == 10) {
@@ -191,28 +192,14 @@ class SignUpActivity : AppCompatActivity() {
                 "userId" to utenteDaSalvareId
             )
 
-            val inserimentoDatiUtente =
-                database.collection(UserLoginActivity.Utente.nomeCollection).document(utenteDaSalvareId).set(userValues).await()
+            database.collection(UserLoginActivity.Utente.nomeCollection).document(utenteDaSalvareId).set(userValues).await()
 
-            //Tutto é andato bene
-            if (inserimentoDatiUtente == null) {
-                Log.d(
-                    "Creazione documento utente",
-                    "La creazione dell'utente è andata a buon fine!"
-                )
-                startActivity(Intent(this, MainActivity::class.java))
-                finish()
+            startActivity(Intent(this, MainActivity::class.java))
+            finish()
 
-                return utenteDaSalvareId
-            } else {
-                Log.e(
-                    "Creazione documento utente",
-                    "Errore durante la creazione del documento associato all'utente"
-                )
-                return null
-            }
-        } else {
-            return null
+            return utenteDaSalvareId
         }
+        Log.e("Creazione documento utente", "Errore durante la creazione del documento associato all'utente")
+        return null
     }
 }

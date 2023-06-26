@@ -6,13 +6,8 @@ import android.view.ViewGroup
 import android.widget.RatingBar
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
-import androidx.recyclerview.widget.RecyclerView.ViewHolder
 import it.uniupo.oggettiusati.R
 import it.uniupo.oggettiusati.RecensioniActivity
-import java.text.DateFormat.getDateInstance
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
 
 class RecensioniAdapter(private val listaRecensioni: List<RecensioniActivity.Recensione>) : RecyclerView.Adapter<RecensioniAdapter.ViewHolder>() {
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
