@@ -35,7 +35,9 @@ private val tabIcons :IntArray= intArrayOf(
  * @author Busto Matteo
  */
 class AdminLoginActivity : UserLoginActivity() {
+
     private val database = Firebase.firestore
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_admin_logged)
