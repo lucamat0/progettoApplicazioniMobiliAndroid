@@ -599,8 +599,15 @@ open class UserLoginActivity : AppCompatActivity() {
      */
     data class Categoria(
         val id: String,
-        val nome: String,
-        val sottocategorie: MutableSet<Categoria>? = null)
+        val nome: String? = null,
+        val sottocategorie: MutableSet<Categoria>? = null){
+        override fun equals(other: Any?): Boolean {
+            return if (this === other) true
+            else if(other == null || other !is Categoria) false
+            else this.id == other.id
+        }
+    }
+
 
     /**
      * Rappresenta un utente
@@ -634,7 +641,7 @@ open class UserLoginActivity : AppCompatActivity() {
          * @return nome e cognome dell'utente
          */
         fun getNomeCognome(): String {
-            return "{$this.nome} ${this.cognome}"
+            return "${this.nome} ${this.cognome}"
         }
 
         fun getEliminato(): Boolean {
