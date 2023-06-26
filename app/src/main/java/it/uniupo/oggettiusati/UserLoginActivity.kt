@@ -422,7 +422,7 @@ open class UserLoginActivity : AppCompatActivity() {
      * @param userId Identificativo dell'utente per cui recuperare le ricerche salvate
      * @return Lista di oggetti Ricerca
      */
-    suspend fun recuperaRicercheSalvateFirebaseFirestore(userId: String): ArrayList<Ricerca> {
+    private suspend fun recuperaRicercheSalvateFirebaseFirestore(userId: String): ArrayList<Ricerca> {
 
         val myCollection = database.collection(Utente.nomeCollection)
 

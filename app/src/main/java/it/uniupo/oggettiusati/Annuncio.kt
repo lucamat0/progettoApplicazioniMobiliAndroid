@@ -49,6 +49,9 @@ data class Annuncio(
     private var posizione: Location = Location("provider")
 ) : Parcelable {
 
+    /**
+     * @suppress
+     */
     companion object {
         private val database = Firebase.firestore
 
@@ -144,24 +147,6 @@ data class Annuncio(
         this.posizione.longitude = posizione.longitude
         this.storageRef = FirebaseStorage.getInstance().reference.child(annuncioId)
     }
-
-    /*
-    //--- Costruttore secondario utilizzato per inizializzare gli annunci nei test ---
-    constructor(
-        userId: String, titolo: String, descrizione: String, prezzo: Double, stato: Int, disponibilitaSpedire: Boolean,
-        categoria: String, posizione: Location, timeStampInizioVendita: Long, timeStampFineVendita: Long?, userIdAcquirente: String?, venduto: Boolean, acquirenteRecensito: Boolean, proprietarioRecensito: Boolean) : this(userId, titolo, descrizione, prezzo, stato, disponibilitaSpedire, categoria) {
-
-        this.userIdAcquirente = userIdAcquirente
-        this.timeStampInizioVendita = timeStampInizioVendita
-        this.timeStampFineVendita = timeStampFineVendita
-
-        this.posizione.latitude = posizione.latitude
-        this.posizione.longitude = posizione.longitude
-        this.venduto = venduto
-        this.acquirenteRecensito = acquirenteRecensito
-        this.proprietarioRecensito = proprietarioRecensito
-    }
-    */
 
     /**
      * Salva annuncio corrente su Firebase
@@ -571,6 +556,9 @@ data class Annuncio(
         parcel.writeBoolean(this.proprietarioRecensito)
     }
 
+    /**
+     * @suppress
+     */
     override fun describeContents(): Int {
         return 0
     }

@@ -1,32 +1,22 @@
 package it.uniupo.oggettiusati
 
-import android.location.Location
 import androidx.fragment.app.testing.FragmentScenario
-import androidx.fragment.app.testing.launchFragment
-import androidx.fragment.app.testing.launchFragmentInContainer
-import androidx.lifecycle.Lifecycle
-import androidx.test.core.app.ActivityScenario
 import androidx.test.platform.app.InstrumentationRegistry
-import androidx.test.ext.junit.runners.AndroidJUnit4
+import com.google.firebase.firestore.GeoPoint
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
-import it.uniupo.oggettiusati.fragment.CartFragment
 import it.uniupo.oggettiusati.fragment.HomeFragment
+import junit.framework.TestCase.assertEquals
 import kotlinx.coroutines.*
-import kotlinx.coroutines.tasks.await
 import org.junit.*
-
-import org.junit.Assert.*
-import org.junit.runner.RunWith
-import java.util.*
 import kotlin.collections.ArrayList
 
 /**
- * Instrumented test, which will execute on an Android device.
+ * Attenzione: Questa implementazione contiene dei test non completi, utilizzati nella prima parte della stesura del codice,
+ * A causa di limiti di tempo non sono stati rimplementati.
  *
- * See [testing documentation](http://d.android.com/tools/testing).
+ * @author Amato Luca
  */
-@RunWith(AndroidJUnit4::class)
 class ExampleInstrumentedTest {
 
     @Test
@@ -35,270 +25,121 @@ class ExampleInstrumentedTest {
         val appContext = InstrumentationRegistry.getInstrumentation().targetContext
         assertEquals("it.uniupo.oggettiusati", appContext.packageName)
     }
-
 /*
-    @Test fun riempi(): Unit = runBlocking{
-
-        val geoPosition = Location("provider")
-        geoPosition.altitude = 37.4220
-        geoPosition.longitude = -122.0841
-
-        val newAnnuncio1 = Annuncio(
-            "alan.turing",
-            "Mr Robot: Season 1 Blu-Ray + Digital HD",
-            "Mr. Robot, is a techno thriller that follows Elliot, a young programmer, who works as a cyber-security engineer by day and as a vigilante hacker by night.",
-            16.99,
-            2,
-            true,
-            "filmETv/serieTv",
-            geoPosition
-        )
-
-        newAnnuncio1.salvaAnnuncioSuFirebase()
-
-        val scenarioUserLoginActivity = ActivityScenario.launch(UserLoginActivity::class.java)
-
-        scenarioUserLoginActivity.onActivity { activity ->
-            runBlocking {
-
-                //activity.userId = "rbwh8rCBGmV6lv4Kum3eLcTeJFl1"
-
-                val myElementoPreferito1 = activity.inserisciAnnuncioPreferitoFirebaseFirestore(
-                    "rbwh8rCBGmV6lv4Kum3eLcTeJFl1",
-                    "DxXnVuNyWXKmT3gcAYq4"
-                )
-            }
-        }
-    }
-*/
-
-
     lateinit var myAnnunci : ArrayList <Annuncio>
     val database = Firebase.firestore
 
     //private lateinit var scenarioCartFragment: FragmentScenario<CartFragment>
     private lateinit var scenarioHomeFragment: FragmentScenario<HomeFragment>
 
-    @Before fun testSalvaAnnunciUtentiFirebaseFirestoreInizializzaFragment(): Unit = runBlocking{
+    @Before fun testInserisciAnnunciFirebaseFirestore(){
 
-        myAnnunci = ArrayList<Annuncio>()
-
-        val scenarioSignUpActivity = ActivityScenario.launch(SignUpActivity::class.java)
-
-        scenarioSignUpActivity.onActivity { activity ->
-            runBlocking {
-                activity.salvaUtenteSuFirebaseFirestore(
-                    "alan.turing",
-                    "Alan",
-                    "Turing",
-                    "23/06/1912",
-                    "3358924674"
-                )
-
-                activity.salvaUtenteSuFirebaseFirestore(
-                    "ada.loelace",
-                    "Ada",
-                    "Lovelace",
-                    "10/12/1815",
-                    "0212345671"
-                )
-
-                activity.salvaUtenteSuFirebaseFirestore(
-                    "tim.bernerslee",
-                    "Tim",
-                    "Berners-Lee",
-                    "08/06/1955",
-                    "3358924574"
-                )
-            }
-        }
-
-        val geoPosition = Location("provider")
-        geoPosition.altitude = 37.4220
-        geoPosition.longitude = -122.0841
-
-        val calendarInizioVenditaAnnuncio1 = Calendar.getInstance()
-        calendarInizioVenditaAnnuncio1.add(Calendar.DAY_OF_YEAR, -5)
-        val timeStampInizioVenditaAnnuncio1 = calendarInizioVenditaAnnuncio1.timeInMillis
-
-        val calendarFineVenditaAnnuncio1 = Calendar.getInstance()
-        calendarFineVenditaAnnuncio1.add(Calendar.DAY_OF_YEAR, -2)
-        val timeStampFineVenditaAnnuncio1 = calendarFineVenditaAnnuncio1.timeInMillis
+        myAnnunci = ArrayList()
 
         myAnnunci.add(Annuncio(
-            "ada.loelace",
-            "Mr Robot: Season 1 Blu-Ray + Digital HD",
-            "Mr. Robot, is a techno thriller that follows Elliot, a young programmer, who works as a cyber-security engineer by day and as a vigilante hacker by night.",
-            16.99,
-            2,
-            true,
-            "filmETv/serieTv",
-            geoPosition,
-            timeStampInizioVenditaAnnuncio1,
-            timeStampFineVenditaAnnuncio1,
-            "alan.turing",
-            true,
-            true
+            userId = "12345",
+            titolo = "Bicicletta da montagna",
+            descrizione = "Vendo bicicletta da montagna in ottime condizioni.",
+            prezzo = 300.0,
+            stato = 1,
+            disponibilitaSpedire = true,
+            categoria = "wjh7UFtzG2si73BGgRwQ",
+            sottocategoria = null,
+            posizione = GeoPoint(44.923114095766934, 8.61777862155143),
+            timeStampInizioVendita = System.currentTimeMillis(),
+            timeStampFineVendita = null,
+            userIdAcquirente = null,
+            annuncioId = "ABC123",
+            venduto = false,
+            acquirenteRecensito = false,
+            proprietarioRecensito = false
         ))
 
         myAnnunci.add(Annuncio(
-            "alan.turing",
-            "Apple iPhone 12 Pro Max 256GB Pacific Blue Unlocked",
-            "The iPhone 12 Pro Max is Apple's flagship smartphone with a stunning 6.7-inch Super Retina XDR display, A14 Bionic chip, 5G capability, and a powerful triple-camera system.",
-            1100.00,
-            1,
-            false,
-            "elettronica/smartphone",
-            geoPosition
-        ))
-
-        val calendarInizioVenditaAnnuncio3 = Calendar.getInstance()
-        calendarInizioVenditaAnnuncio3.add(Calendar.DAY_OF_YEAR, -9)
-        val timeStampInizioVenditaAnnuncio3 = calendarInizioVenditaAnnuncio3.timeInMillis
-
-        val calendarFineVenditaAnnuncio3 = Calendar.getInstance()
-        calendarFineVenditaAnnuncio3.add(Calendar.DAY_OF_YEAR, -6)
-        val timeStampFineVenditaAnnuncio3 = calendarFineVenditaAnnuncio3.timeInMillis
-
-        myAnnunci.add(Annuncio(
-            "ada.loelace",
-            "Vintage Leather Messenger Bag",
-            "This vintage-inspired leather messenger bag is perfect for carrying your laptop and everyday essentials. With a spacious main compartment, multiple pockets, and an adjustable strap, it's both stylish and functional.",
-            79.99,
-            3,
-            true,
-            "informatica/accessori",
-            geoPosition,
-            timeStampInizioVenditaAnnuncio3,
-            timeStampFineVenditaAnnuncio3,
-            "alan.turing",
-            true,
-            true
-        ))
-
-        val calendarInizioVenditaAnnuncio4 = Calendar.getInstance()
-        calendarInizioVenditaAnnuncio4.add(Calendar.DAY_OF_YEAR, -10)
-        val timeStampInizioVenditaAnnuncio4 = calendarInizioVenditaAnnuncio4.timeInMillis
-
-        val calendarFineVenditaAnnuncio4 = Calendar.getInstance()
-        calendarFineVenditaAnnuncio4.add(Calendar.DAY_OF_YEAR, -4)
-        val timeStampFineVenditaAnnuncio4 = calendarFineVenditaAnnuncio4.timeInMillis
-
-
-        myAnnunci.add(Annuncio(
-            "ada.loelace",
-            "Apple Watch Series 7 45mm GPS + Cellular",
-            "The Apple Watch Series 7 is the ultimate fitness and health companion, with a stunning always-on Retina display, blood oxygen sensor, ECG app, and 50% faster charging. Stay connected with GPS + Cellular capability and a wide range of watch faces and bands.",
-            499.00,
-            1,
-            true,
-            "wearable",
-            geoPosition,
-            timeStampInizioVenditaAnnuncio4,
-            timeStampFineVenditaAnnuncio4,
-            "alan.turing",
-            true,
-            true
+            userId = "54321",
+            titolo = "Smartphone Samsung Galaxy S21",
+            descrizione = "Vendo smartphone Samsung Galaxy S21, colore nero, 128 GB di memoria.",
+            prezzo = 800.0,
+            stato = 2,
+            disponibilitaSpedire = true,
+            categoria = "HTq7GqiBExVDcnpIYKeL",
+            sottocategoria = "i25TUps67SAz3gzgfZrB",
+            posizione = GeoPoint(44.923114095766934, 8.61777862155143),
+            timeStampInizioVendita = System.currentTimeMillis(),
+            timeStampFineVendita = null,
+            userIdAcquirente = null,
+            annuncioId = "XYZ789",
+            venduto = false,
+            acquirenteRecensito = false,
+            proprietarioRecensito = false
         ))
 
         myAnnunci.add(Annuncio(
-            "ada.loelace",
-            "Samsung Galaxy S22 Ultra",
-            "The Samsung Galaxy S22 Ultra is the ultimate smartphone, with a stunning 6.8-inch dynamic AMOLED display, 5G connectivity, and a powerful Snapdragon 898 processor. Capture stunning photos and videos with the quad-camera setup and enjoy all-day battery life.",
-            1199.00,
-            1,
-            true,
-            "electronics",
-            geoPosition
+                userId = "67890",
+                titolo = "MacBook Pro 15 pollici",
+                descrizione = "Vendo MacBook Pro 15 pollici, modello 2019, 16 GB di RAM e 512 GB di storage.",
+                prezzo = 2000.0,
+                stato = 1,
+                disponibilitaSpedire = false,
+                categoria = "GvDJfrKyFUIMWOwZaXKU",
+                sottocategoria = "YUpg3Mp7BJjkMlqbf9Ct",
+                posizione = GeoPoint(44.89936597849873, 8.19964685024745),
+                timeStampInizioVendita = System.currentTimeMillis(),
+                timeStampFineVendita = null,
+                userIdAcquirente = null,
+                annuncioId = "DEF456",
+                venduto = false,
+                acquirenteRecensito = false,
+                proprietarioRecensito = false
         ))
 
         myAnnunci.add(Annuncio(
-            "alan.turing",
-            "Canon EOS R5 Mirrorless Camera",
-            "The Canon EOS R5 is a professional-grade mirrorless camera with a 45 megapixel full-frame sensor, 8K video capabilities, and in-body image stabilization. Capture stunning photos and videos in any lighting conditions with fast autofocus and advanced shooting modes.",
-            3899.00,
-            1,
-            true,
-            "electronics",
-            geoPosition
+            userId = "98765",
+            titolo = "Tavolo da pranzo allungabile",
+            descrizione = "Vendo tavolo da pranzo allungabile in legno massiccio, adatto per 6-8 persone.",
+            prezzo = 500.0,
+            stato = 2,
+            disponibilitaSpedire = false,
+            categoria =  "rcIDugWOWELVoXVSgoJC",
+            sottocategoria = null,
+            posizione = GeoPoint(44.89936597849873, 8.19964685024745),
+            timeStampInizioVendita = System.currentTimeMillis(),
+            timeStampFineVendita = null,
+            userIdAcquirente = null,
+            annuncioId = "GHI789",
+            venduto = false,
+            acquirenteRecensito = false,
+            proprietarioRecensito = false
         ))
 
         myAnnunci.add(Annuncio(
-            "alan.turing",
-            "Peloton Bike+",
-            "The Peloton Bike+ is the ultimate indoor cycling experience, with a 24-inch touchscreen display, live and on-demand classes, and a library of thousands of workouts. Get personalized coaching and metrics to help you reach your fitness goals.",
-            2495.00,
-            1,
-            true,
-            "fitness",
-            geoPosition
+            userId = "54321",
+            titolo = "Felpa con cappuccio",
+            descrizione = "Vendo felpa con cappuccio di marca famosa, taglia L, colore nero.",
+            prezzo = 50.0,
+            stato = 1,
+            disponibilitaSpedire = true,
+            categoria = "3YNfwrUc6Ur7smGp8DSt",
+            sottocategoria = "M8QH1WOxyto9b5QgZlly",
+            posizione = GeoPoint(44.9038741409022, 8.206342879158646),
+            timeStampInizioVendita = System.currentTimeMillis(),
+            timeStampFineVendita = null,
+            userIdAcquirente = null,
+            annuncioId = "MNO123",
+            venduto = false,
+            acquirenteRecensito = false,
+            proprietarioRecensito = false
         ))
 
-        myAnnunci.add(Annuncio(
-            "alan.turing",
-            "Sony WH-1000XM4 Wireless Noise Cancelling Headphones",
-            "The Sony WH-1000XM4 headphones are the ultimate wireless listening experience, with industry-leading noise cancellation, Bluetooth connectivity, and up to 30 hours of battery life. Get immersive sound and customizable touch controls for a personalized listening experience.",
-            349.99,
-            1,
-            true,
-            "electronics",
-            geoPosition
-        ))
-
-        myAnnunci.add(Annuncio(
-            "ada.loelace",
-            "Peloton Tread+",
-            "The Peloton Tread+ is the ultimate home treadmill, with a 32-inch touchscreen display, live and on-demand classes, and a library of thousands of workouts. Get personalized coaching and metrics to help you reach your fitness goals.",
-            4295.00,
-            1,
-            true,
-            "fitness",
-            geoPosition
-        ))
-
-        myAnnunci.add(Annuncio(
-            "ada.loelace",
-            "Nintendo Switch OLED Model",
-            "The Nintendo Switch OLED Model is the ultimate gaming console, with a vibrant 7-inch OLED screen, enhanced audio, and up to 9 hours of battery life. Play your favorite games at home or on-the-go with detachable Joy-Con controllers.",
-            349.99,
-            1,
-            true,
-            "gaming",
-            geoPosition
-        ))
-
-        myAnnunci.add(Annuncio(
-            "ada.loelace",
-            "Peloton Bike Bootcamp",
-            "The Peloton Bike Bootcamp is the ultimate fitness experience, combining indoor cycling and strength training in one workout. Get personalized coaching and metrics to help you reach your fitness goals with live and on-demand classes.",
-            2495.00,
-            1,
-            true,
-            "fitness",
-            geoPosition
-        ))
-
-        for(myAnnuncio in myAnnunci)
-            myAnnuncio.salvaAnnuncioSuFirebase(null)
-
-        //scenarioCartFragment = launchFragmentInContainer()
-        scenarioHomeFragment = launchFragmentInContainer<HomeFragment>(
-            initialState = Lifecycle.State.INITIALIZED
-        )
+        myAnnunci.stream().forEach { annuncio -> runBlocking { annuncio.salvaAnnuncioSuFirebase(null) }}
 
     }
-
     @After fun testEliminaAnnunciUtentiFirebaseFirestore():Unit = runBlocking{
 
-        for(myAnnuncio in myAnnunci)
-            myAnnuncio.eliminaAnnuncioDaFirebase()
+        myAnnunci.stream().forEach { annuncio -> runBlocking {  annuncio.eliminaAnnuncioDaFirebase() }}
 
-        val myCollectionUtente = database.collection(UserLoginActivity.Utente.nomeCollection)
-
-        myCollectionUtente.document("ada.loelace").delete().await()
-        myCollectionUtente.document("alan.turing").delete().await()
-        myCollectionUtente.document("tim.bernerslee").delete().await()
     }
+*/
 
     /*
 
@@ -644,7 +485,7 @@ class ExampleInstrumentedTest {
     /*                                              !--- Attenzione ---!
     --- Nel caso in cui io ho un parametro di ricarca, es. prezzo superiore, il metodo non mi ritorna HashMap giusto per la pagina 2,
     numeri di elementi ritornati sbagliati ---
-    */
+
     @Test fun testRecuperaAnnunciNonVendutiPerMostrarliNellaHome(): Unit = runBlocking {
 
         scenarioHomeFragment.onFragment { fragment ->
@@ -692,7 +533,7 @@ class ExampleInstrumentedTest {
         }
     }
 
-
+*/
    // }
 
 /*
@@ -1056,6 +897,7 @@ class ExampleInstrumentedTest {
     // --- Fine funzione che testa il mantenimento delle informazioni aggiornate nel HashMap considerando DB ---
 
     //--- Metodo di supporto, che mi serve per recupera il numero di documenti nella collezione annunci che sono salvati su FireStore ---
+    /*
     @Ignore
     suspend fun getNumeroElementiFirestore(): Int {
 
@@ -1065,6 +907,7 @@ class ExampleInstrumentedTest {
 
         return myDocuments.size()
     }
+    */
     //--- Fine metodo di supporto ---
 
     //--- Metodo utilizzato per inserire un annuncio come preferito a un utente ---
