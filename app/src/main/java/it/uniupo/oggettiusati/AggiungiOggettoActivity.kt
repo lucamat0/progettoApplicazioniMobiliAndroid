@@ -7,19 +7,20 @@ import android.location.Location
 import android.net.Uri
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.util.TypedValue
 import android.view.View
 import android.widget.AdapterView
 import android.widget.AdapterView.OnItemSelectedListener
 import android.widget.ArrayAdapter
 import android.widget.Button
 import android.widget.EditText
+import android.widget.HorizontalScrollView
+import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.Spinner
-import android.widget.Switch
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.widget.SwitchCompat
-import com.google.android.gms.maps.model.LatLng
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
@@ -51,6 +52,17 @@ class AggiungiOggettoActivity : AppCompatActivity() {
         val viewSpedizioneOgg = findViewById<SwitchCompat>(R.id.spedizione)
 
         val categorie: List<UserLoginActivity.Categoria>
+        var userInteraction = false
+        var annuncioCorrenteN: Annuncio? = null
+
+        if(flagModifica == true && annuncioId != null) {
+                runBlocking {
+                    annuncioCorrenteN = UserLoginActivity.documentoAnnuncioToObject(
+                        database.collection(Annuncio.nomeCollection).document(annuncioId).get()
+                            .await()
+                    )
+                }
+        }
 
         runBlocking {
             categorie = UserLoginActivity.recuperaCategorieFirebase()
@@ -76,6 +88,14 @@ class AggiungiOggettoActivity : AppCompatActivity() {
                     } else {
                         findViewById<LinearLayout>(R.id.layout_sottocategoria).visibility = View.GONE
                     }
+                    if(userInteraction == false) {
+                        if(annuncioCorrenteN != null) {
+
+                            val annuncioCorrente = annuncioCorrenteN as Annuncio
+                            impostaCategoriaOggetto(categorie, annuncioCorrente, viewCategoriaOgg, viewSottoCategOgg)
+                        }
+                        userInteraction = true
+                    }
                 }
                 override fun onNothingSelected(parent: AdapterView<*>?) { }
             }
@@ -86,40 +106,63 @@ class AggiungiOggettoActivity : AppCompatActivity() {
         if(flagModifica == true) {
             btnCreaOggetto.text = "salva modifiche"
             findViewById<TextView>(R.id.titolo_activity_aggiungi_oggetto).text = "Modifica oggetto:"
-            if(annuncioId != null){
-                runBlocking {
-                    val annuncioCorrente = database.collection(Annuncio.nomeCollection).document(annuncioId).get().await()
+            if(annuncioCorrenteN != null){
 
-                    viewNomeOgg.setText(annuncioCorrente.getString("titolo"))
-                    //viewCategoriaOgg.setSelection(/*indice dello spinner che contiene il nome della categoria il cui id e' indcato nell annuncio*/)
-                    val posizione = annuncioCorrente.getGeoPoint("posizione")
+                val annuncioCorrente = annuncioCorrenteN as Annuncio
+                viewNomeOgg.setText(annuncioCorrente.getTitolo())
 
-                    var geocodeAddressesMatches: List<Address>? = null
+                impostaCategoriaOggetto(categorie, annuncioCorrente, viewCategoriaOgg, viewSottoCategOgg)
 
-                    try {
-                        geocodeAddressesMatches = Geocoder(this@AggiungiOggettoActivity).getFromLocation(posizione!!.latitude, posizione.longitude, 1)
-                    } catch (e: IOException) {
-                        e.printStackTrace()
-                    }
-                    val locality: String?
+                val posizione = annuncioCorrente.getPosizione()
+
+                var geocodeAddressesMatches: List<Address>? = null
+
+                try {
+                    geocodeAddressesMatches = Geocoder(this@AggiungiOggettoActivity).getFromLocation(posizione.latitude, posizione.longitude, 1)
+                } catch (e: IOException) {
+                    e.printStackTrace()
+                }
+                val locality: String?
 
 
-                    if (!geocodeAddressesMatches.isNullOrEmpty()) {
-                        locality = geocodeAddressesMatches[0].locality //comune
-                        viewTestoPosizioneOgg.setText("$locality")
-                    } else
-                        Toast.makeText(this@AggiungiOggettoActivity, "Error getting address ", Toast.LENGTH_LONG).show()
+                if (!geocodeAddressesMatches.isNullOrEmpty()) {
+                    locality = geocodeAddressesMatches[0].locality //comune
+                    viewTestoPosizioneOgg.setText("$locality")
+                } else
+                    Toast.makeText(this@AggiungiOggettoActivity, "Error getting address ", Toast.LENGTH_LONG).show()
 
 //                    viewTestoPosizioneOgg.setText("${posizione?.latitude} ${posizione?.longitude}")
 
-                    viewDescrizioneOgg.setText(annuncioCorrente.getString("descrizione"))
-                    viewTestoPrezzoOgg.setText(annuncioCorrente.getDouble("prezzo").toString())
-                    viewStatoOgg.setSelection(annuncioCorrente.getLong("stato")!!.toInt())
-                    viewSpedizioneOgg.isChecked = annuncioCorrente.getBoolean("disponibilitaSpedire") == true
-                }
+                viewDescrizioneOgg.setText(annuncioCorrente.getDescrizione())
+                viewTestoPrezzoOgg.setText(annuncioCorrente.getPrezzo().toString())
+                viewStatoOgg.setSelection(annuncioCorrente.getStato())
+                viewSpedizioneOgg.isChecked = annuncioCorrente.getDisponibilitaSpedire()
+
+                findViewById<HorizontalScrollView>(R.id.immagini_oggetto).visibility = View.VISIBLE
+
+                val imgScaricate = arrayOf("img1", "img2")
+//                for(imgEl in imgScaricate) {
+//                    val img = ImageView(this)
+//                    img.setImageResource(R.drawable.sea_wave_beautifully_1920x1080)
+//                    img.adjustViewBounds = true
+//                    val lP = LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT,LinearLayout.LayoutParams.WRAP_CONTENT)
+//                    lP.setMargins(
+//                        (this.resources.displayMetrics.density * 10).toInt(),
+//                        TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 10f, this.resources.displayMetrics).toInt(),
+//                        resources.getDimension(R.dimen.photo_margin).toInt(),
+//                        resources.getDimension(R.dimen.photo_margin).toInt()
+//                    )
+//                    img.layoutParams = lP
+//
+//                    img.setTag(0, imgEl.id)
+//                    img.setOnClickListener {
+//                        cancellaImmagine(img.getTag(0))
+//                    }
+//
+//                    findViewById<LinearLayout>(R.id.contenitore_immagini).addView(img)
+//                }
+
             }
-
-
         }
 
         val btnPickImg = findViewById<Button>(R.id.pick_photo)
@@ -135,8 +178,8 @@ class AggiungiOggettoActivity : AppCompatActivity() {
         btnCreaOggetto.setOnClickListener {
             //qui codice per creare un nuovo oggetto su firebase
             val nomeOgg = viewNomeOgg.text.toString()
-            val categoriaOgg = categorie[viewCategoriaOgg.selectedItemPosition].id
-            val sottoCategOgg = categorie[viewCategoriaOgg.selectedItemPosition].sottocategorie?.toList()?.get(viewSottoCategOgg.selectedItemPosition)?.id
+            val idCategoriaOgg = categorie[viewCategoriaOgg.selectedItemPosition].id
+            val idSottoCategOgg = categorie[viewCategoriaOgg.selectedItemPosition].sottocategorie?.toList()?.get(viewSottoCategOgg.selectedItemPosition)?.id
             val testoPosizioneOgg = viewTestoPosizioneOgg.text.toString()
             val descrizioneOgg = viewDescrizioneOgg.text.toString()
             val testoPrezzoOgg = viewTestoPrezzoOgg.text.toString()
@@ -162,7 +205,7 @@ class AggiungiOggettoActivity : AppCompatActivity() {
                     posizioneOgg.longitude = geocodeCoordinatesMatches[0].longitude
 
                     val prezzoOgg = testoPrezzoOgg.toDouble()
-                    val newAnnuncio = Annuncio(auth.uid!!, nomeOgg, descrizioneOgg, prezzoOgg, viewStatoOgg.selectedItemPosition, viewSpedizioneOgg.isChecked, categoriaOgg, sottoCategOgg, posizioneOgg)
+                    val newAnnuncio = Annuncio(auth.uid!!, nomeOgg, descrizioneOgg, prezzoOgg, viewStatoOgg.selectedItemPosition, viewSpedizioneOgg.isChecked, idCategoriaOgg, idSottoCategOgg, posizioneOgg)
 
                     runBlocking {
                         if(flagModifica == true) {
@@ -182,6 +225,18 @@ class AggiungiOggettoActivity : AppCompatActivity() {
                 Toast.makeText(this, "Riempi tutti i campi, alcuni sono vuoti.", Toast.LENGTH_LONG).show()
             }
         }
+    }
+
+    private fun impostaCategoriaOggetto(
+        categorie: List<UserLoginActivity.Categoria>,
+        annuncioCorrente: Annuncio,
+        viewCategoriaOgg: Spinner,
+        viewSottoCategOgg: Spinner
+    ) {
+        val categoria = categorie.indexOf(UserLoginActivity.Categoria(annuncioCorrente.getCategoria()))
+        viewCategoriaOgg.setSelection(categoria)
+        if(annuncioCorrente.getSottocategoria() != null)
+            viewSottoCategOgg.setSelection(categorie.get(categoria).sottocategorie!!.indexOf(UserLoginActivity.Categoria(annuncioCorrente.getSottocategoria()!!)))
     }
 
     private fun selezionaImmagini() {

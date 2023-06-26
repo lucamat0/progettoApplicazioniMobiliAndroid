@@ -1,105 +1,225 @@
 <?xml version="1.0" encoding="utf-8"?>
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <LinearLayout
+    <ScrollView
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:layout_marginStart="5dp"
-        android:layout_marginTop="10dp">
+        android:layout_height="match_parent">
 
-        <TextView
-            android:id="@+id/num_ogg_in_vendita"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Oggetti in vendita in questo momento: ####"
-            android:textSize="18sp"/>
-
-        <TextView
-            android:id="@+id/tempo_medio_vendita"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Tempo medio vendita di un oggetto: #### giorni"
-            android:layout_marginTop="15dp"
-            android:textSize="18sp"/>
         <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:gravity="center"
-            android:orientation="horizontal"
-            android:layout_marginTop="15dp"
-
-            >
+            android:layout_height="match_parent"
+            android:orientation="vertical"
+            android:layout_marginStart="5dp"
+            android:layout_marginTop="10dp">
 
             <TextView
-                android:layout_width="0dp"
+                android:id="@+id/num_ogg_in_vendita"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Inserisci punto"
-                android:layout_gravity="center"
-                android:textSize="18sp"
-                android:layout_weight="1"
+                android:text="Oggetti in vendita in questo momento: ####"
+                android:textSize="18sp"/>
+
+            <TextView
+                android:id="@+id/tempo_medio_vendita"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Tempo medio vendita di un oggetto: #### giorni"
+                android:layout_marginTop="15dp"
+                android:textSize="18sp"/>
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:orientation="horizontal"
+                android:layout_marginTop="15dp"
+
+                >
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:text="Inserisci punto"
+                    android:layout_gravity="center"
+                    android:textSize="18sp"
+                    android:layout_weight="1"
+                    />
+                <EditText
+                    android:id="@+id/latitudine_ricerca_admin"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:hint="Latitudine"
+                    android:inputType="numberDecimal|numberSigned"
+                    android:layout_weight="1"/>
+                <EditText
+                    android:id="@+id/longitudine_ricerca_admin"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:inputType="numberDecimal|numberSigned"
+                    android:hint="Longitudine"
+                    android:layout_weight="1"/>
+
+            </LinearLayout>
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Seleziona distanza:"
+
+                android:textSize="18sp"/>
+            <com.google.android.material.slider.Slider
+                android:id="@+id/adminDistanceSlider"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_margin="5dp"
+                android:value="1"
+                android:valueFrom="1"
+                android:valueTo="100"
+                android:stepSize="1"
                 />
-            <EditText
-                android:id="@+id/latitudine_ricerca_admin"
-                android:layout_width="0dp"
+
+            <TextView
+                android:id="@+id/max_distance_admin"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:hint="Latitudine"
-                android:inputType="numberDecimal|numberSigned"
-                android:layout_weight="1"/>
-            <EditText
-                android:id="@+id/longitudine_ricerca_admin"
-                android:layout_width="0dp"
+                android:text="Distanza max: ... km"
+                android:layout_gravity="end"
+                android:textSize="20sp"
+                android:layout_marginEnd="5dp"
+
+                />
+
+            <Button
+                android:id="@+id/btn_ricerca_admin"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:inputType="numberDecimal|numberSigned"
-                android:hint="Longitudine"
-                android:layout_weight="1"/>
+                android:text="Cerca annunci in quest'area"
+                android:layout_gravity="center"
+                />
+            <TextView
+                android:id="@+id/risultato_ricerca_admin"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Oggetti trovati: "
+                android:textSize="18sp"/>
+
+            <com.google.android.material.divider.MaterialDivider
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:dividerColor="@color/grey"
+                app:dividerThickness="3dp"
+                android:layout_marginVertical="10dp"
+                android:layout_marginRight="5dp"
+                />
+
+            <EditText
+                android:id="@+id/nome_nuova_categoria"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Nuova Categoria"/>
+            <Button
+                android:id="@+id/aggiungi_categoria"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Aggiungi una categoria"/>
+
+            <EditText
+                android:id="@+id/nome_aggiornato_categoria"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Seleziona una Categoria"/>
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:padding="10dp">
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textSize="17sp"
+                    android:text="Categoria:"
+                    android:layout_gravity="center"
+
+                    android:textStyle="bold"
+                    />
+                <Spinner
+                    android:id="@+id/categorie"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:entries="@array/categoriaOggetto"
+                    android:layout_gravity="center"
+                    />
+
+            </LinearLayout>
+            <Button
+                android:id="@+id/modifica_categoria"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="modifica categoria"/>
+
+            <LinearLayout
+                android:id="@+id/layout_sottocategorie"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:visibility="visible">
+
+                <EditText
+                    android:id="@+id/nome_aggiornato_sottocategoria"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="Seleziona una sottocategoria"/>
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:padding="10dp">
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textSize="17sp"
+                        android:text="Sottocategoria:"
+                        android:layout_gravity="center"
+
+                        android:textStyle="bold"
+                        />
+                    <Spinner
+                        android:id="@+id/sottocategorie"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:entries="@array/categoriaOggetto"
+                        android:layout_gravity="center"
+                        />
+
+                </LinearLayout>
+                <Button
+                    android:id="@+id/modifica_sottocategoria"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="modifica sottocategoria"/>
+
+
+            </LinearLayout>
+
+            <EditText
+                android:id="@+id/nome_nuova_sottocategoria"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Nuova sottocategoria di ###"/>
+            <Button
+                android:id="@+id/aggiungi_sottocategoria"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Aggiungi una sottocategoria"
+                android:layout_marginBottom="10dp"
+                />
 
         </LinearLayout>
 
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Seleziona distanza:"
+    </ScrollView>
 
-            android:textSize="18sp"/>
-        <com.google.android.material.slider.Slider
-            android:id="@+id/adminDistanceSlider"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_margin="5dp"
-            android:value="1"
-            android:valueFrom="1"
-            android:valueTo="100"
-            android:stepSize="1"
-            />
 
-        <TextView
-            android:id="@+id/max_distance_admin"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Distanza max: ... km"
-            android:layout_gravity="end"
-            android:textSize="20sp"
-            android:layout_marginEnd="5dp"
-
-            />
-
-        <Button
-            android:id="@+id/btn_ricerca_admin"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Cerca annunci in quest'area"
-            android:layout_gravity="center"
-            />
-        <TextView
-            android:id="@+id/risultato_ricerca_admin"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Oggetti trovati: "
-            android:textSize="18sp"/>
-
-    </LinearLayout>
 
 </FrameLayout>

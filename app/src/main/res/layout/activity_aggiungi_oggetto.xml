@@ -1,155 +1,214 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    tools:context=".AggiungiOggettoActivity"
-    android:orientation="vertical"
-    android:gravity="center_horizontal">
+     android:layout_height="match_parent"
+    android:layout_width="match_parent">
 
-    <TextView
-        android:id="@+id/titolo_activity_aggiungi_oggetto"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:textSize="34sp"
-        android:text="Crea un nuovo oggetto"
-        android:padding="20dp"
-        android:textStyle="bold"
-        />
-
-    <EditText
-        android:id="@+id/nome"
+    <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+        xmlns:tools="http://schemas.android.com/tools"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:hint="Nome Oggetto"
-        android:maxLines="4"/>
+        android:layout_height="match_parent"
+        tools:context=".AggiungiOggettoActivity"
+        android:orientation="vertical"
+        android:gravity="center_horizontal">
 
-    <LinearLayout
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:padding="10dp">
         <TextView
+            android:id="@+id/titolo_activity_aggiungi_oggetto"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:textSize="17sp"
-            android:text="Seleziona la categoria:"
-            android:layout_gravity="center"
-
+            android:textSize="34sp"
+            android:text="Crea un nuovo oggetto"
+            android:padding="20dp"
             android:textStyle="bold"
             />
-        <!--     0 = difettoso, 1 = qualche lieve difetto, 2 = usato ma in perfette condizioni, 3 = nuovo-->
-        <Spinner
-            android:id="@+id/categoria"
+
+        <EditText
+            android:id="@+id/nome"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Nome Oggetto"
+            android:maxLines="4"/>
+
+        <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:entries="@array/categoriaOggetto"
-            android:layout_gravity="center"
+            android:orientation="horizontal"
+            android:padding="10dp">
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="17sp"
+                android:text="Seleziona la categoria:"
+                android:layout_gravity="center"
+
+                android:textStyle="bold"
+                />
+            <Spinner
+                android:id="@+id/categoria"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:entries="@array/categoriaOggetto"
+                android:layout_gravity="center"
+                />
+            <!--        style="@style/Widget.AppCompat.Spinner.Underlined"-->
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/layout_sottocategoria"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:padding="10dp"
+            android:visibility="gone">
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="17sp"
+                android:text="Seleziona la sottocategoria:"
+                android:layout_gravity="center"
+
+                android:textStyle="bold"
+                />
+
+            <Spinner
+                android:id="@+id/sottocategoria"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:entries="@array/categoriaOggetto"
+                android:layout_gravity="center"
+                />
+            <!--        style="@style/Widget.AppCompat.Spinner.Underlined"-->
+        </LinearLayout>
+        <!--    <EditText-->
+        <!--        android:id="@+id/categoria"-->
+        <!--        android:layout_width="match_parent"-->
+        <!--        android:layout_height="wrap_content"-->
+        <!--        android:hint="Categoria Oggetto"/>-->
+        <EditText
+            android:id="@+id/posizione"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Posizione Oggetto"/>
+        <EditText
+            android:id="@+id/descrizione"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Descrizione Oggetto"
+            android:minLines="4"
+            android:maxLines="5"/>
+        <EditText
+            android:id="@+id/prezzo"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Prezzo Oggetto"
+            android:inputType="numberDecimal"/>
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:padding="10dp">
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="17sp"
+                android:text="Seleziona lo stato dell'oggetto:"
+
+                android:textStyle="bold"
+                />
+            <!--     0 = difettoso, 1 = qualche lieve difetto, 2 = usato ma in perfette condizioni, 3 = nuovo-->
+            <Spinner
+                android:id="@+id/stato"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:entries="@array/statoOggetto"
+                android:layout_gravity="center"
+
+                />
+        </LinearLayout>
+
+        <Button
+            android:id="@+id/pick_photo"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="seleziona foto"
+            android:layout_margin="10dp"/>
+
+        <androidx.appcompat.widget.SwitchCompat
+            android:id="@+id/spedizione"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:checked="false"
+            android:paddingVertical="10dp"
+            android:contentDescription="spedizione"
+            android:text="Spedizione: "
+            android:textSize="18sp"
             />
-<!--        style="@style/Widget.AppCompat.Spinner.Underlined"-->
+        <!--  com.google.android.material.switchmaterial.SwitchMaterial  -->
+
+        <HorizontalScrollView
+            android:id="@+id/immagini_oggetto"
+            android:layout_width="wrap_content"
+            android:layout_height="400dp"
+            android:visibility="gone">
+
+            <LinearLayout
+                android:id="@+id/contenitore_immagini"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <ImageView
+                    android:id="@+id/fotoPreview"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:src="@drawable/sea_wave_beautifully_1920x1080"
+                    android:adjustViewBounds="true"
+                    android:scaleType="fitXY"
+                    android:paddingVertical="10dp"
+                    android:layout_margin="10dp"/>
+                <ImageView
+                    android:id="@+id/fotoPreview2"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:src="@drawable/sea_wave_beautifully_1920x1080"
+                    android:adjustViewBounds="true"
+                    android:paddingVertical="10dp"
+                    android:layout_margin="10dp"/>
+                <ImageView
+                    android:id="@+id/fotoPreview3"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:src="@drawable/sea_wave_beautifully_1920x1080"
+                    android:adjustViewBounds="true"
+                    android:paddingVertical="10dp"
+                    android:layout_margin="10dp"/>
+                <ImageView
+                    android:id="@+id/fotoPreview4"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:src="@drawable/sea_wave_beautifully_1920x1080"
+                    android:adjustViewBounds="true"
+                    android:paddingVertical="10dp"
+                    android:layout_margin="10dp"/>
+
+            </LinearLayout>
+
+        </HorizontalScrollView>
+
+        <Button
+            android:id="@+id/crea_nuovo_oggetto"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Salva"
+            android:textSize="18sp"
+            android:layout_margin="10dp"/>
+
+
     </LinearLayout>
 
-    <LinearLayout
-        android:id="@+id/layout_sottocategoria"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:padding="10dp"
-        android:visibility="gone">
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textSize="17sp"
-            android:text="Seleziona la sottocategoria:"
-            android:layout_gravity="center"
 
-            android:textStyle="bold"
-            />
-        <!--     0 = difettoso, 1 = qualche lieve difetto, 2 = usato ma in perfette condizioni, 3 = nuovo-->
-        <Spinner
-            android:id="@+id/sottocategoria"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:entries="@array/categoriaOggetto"
-            android:layout_gravity="center"
-            />
-        <!--        style="@style/Widget.AppCompat.Spinner.Underlined"-->
-    </LinearLayout>
-<!--    <EditText-->
-<!--        android:id="@+id/categoria"-->
-<!--        android:layout_width="match_parent"-->
-<!--        android:layout_height="wrap_content"-->
-<!--        android:hint="Categoria Oggetto"/>-->
-    <EditText
-        android:id="@+id/posizione"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:hint="Posizione Oggetto"/>
-    <EditText
-        android:id="@+id/descrizione"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:hint="Descrizione Oggetto"
-        android:minLines="4"
-        android:maxLines="5"/>
-    <EditText
-        android:id="@+id/prezzo"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:hint="Prezzo Oggetto"
-        android:inputType="numberDecimal"/>
-
-    <LinearLayout
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:padding="10dp">
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textSize="17sp"
-            android:text="Seleziona lo stato dell'oggetto:"
-
-            android:textStyle="bold"
-            />
-        <!--     0 = difettoso, 1 = qualche lieve difetto, 2 = usato ma in perfette condizioni, 3 = nuovo-->
-        <Spinner
-            android:id="@+id/stato"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:entries="@array/statoOggetto"
-            android:layout_gravity="center"
-
-            />
-    </LinearLayout>
-
-    <Button
-        android:id="@+id/pick_photo"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="seleziona foto"
-        android:layout_margin="10dp"/>
-
-    <androidx.appcompat.widget.SwitchCompat
-        android:id="@+id/spedizione"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:checked="false"
-        android:paddingVertical="10dp"
-        android:contentDescription="spedizione"
-        android:text="Spedizione: "
-        android:textSize="18sp"
-        />
-    <!--  com.google.android.material.switchmaterial.SwitchMaterial  -->
-
-    <Button
-        android:id="@+id/crea_nuovo_oggetto"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Salva"
-        android:textSize="18sp"
-        android:layout_margin="10dp"/>
-
-
-</LinearLayout>
+</ScrollView>
