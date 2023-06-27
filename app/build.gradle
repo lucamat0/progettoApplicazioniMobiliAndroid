@@ -5,7 +5,6 @@ plugins {
     id 'com.google.android.libraries.mapsplatform.secrets-gradle-plugin'
 
 }
-
 android {
     namespace 'it.uniupo.oggettiusati'
     compileSdk 33

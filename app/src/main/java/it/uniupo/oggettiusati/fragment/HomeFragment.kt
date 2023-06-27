@@ -18,16 +18,12 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.widget.SwitchCompat
 import androidx.core.app.ActivityCompat
-import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
+import com.google.android.gms.location.Priority
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.gms.location.LocationServices
-import com.google.android.gms.location.Priority
-import com.google.android.gms.maps.GoogleMap
-import com.google.android.gms.maps.OnMapReadyCallback
-import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.tasks.CancellationToken
 import com.google.android.gms.tasks.CancellationTokenSource
 import com.google.android.gms.tasks.OnTokenCanceledListener
@@ -35,9 +31,7 @@ import com.google.android.material.slider.RangeSlider
 import com.google.android.material.slider.Slider
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.DocumentSnapshot
-import com.google.firebase.firestore.GeoPoint
 import com.google.firebase.firestore.ListenerRegistration
-import com.google.firebase.firestore.auth.User
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 import it.uniupo.oggettiusati.Annuncio
@@ -45,7 +39,6 @@ import it.uniupo.oggettiusati.adapter.CustomAdapter
 import it.uniupo.oggettiusati.R
 import it.uniupo.oggettiusati.UserLoginActivity
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
@@ -229,7 +222,6 @@ class HomeFragment(private val isAdmin: Boolean) : Fragment() {
         ).forEach {
             it?.isChecked = false
         }
-
         selezionaDistanza?.setOnClickListener {
             val permission = ActivityCompat.checkSelfPermission(requireActivity(), android.Manifest.permission.ACCESS_FINE_LOCATION)
             if (permission != PackageManager.PERMISSION_GRANTED) {
@@ -285,7 +277,8 @@ class HomeFragment(private val isAdmin: Boolean) : Fragment() {
                             }
 
 
-                            val currentUserLocation = fusedLocationClient.getCurrentLocation(Priority.PRIORITY_HIGH_ACCURACY, object : CancellationToken() {
+                            val currentUserLocation = fusedLocationClient.getCurrentLocation(
+                                Priority.PRIORITY_HIGH_ACCURACY, object : CancellationToken() {
                                 override fun onCanceledRequested(listener: OnTokenCanceledListener): CancellationToken {
                                     return CancellationTokenSource().token
                                 }
@@ -473,7 +466,11 @@ class HomeFragment(private val isAdmin: Boolean) : Fragment() {
         ActivityCompat.requestPermissions(requireActivity(), arrayOf(permissioType), requestCode)
     }
 
-    //Sospendo il metodo, per aspettare che la lista dei documenti sia stata recuperata e insirita nel arrayList
+    /**
+     * Reimposta le variabili di stato per recuperare tutti gli annunci.
+     *
+     * @author Amato Luca
+     */
     fun recuperaTuttiAnnunci() {
 
         this.disponibilitaSpedire = null
@@ -482,7 +479,7 @@ class HomeFragment(private val isAdmin: Boolean) : Fragment() {
         this.disponibilitaSpedire = null
     }
 
-    //Fissano un limite inferiore
+    //Da guardare!!!
     fun recuperaAnnunciPrezzoInferiore(prezzoMinore: Int){
 
         this.prezzoInferiore = prezzoMinore
@@ -503,11 +500,25 @@ class HomeFragment(private val isAdmin: Boolean) : Fragment() {
         this.prezzoSuperiore = prezzoSuperiore
     }
 
-    //Ritorna gli annunci che rispettano la disponibilitá di spedire.
+    /**
+     * Imposta la disponibilità di spedizione per il recupero degli annunci
+     *
+     * @author Amato Luca
+     * @param disponibilitaSpedire True se l'annuncio deve essere spedito mentre False se non deve ed infine null se non fa differenza
+     */
     fun recuperaAnnunciDisponibilitaSpedire(disponibilitaSpedire: Boolean?) {
         this.disponibilitaSpedire = disponibilitaSpedire
     }
 
+    /**
+     * Gestisce la sottoscrizione ai cambiamenti in tempo reale dei documenti nel database.
+     *
+     * @author Amato Luca
+     * @param myDocumentiRef Riferimento al documento nel database
+     * @param myListenerPrec Lista dei listener ai documenti precedenti, da rimuovere
+     * @param myAnnunci Mappa degli annunci in cui aggiornare i documenti modificati.
+     * @return Lista dei listener aggiornati.
+     */
     private fun subscribeRealTimeDatabase(
         myDocumentiRef: Set<DocumentSnapshot>,
         myListenerPrec: MutableList<ListenerRegistration>,
@@ -539,8 +550,19 @@ class HomeFragment(private val isAdmin: Boolean) : Fragment() {
         return myListener
     }
 
-    //--- Mi notifica quando il numero di annunci, che rispettano i criteri cambia ---
-
+    /**
+     * TODO
+     *
+     * @author Amato Luca
+     * @param idUtente Identificativo dell'utente
+     * @param titoloAnnuncio
+     * @param disponibilitaSpedire
+     * @param prezzoSuperiore
+     * @param prezzoInferiore
+     * @param distanzaMax
+     * @param posizioneUtente
+     * @return
+     */
     private suspend fun inserisciRicercaSuFirebaseFirestore(
         idUtente: String,
         titoloAnnuncio: String?, disponibilitaSpedire: Boolean?, prezzoSuperiore: Int?, prezzoInferiore: Int?, distanzaMax : Int?, posizioneUtente: Location

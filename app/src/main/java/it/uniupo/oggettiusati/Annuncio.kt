@@ -195,6 +195,7 @@ data class Annuncio(
                 caricaImmaginiSuFirebase(myImmagini)
     }
 
+
     /**
      * Aggiorna annuncio corrente su Firebase
      *
@@ -219,6 +220,16 @@ data class Annuncio(
         val myDocument = myCollection.document(this.annuncioId)
 
         myDocument.delete().await()
+    }
+
+    /**
+     * Elimina un immagine appartenente a questo Annuncio dal cloud
+     *
+     * @author Amato Luca
+     * @param nomeImmagine Identificativo dell'immagine
+     */
+    suspend fun eliminaImmagineSuFirebase(nomeImmagine: String){
+        storageRef.child(nomeImmagine).delete().await()
     }
 
     /**

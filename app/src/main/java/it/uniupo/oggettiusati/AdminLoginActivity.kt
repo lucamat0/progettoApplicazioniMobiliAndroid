@@ -158,5 +158,49 @@ class AdminLoginActivity : UserLoginActivity() {
 
         return myUtenti.sumOf { utente -> runBlocking {  utente.calcolaTempoMedioAnnunciVenduti() } } / myUtenti.size
     }
+
+    /**
+     * Crea una nuova categoria
+     *
+     * @author Amato Luca
+     * @param nomeNuovaCategoria Nome della nuova categoria
+     */
+    suspend fun creaNuovaCategoriaFirebaseFirestore(nomeNuovaCategoria: String){
+        database.collection("categoria").add("nome" to  nomeNuovaCategoria).await()
+    }
+
+    /**
+     * Modifica una categoria esistente
+     *
+     * @author Amato Luca
+     * @param idCategoria Identificativo della categoria
+     * @param nomeAggiornatoCategoria Nome aggiornato della categoria
+     */
+    suspend fun modificaCategoriaFirebaseFirestore(idCategoria: String,nomeAggiornatoCategoria: String){
+        database.collection("categoria").document(idCategoria).update("nome", nomeAggiornatoCategoria).await()
+    }
+
+    /**
+     * Modifica una sottocategoria esistente
+     *
+     * @author Amato Luca
+     * @param idCategoria Identificativo della categoria a cui appartiene la sottocategoria
+     * @param idSottocategoria Identificativo della sottocategoria
+     * @param nomeAggiornatoSottocategoria Nome aggiornato della sottocategoria
+     */
+    suspend fun modificaSottocategoriaFirebaseFirestore(idCategoria: String, idSottocategoria: String, nomeAggiornatoSottocategoria: String){
+        database.collection("categoria").document(idCategoria).collection("sottocategoria").document(idSottocategoria).update("nome",nomeAggiornatoSottocategoria).await()
+    }
+
+    /**
+     * Crea una nuova sottocategoria
+     *
+     * @author Amato Luca
+     * @param idCategoria Identificativo della categoria a cui appartiene la sottocategoria
+     * @param nomeNuovaSottocategoria Nome della nuova sottocategoria
+     */
+    suspend fun creaNuovaSottocategoriaFirebaseFirestore(idCategoria: String, nomeNuovaSottocategoria: String){
+        database.collection("categoria").document(idCategoria).collection("sottocategoria").add("nome" to nomeNuovaSottocategoria).await()
+    }
 }
 
