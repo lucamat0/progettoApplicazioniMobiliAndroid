@@ -185,7 +185,11 @@ class AggiungiOggettoActivity : AppCompatActivity() {
             //qui codice per creare un nuovo oggetto su firebase
             val nomeOgg = viewNomeOgg.text.toString()
             val idCategoriaOgg = categorie[viewCategoriaOgg.selectedItemPosition].id
-            val idSottoCategOgg = categorie[viewCategoriaOgg.selectedItemPosition].sottocategorie?.toList()?.get(viewSottoCategOgg.selectedItemPosition)?.id
+            val idSottoCategOgg =
+                if(categorie[viewCategoriaOgg.selectedItemPosition].sottocategorie.isNullOrEmpty())
+                     null
+                else
+                    categorie[viewCategoriaOgg.selectedItemPosition].sottocategorie?.toList()?.get(viewSottoCategOgg.selectedItemPosition)?.id
             val testoPosizioneOgg = viewTestoPosizioneOgg.text.toString()
             val descrizioneOgg = viewDescrizioneOgg.text.toString()
             val testoPrezzoOgg = viewTestoPrezzoOgg.text.toString()
