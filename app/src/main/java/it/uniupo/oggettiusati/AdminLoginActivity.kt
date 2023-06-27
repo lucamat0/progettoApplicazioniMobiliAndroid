@@ -36,8 +36,6 @@ private val tabIcons :IntArray= intArrayOf(
  */
 class AdminLoginActivity : UserLoginActivity() {
 
-    private val database = Firebase.firestore
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_admin_logged)
@@ -52,6 +50,21 @@ class AdminLoginActivity : UserLoginActivity() {
             tab.text = pageTitlesArray[position]
             tab.icon = ContextCompat.getDrawable(this, tabIcons[position])
         }.attach()
+    }
+
+    companion object{
+
+        private val database = Firebase.firestore
+
+        /**
+         * Controlla se l'utente specificato è un amministratore
+         *
+         * @param userId Identificativo dell'utente
+         * @return true se l'utente e' un amministratore altrimenti false
+         */
+        suspend fun isAmministratore(userId: String): Boolean {
+            return database.collection("utente").document(userId).get().await().getBoolean("amministratore") as Boolean
+        }
     }
 
     /**

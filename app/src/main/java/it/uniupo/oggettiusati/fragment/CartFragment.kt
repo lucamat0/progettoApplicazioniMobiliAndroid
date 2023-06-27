@@ -203,7 +203,7 @@ class CartFragment(private val isAdmin: Boolean) : Fragment() {
          *
          * @author Amato Luca
          * @param userId Identificativo dell'utente
-         * @return HashMap contenente gli annunci nel carrello con l'ID dell'annuncio come chiave e l'oggetto Annuncio come valore.
+         * @return HashMap contenente gli annunci nel carrello con l'identificativo dell'annuncio come chiave e l'oggetto Annuncio come valore
          */
         suspend fun recuperaAnnunciCarrelloFirebaseFirestore(userId: String): HashMap<String, Annuncio> {
 

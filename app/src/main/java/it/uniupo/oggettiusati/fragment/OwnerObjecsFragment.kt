@@ -53,7 +53,14 @@ class OwnerObjecsFragment(private val isAdmin: Boolean) : Fragment() {
         }
     }
 
-    //--- Inizio metodo da spostare nel fragment che visualizza i miei annunci ---
+
+    /**
+     * Recupera gli annunci dell'utente specificato
+     *
+     * @author Amato Luca
+     * @param userId Identificativo dell'utente
+     * @return  HashMap contenente gli annunci miei con l'identificativo dell'annuncio come chiave e l'oggetto Annuncio come valore
+     */
     private suspend fun recuperaMieiAnnunci(userId: String): HashMap<String, Annuncio> {
 
         val documentoAnnunci = database.collection(Annuncio.nomeCollection).whereEqualTo("userId", userId).get().await()
@@ -69,6 +76,5 @@ class OwnerObjecsFragment(private val isAdmin: Boolean) : Fragment() {
         return myAnnunci
     }
 
-    //--- Fine metodo da spostare nel fragment che visualizza i miei annunci ---
 
 }

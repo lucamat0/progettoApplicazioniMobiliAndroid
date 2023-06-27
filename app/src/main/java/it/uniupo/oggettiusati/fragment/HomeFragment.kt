@@ -479,21 +479,37 @@ class HomeFragment(private val isAdmin: Boolean) : Fragment() {
         this.disponibilitaSpedire = null
     }
 
-    //Da guardare!!!
+    /**
+     * Imposta il limite inferiore di prezzo per il recupero degli annunci
+     *
+     * @author Amato Luca
+     * @param prezzoMinore prezzo inferiore desiderato
+     */
     fun recuperaAnnunciPrezzoInferiore(prezzoMinore: Int){
 
         this.prezzoInferiore = prezzoMinore
         this.prezzoSuperiore = null
     }
 
-    //Fissano un limite superiore
+    /**
+     * Imposta il limite superiore di prezzo per il recupero degli annunci
+     *
+     * @author Amato Luca
+     * @param prezzoSuperiore Prezzo superiore desiderato
+     */
     fun recuperaAnnunciPrezzoSuperiore(prezzoSuperiore: Int) {
 
         this.prezzoInferiore = null
         this.prezzoSuperiore = prezzoSuperiore
     }
 
-    // Fissano un range in cui l'annuncio deve essere compreso tra il prezzo minore e quello maggiore.
+    /**
+     * Imposta i limiti di prezzo per il recupero degli annunci
+     *
+     * @author Amato Luca
+     * @param prezzoMinore prezzo minore desiderato
+     * @param prezzoSuperiore prezzo superiore desiderato
+     */
     fun recuperaAnnunciPrezzoRange(prezzoMinore: Int?, prezzoSuperiore: Int?){
 
         this.prezzoInferiore = prezzoMinore
@@ -551,22 +567,21 @@ class HomeFragment(private val isAdmin: Boolean) : Fragment() {
     }
 
     /**
-     * TODO
+     * Inserisce una ricerca che l'utente ha voluto salvare
      *
      * @author Amato Luca
      * @param idUtente Identificativo dell'utente
-     * @param titoloAnnuncio
-     * @param disponibilitaSpedire
-     * @param prezzoSuperiore
-     * @param prezzoInferiore
-     * @param distanzaMax
-     * @param posizioneUtente
-     * @return
+     * @param titoloAnnuncio Sottostringa che deve essere contenuto nel titolo del annuncio, parametro opzionale
+     * @param disponibilitaSpedire Indica se l'oggetto dell'annuncio è disponibile per la spedizione, parametro opzionale
+     * @param prezzoSuperiore Limite superiore, parametro opzionale
+     * @param prezzoInferiore Limite inferiore, parametro opzionale
+     * @param distanzaMax distanza massima tra utente e annuncio, parametro opzionale
+     * @param posizioneUtente posizione dell'utente
      */
     private suspend fun inserisciRicercaSuFirebaseFirestore(
         idUtente: String,
         titoloAnnuncio: String?, disponibilitaSpedire: Boolean?, prezzoSuperiore: Int?, prezzoInferiore: Int?, distanzaMax : Int?, posizioneUtente: Location
-    ): String {
+    ) {
 
         val myCollectionUtente = this.database.collection(UserLoginActivity.Utente.nomeCollection)
 
@@ -585,20 +600,27 @@ class HomeFragment(private val isAdmin: Boolean) : Fragment() {
             "distanzaMax" to distanzaMax
         )
 
-        return myCollectionRicerca.add(myRicerca).await().id
+        myCollectionRicerca.add(myRicerca).await()
     }
 
-//     suspend fun eliminaRicercaFirebaseFirestore(userId : String, idRicerca: String){
-//
-//        val myCollection = this.database.collection(Utente.nomeCollection)
-//
-//        val myDocumento = myCollection.document(userId)
-//
-//        val myCollectionRicerca = myDocumento.collection("ricerca")
-//
-//        val myDocumentRicerca = myCollectionRicerca.document(idRicerca)
-//
-//        myDocumentRicerca.delete().await()
-//    }
 
+    /**
+     * Elimina una ricerca dell'utente specificato
+     *
+     * @author Amato Luca
+     * @param userId Identificativo dell'utente
+     * @param idRicerca Identificativo della ricerca
+     */
+    suspend fun eliminaRicercaFirebaseFirestore(userId : String, idRicerca: String){
+
+        val myCollection = this.database.collection(UserLoginActivity.Utente.nomeCollection)
+
+        val myDocumento = myCollection.document(userId)
+
+        val myCollectionRicerca = myDocumento.collection("ricerca")
+
+        val myDocumentRicerca = myCollectionRicerca.document(idRicerca)
+
+        myDocumentRicerca.delete().await()
     }
+}
