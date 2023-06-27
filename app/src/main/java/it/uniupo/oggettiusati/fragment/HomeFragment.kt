@@ -18,16 +18,12 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.widget.SwitchCompat
 import androidx.core.app.ActivityCompat
-import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
+import com.google.android.gms.location.Priority
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.gms.location.LocationServices
-import com.google.android.gms.location.Priority
-import com.google.android.gms.maps.GoogleMap
-import com.google.android.gms.maps.OnMapReadyCallback
-import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.tasks.CancellationToken
 import com.google.android.gms.tasks.CancellationTokenSource
 import com.google.android.gms.tasks.OnTokenCanceledListener
@@ -35,9 +31,7 @@ import com.google.android.material.slider.RangeSlider
 import com.google.android.material.slider.Slider
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.DocumentSnapshot
-import com.google.firebase.firestore.GeoPoint
 import com.google.firebase.firestore.ListenerRegistration
-import com.google.firebase.firestore.auth.User
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 import it.uniupo.oggettiusati.Annuncio
@@ -45,7 +39,6 @@ import it.uniupo.oggettiusati.adapter.CustomAdapter
 import it.uniupo.oggettiusati.R
 import it.uniupo.oggettiusati.UserLoginActivity
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
@@ -229,7 +222,6 @@ class HomeFragment(private val isAdmin: Boolean) : Fragment() {
         ).forEach {
             it?.isChecked = false
         }
-
         selezionaDistanza?.setOnClickListener {
             val permission = ActivityCompat.checkSelfPermission(requireActivity(), android.Manifest.permission.ACCESS_FINE_LOCATION)
             if (permission != PackageManager.PERMISSION_GRANTED) {
@@ -285,7 +277,8 @@ class HomeFragment(private val isAdmin: Boolean) : Fragment() {
                             }
 
 
-                            val currentUserLocation = fusedLocationClient.getCurrentLocation(Priority.PRIORITY_HIGH_ACCURACY, object : CancellationToken() {
+                            val currentUserLocation = fusedLocationClient.getCurrentLocation(
+                                Priority.PRIORITY_HIGH_ACCURACY, object : CancellationToken() {
                                 override fun onCanceledRequested(listener: OnTokenCanceledListener): CancellationToken {
                                     return CancellationTokenSource().token
                                 }
@@ -473,7 +466,11 @@ class HomeFragment(private val isAdmin: Boolean) : Fragment() {
         ActivityCompat.requestPermissions(requireActivity(), arrayOf(permissioType), requestCode)
     }
 
-    //Sospendo il metodo, per aspettare che la lista dei documenti sia stata recuperata e insirita nel arrayList
+    /**
+     * Reimposta le variabili di stato per recuperare tutti gli annunci.
+     *
+     * @author Amato Luca
+     */
     fun recuperaTuttiAnnunci() {
 
         this.disponibilitaSpedire = null
@@ -482,32 +479,62 @@ class HomeFragment(private val isAdmin: Boolean) : Fragment() {
         this.disponibilitaSpedire = null
     }
 
-    //Fissano un limite inferiore
+    /**
+     * Imposta il limite inferiore di prezzo per il recupero degli annunci
+     *
+     * @author Amato Luca
+     * @param prezzoMinore prezzo inferiore desiderato
+     */
     fun recuperaAnnunciPrezzoInferiore(prezzoMinore: Int){
 
         this.prezzoInferiore = prezzoMinore
         this.prezzoSuperiore = null
     }
 
-    //Fissano un limite superiore
+    /**
+     * Imposta il limite superiore di prezzo per il recupero degli annunci
+     *
+     * @author Amato Luca
+     * @param prezzoSuperiore Prezzo superiore desiderato
+     */
     fun recuperaAnnunciPrezzoSuperiore(prezzoSuperiore: Int) {
 
         this.prezzoInferiore = null
         this.prezzoSuperiore = prezzoSuperiore
     }
 
-    // Fissano un range in cui l'annuncio deve essere compreso tra il prezzo minore e quello maggiore.
+    /**
+     * Imposta i limiti di prezzo per il recupero degli annunci
+     *
+     * @author Amato Luca
+     * @param prezzoMinore prezzo minore desiderato
+     * @param prezzoSuperiore prezzo superiore desiderato
+     */
     fun recuperaAnnunciPrezzoRange(prezzoMinore: Int?, prezzoSuperiore: Int?){
 
         this.prezzoInferiore = prezzoMinore
         this.prezzoSuperiore = prezzoSuperiore
     }
 
-    //Ritorna gli annunci che rispettano la disponibilitá di spedire.
+    /**
+     * Imposta la disponibilità di spedizione per il recupero degli annunci
+     *
+     * @author Amato Luca
+     * @param disponibilitaSpedire True se l'annuncio deve essere spedito mentre False se non deve ed infine null se non fa differenza
+     */
     fun recuperaAnnunciDisponibilitaSpedire(disponibilitaSpedire: Boolean?) {
         this.disponibilitaSpedire = disponibilitaSpedire
     }
 
+    /**
+     * Gestisce la sottoscrizione ai cambiamenti in tempo reale dei documenti nel database.
+     *
+     * @author Amato Luca
+     * @param myDocumentiRef Riferimento al documento nel database
+     * @param myListenerPrec Lista dei listener ai documenti precedenti, da rimuovere
+     * @param myAnnunci Mappa degli annunci in cui aggiornare i documenti modificati.
+     * @return Lista dei listener aggiornati.
+     */
     private fun subscribeRealTimeDatabase(
         myDocumentiRef: Set<DocumentSnapshot>,
         myListenerPrec: MutableList<ListenerRegistration>,
@@ -539,12 +566,22 @@ class HomeFragment(private val isAdmin: Boolean) : Fragment() {
         return myListener
     }
 
-    //--- Mi notifica quando il numero di annunci, che rispettano i criteri cambia ---
-
+    /**
+     * Inserisce una ricerca che l'utente ha voluto salvare
+     *
+     * @author Amato Luca
+     * @param idUtente Identificativo dell'utente
+     * @param titoloAnnuncio Sottostringa che deve essere contenuto nel titolo del annuncio, parametro opzionale
+     * @param disponibilitaSpedire Indica se l'oggetto dell'annuncio è disponibile per la spedizione, parametro opzionale
+     * @param prezzoSuperiore Limite superiore, parametro opzionale
+     * @param prezzoInferiore Limite inferiore, parametro opzionale
+     * @param distanzaMax distanza massima tra utente e annuncio, parametro opzionale
+     * @param posizioneUtente posizione dell'utente
+     */
     private suspend fun inserisciRicercaSuFirebaseFirestore(
         idUtente: String,
         titoloAnnuncio: String?, disponibilitaSpedire: Boolean?, prezzoSuperiore: Int?, prezzoInferiore: Int?, distanzaMax : Int?, posizioneUtente: Location
-    ): String {
+    ) {
 
         val myCollectionUtente = this.database.collection(UserLoginActivity.Utente.nomeCollection)
 
@@ -563,20 +600,27 @@ class HomeFragment(private val isAdmin: Boolean) : Fragment() {
             "distanzaMax" to distanzaMax
         )
 
-        return myCollectionRicerca.add(myRicerca).await().id
+        myCollectionRicerca.add(myRicerca).await()
     }
 
-//     suspend fun eliminaRicercaFirebaseFirestore(userId : String, idRicerca: String){
-//
-//        val myCollection = this.database.collection(Utente.nomeCollection)
-//
-//        val myDocumento = myCollection.document(userId)
-//
-//        val myCollectionRicerca = myDocumento.collection("ricerca")
-//
-//        val myDocumentRicerca = myCollectionRicerca.document(idRicerca)
-//
-//        myDocumentRicerca.delete().await()
-//    }
 
+    /**
+     * Elimina una ricerca dell'utente specificato
+     *
+     * @author Amato Luca
+     * @param userId Identificativo dell'utente
+     * @param idRicerca Identificativo della ricerca
+     */
+    suspend fun eliminaRicercaFirebaseFirestore(userId : String, idRicerca: String){
+
+        val myCollection = this.database.collection(UserLoginActivity.Utente.nomeCollection)
+
+        val myDocumento = myCollection.document(userId)
+
+        val myCollectionRicerca = myDocumento.collection("ricerca")
+
+        val myDocumentRicerca = myCollectionRicerca.document(idRicerca)
+
+        myDocumentRicerca.delete().await()
     }
+}

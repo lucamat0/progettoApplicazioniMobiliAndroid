@@ -36,8 +36,6 @@ private val tabIcons :IntArray= intArrayOf(
  */
 class AdminLoginActivity : UserLoginActivity() {
 
-    private val database = Firebase.firestore
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_admin_logged)
@@ -52,6 +50,21 @@ class AdminLoginActivity : UserLoginActivity() {
             tab.text = pageTitlesArray[position]
             tab.icon = ContextCompat.getDrawable(this, tabIcons[position])
         }.attach()
+    }
+
+    companion object{
+
+        private val database = Firebase.firestore
+
+        /**
+         * Controlla se l'utente specificato è un amministratore
+         *
+         * @param userId Identificativo dell'utente
+         * @return true se l'utente e' un amministratore altrimenti false
+         */
+        suspend fun isAmministratore(userId: String): Boolean {
+            return database.collection("utente").document(userId).get().await().getBoolean("amministratore") as Boolean
+        }
     }
 
     /**
@@ -157,6 +170,50 @@ class AdminLoginActivity : UserLoginActivity() {
         val myUtenti = recuperaUtenti(auth.uid!!).stream().filter{ utente-> runBlocking {  utente.calcolaTempoMedioAnnunciVenduti() != 0.0 } }.toList()
 
         return myUtenti.sumOf { utente -> runBlocking {  utente.calcolaTempoMedioAnnunciVenduti() } } / myUtenti.size
+    }
+
+    /**
+     * Crea una nuova categoria
+     *
+     * @author Amato Luca
+     * @param nomeNuovaCategoria Nome della nuova categoria
+     */
+    suspend fun creaNuovaCategoriaFirebaseFirestore(nomeNuovaCategoria: String){
+        database.collection("categoria").add("nome" to  nomeNuovaCategoria).await()
+    }
+
+    /**
+     * Modifica una categoria esistente
+     *
+     * @author Amato Luca
+     * @param idCategoria Identificativo della categoria
+     * @param nomeAggiornatoCategoria Nome aggiornato della categoria
+     */
+    suspend fun modificaCategoriaFirebaseFirestore(idCategoria: String,nomeAggiornatoCategoria: String){
+        database.collection("categoria").document(idCategoria).update("nome", nomeAggiornatoCategoria).await()
+    }
+
+    /**
+     * Modifica una sottocategoria esistente
+     *
+     * @author Amato Luca
+     * @param idCategoria Identificativo della categoria a cui appartiene la sottocategoria
+     * @param idSottocategoria Identificativo della sottocategoria
+     * @param nomeAggiornatoSottocategoria Nome aggiornato della sottocategoria
+     */
+    suspend fun modificaSottocategoriaFirebaseFirestore(idCategoria: String, idSottocategoria: String, nomeAggiornatoSottocategoria: String){
+        database.collection("categoria").document(idCategoria).collection("sottocategoria").document(idSottocategoria).update("nome",nomeAggiornatoSottocategoria).await()
+    }
+
+    /**
+     * Crea una nuova sottocategoria
+     *
+     * @author Amato Luca
+     * @param idCategoria Identificativo della categoria a cui appartiene la sottocategoria
+     * @param nomeNuovaSottocategoria Nome della nuova sottocategoria
+     */
+    suspend fun creaNuovaSottocategoriaFirebaseFirestore(idCategoria: String, nomeNuovaSottocategoria: String){
+        database.collection("categoria").document(idCategoria).collection("sottocategoria").add("nome" to nomeNuovaSottocategoria).await()
     }
 }
 

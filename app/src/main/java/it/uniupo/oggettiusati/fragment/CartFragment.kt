@@ -12,9 +12,7 @@ import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.firestore.CollectionReference
 import com.google.firebase.firestore.DocumentSnapshot
-import com.google.firebase.firestore.GeoPoint
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 import it.uniupo.oggettiusati.Annuncio
@@ -77,10 +75,25 @@ class CartFragment(private val isAdmin: Boolean) : Fragment() {
 
         val database = Firebase.firestore
 
+        /**
+         * Verifica se utente specificato ha un saldo sufficente sul proprio account
+         *
+         * @author Amato Luca
+         * @param idUtente Identificativo dell'utente da verificare
+         * @param prezzoAcquisto Prezzo dell'acquisto da confrontare con il saldo dell'account
+         * @return true se il saldo del account e' sufficente altrimenti false
+         */
         private suspend fun isAcquistabile(idUtente: String, prezzoAcquisto: Double): Boolean {
             return saldoAccount(idUtente) >= prezzoAcquisto
         }
 
+        /**
+         * Recupera il saldo dell'account per l'utente specificato.
+         *
+         * @author Amato Luca
+         * @param idUtente Identificativo dell'utente
+         * @return saldo dell'account
+         */
         private suspend fun saldoAccount(idUtente: String): Double {
 
             val myCollection = database.collection(UserLoginActivity.Utente.nomeCollection)
@@ -106,6 +119,13 @@ class CartFragment(private val isAdmin: Boolean) : Fragment() {
             return saldoAccount
         }
 
+        /**
+         * Inserisce un annuncio nel carrello all'utente specificato
+         *
+         * @author Amato Luca
+         * @param userId Identificativo dell'utente
+         * @param annuncioId Identificativo dell'annuncio
+         */
         suspend fun inserisciAnnuncioCarrelloFirebaseFirestore(
             userId: String,
             annuncioId: String
@@ -127,6 +147,13 @@ class CartFragment(private val isAdmin: Boolean) : Fragment() {
             myCollectionCarrello.document(annuncioId).set(myElementoCarrello).await()
         }
 
+        /**
+         * Elimina un annuncio dal carrello dell'utente specificato
+         *
+         * @author Amato Luca
+         * @param userId Identificativo dell'utente
+         * @param elementoCarrelloId Identificativo dell'elemento nel carrello
+         */
         suspend fun eliminaAnnuncioCarrelloFirebaseFirestore(
             userId: String,
             elementoCarrelloId: String
@@ -143,11 +170,19 @@ class CartFragment(private val isAdmin: Boolean) : Fragment() {
             myDocumentCarrello.delete().await()
         }
 
+        /**
+         * Salva una transazione nell'archivio per l'utente specificato
+         *
+         * @author Amato Luca
+         * @param idUtente Identificativo dell'utente
+         * @param importo Importo della transazione da salvare
+         * @param tipoTransazione true per ricarica e false per acquisto
+         */
         suspend fun salvaTransazioneSuFirestoreFirebase(
             idUtente: String,
             importo: Double,
             tipoTransazione: Boolean
-        ): String {
+        ){
 
             val myCollection = database.collection(UserLoginActivity.Utente.nomeCollection)
 
@@ -161,13 +196,19 @@ class CartFragment(private val isAdmin: Boolean) : Fragment() {
             val myTransazione = hashMapOf(
                 "importo" to importo,
                 "dataOraAttuale" to dataOraAttuale,
-                //tipoTransazione = true -> ricarica, tipoTransazione = false -> acquisto
                 "tipo" to tipoTransazione
             )
 
-            return myCollectionTransazioneUtente.add(myTransazione).await().id
+            myCollectionTransazioneUtente.add(myTransazione).await()
         }
 
+        /**
+         * Recupera gli annunci presenti nel carrello per l'utente specificato
+         *
+         * @author Amato Luca
+         * @param userId Identificativo dell'utente
+         * @return HashMap contenente gli annunci nel carrello con l'identificativo dell'annuncio come chiave e l'oggetto Annuncio come valore
+         */
         suspend fun recuperaAnnunciCarrelloFirebaseFirestore(userId: String): HashMap<String, Annuncio> {
 
             val myHashMap = HashMap<String, Annuncio>()
@@ -182,6 +223,13 @@ class CartFragment(private val isAdmin: Boolean) : Fragment() {
             return myHashMap
         }
 
+        /**
+         * Recupera i riferimenti agli annunci presenti nel carrello dell'utente
+         *
+         * @author Amato Luca
+         * @param userId Identificativo dell'utente
+         * @return Un ArrayList contenente i documenti agli annunci
+         */
         suspend fun recuperaAnnunciRefCarrelloFirebaseFirestore(userId: String): ArrayList<DocumentSnapshot> {
 
             val myDocumentRef =
@@ -203,6 +251,14 @@ class CartFragment(private val isAdmin: Boolean) : Fragment() {
             return myDocumentRefAnnunci
         }
 
+        /**
+         * Invia una richiesta di acquisto per un annuncio da parte di un utente soltanto se ha saldo a sufficenza altrimenti non avviene.la richiesta di acquisto
+         *
+         * @author Amato Luca
+         * @param idUtente Identificativo dell'utente
+         * @param myAnnuncio Annuncio per il quale si vuole inviare la richiesta di acquisto
+         * @return True se l'annuncio è acquistabile e la richiesta viene inviata correttamente altrimenti False
+         */
         internal suspend fun inviaRichiestaAcqiustoAnnuncio(idUtente: String, myAnnuncio: Annuncio) : Boolean {
 
             if (isAcquistabile(idUtente, myAnnuncio.getPrezzo())) {
@@ -216,5 +272,10 @@ class CartFragment(private val isAdmin: Boolean) : Fragment() {
         }
 
     }
+
+
+
+
+
 
 }

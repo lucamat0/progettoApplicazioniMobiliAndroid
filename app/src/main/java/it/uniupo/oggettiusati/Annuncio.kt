@@ -195,6 +195,7 @@ data class Annuncio(
                 caricaImmaginiSuFirebase(myImmagini)
     }
 
+
     /**
      * Aggiorna annuncio corrente su Firebase
      *
@@ -219,6 +220,16 @@ data class Annuncio(
         val myDocument = myCollection.document(this.annuncioId)
 
         myDocument.delete().await()
+    }
+
+    /**
+     * Elimina un immagine appartenente a questo Annuncio dal cloud
+     *
+     * @author Amato Luca
+     * @param nomeImmagine Identificativo dell'immagine
+     */
+    suspend fun eliminaImmagineSuFirebase(nomeImmagine: String){
+        storageRef.child(nomeImmagine).delete().await()
     }
 
     /**
@@ -263,15 +274,12 @@ data class Annuncio(
         storageRef = FirebaseStorage.getInstance().reference.child(annuncioId)
         val myListImmaginiRef = storageRef.listAll().await()
 
-        //Log.d("Mostra immagini: ${titolo} ",storageRef.name)
 
         val myImmagini = ArrayList<Uri>()
 
         for(item in myListImmaginiRef.items) {
             myImmagini.add(item.downloadUrl.await())
         }
-
-        //Log.d("Mostra immagini: ${titolo} ",myImmagini.size.toString())
 
         return myImmagini
     }
@@ -386,7 +394,7 @@ data class Annuncio(
 
     // in input userId dell'utente autenticato, si controlla che sia quella del venditore, per un maggiore livello di sicurezza
     suspend fun setAcquirenteRecensito(userId: String) {
-        if(this.userId == userId){
+        if(this.userId == userId || AdminLoginActivity.isAmministratore(userId)){
             acquirenteRecensito = true
             modificaAnnuncioSuFirebase()
         }
@@ -394,7 +402,7 @@ data class Annuncio(
 
     // in input userId dell'utente autenticato, si controlla che sia quella dell'acquirente (solo lui puo' recensire il proprietario legato ad un annuncio)
     suspend fun setProprietarioRecensito(userId: String) {
-        if(this.userIdAcquirente == userId){
+        if(this.userIdAcquirente == userId || AdminLoginActivity.isAmministratore(userId)){
             proprietarioRecensito = true
             modificaAnnuncioSuFirebase()
         }
@@ -429,7 +437,7 @@ data class Annuncio(
      * @param userId Identificativo della persona che vuole modificare il titolo dell'annuncio
      */
     suspend fun setTitolo(newTitolo: String, userId: String) {
-        if(isProprietario(userId)) {
+        if(isProprietario(userId) || AdminLoginActivity.isAmministratore(userId)) {
             this.titolo = newTitolo
 
             modificaAnnuncioSuFirebase()
@@ -443,7 +451,7 @@ data class Annuncio(
      * @param userId Identificativo della persona che vuole modificare il titolo dell'annuncio
      */
     suspend fun setDescrizione(newDescrizione: String, userId: String) {
-        if(isProprietario(userId)) {
+        if(isProprietario(userId) || AdminLoginActivity.isAmministratore(userId)) {
             this.descrizione = newDescrizione
 
             modificaAnnuncioSuFirebase()
@@ -458,7 +466,7 @@ data class Annuncio(
      * @param userId Identificativo della persona che vuole modificare la categoria dell'annuncio
      */
     suspend fun setCategoria(newCategoria: String, userId: String) {
-        if(isProprietario(userId)) {
+        if(isProprietario(userId) || AdminLoginActivity.isAmministratore(userId)) {
             this.categoria = newCategoria
 
             modificaAnnuncioSuFirebase()
@@ -473,7 +481,7 @@ data class Annuncio(
      * @param userId Identificativo della persona che vuole modificare il prezzo dell'annuncio
      */
     suspend fun setPrezzo(newPrezzo: Double, userId: String) {
-        if(isProprietario(userId) && userIdAcquirente == null) {
+        if((isProprietario(userId) || AdminLoginActivity.isAmministratore(userId)) && userIdAcquirente == null) {
             this.prezzo = newPrezzo
 
             modificaAnnuncioSuFirebase()

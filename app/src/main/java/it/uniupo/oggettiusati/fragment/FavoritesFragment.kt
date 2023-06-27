@@ -40,6 +40,14 @@ class FavoritesFragment(private val isAdmin: Boolean) : Fragment() {
         //--- Listener che mi avvisa quando uno degli annunci, che ho messo nei preferiti cambia ---
         private var listenerPreferiti: ListenerRegistration? = null
 
+        /**
+         * Recupera gli annunci preferiti dall'utente specificato
+         *
+         * @author Amato Luca
+         * @param userId Identificativo dell'utente
+         * @param context Contesto dell'applicazione
+         * @return HashMap contenente gli annunci preferiti dell'utente con identificativo dell'annuncio come chiave e l'oggetto Annuncio come valore
+         */
         suspend fun recuperaAnnunciPreferitiFirebaseFirestore(userId: String, context: Context): java.util.HashMap<String, Annuncio> {
 
             val myCollectionUtente = Firebase.firestore.collection(UserLoginActivity.Utente.nomeCollection)
@@ -97,6 +105,14 @@ class FavoritesFragment(private val isAdmin: Boolean) : Fragment() {
             return myAnnunciPreferiti
         }
 
+        /**
+         * Inserisce un annuncio tra i preferiti dell'utente specificato
+         *
+         * @author Amato Luca
+         * @param userId Identificativo dell'utente
+         * @param annuncioId Identificativo dell'annuncio
+         * @param context Contesto dell'applicazione
+         */
         suspend fun inserisciAnnuncioPreferitoFirebaseFirestore(userId: String, annuncioId: String, context: Context){
 
             val myCollection = database.collection(UserLoginActivity.Utente.nomeCollection)
@@ -117,6 +133,14 @@ class FavoritesFragment(private val isAdmin: Boolean) : Fragment() {
             recuperaAnnunciPreferitiFirebaseFirestore(userId, context)
         }
 
+        /**
+         * Rimuove un annuncio dai preferiti dell'utente specificato
+         *
+         * @author Amato Luca
+         * @param userId Identificativo dell'utente
+         * @param elementoCarrelloId Identificativo dell'annuncio
+         * @param context Contesto dell'applicazione
+         */
         suspend fun eliminaAnnuncioPreferitoFirebaseFirestore(userId : String, elementoCarrelloId: String, context: Context){
 
             val myCollection = database.collection(UserLoginActivity.Utente.nomeCollection)
