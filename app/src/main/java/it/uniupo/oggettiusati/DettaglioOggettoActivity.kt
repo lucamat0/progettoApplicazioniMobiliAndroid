@@ -7,6 +7,7 @@ import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
 import android.util.TypedValue
+import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
@@ -14,6 +15,7 @@ import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
+import com.bumptech.glide.Glide
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
@@ -87,6 +89,51 @@ class DettaglioOggettoActivity : AppCompatActivity(), OnMapReadyCallback {
         findViewById<TextView>(R.id.nomeVenditore).text = nomeVenditore
 
         //immagini oggetto
+
+        runBlocking {
+            val myArrayListImmagini = myAnnuncio.recuperaImmaginiSuFirebase()
+            if (myArrayListImmagini.size > 0) {
+                for(imgUri in myArrayListImmagini) {
+
+                    val imgView = ImageView(this@DettaglioOggettoActivity)
+                    imgView.adjustViewBounds = true
+                    val lP = LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT,LinearLayout.LayoutParams.WRAP_CONTENT)
+                    lP.setMargins(
+                        (resources.displayMetrics.density * 10).toInt(),
+                        TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 10f, resources.displayMetrics).toInt(),
+                        resources.getDimension(R.dimen.photo_margin).toInt(),
+                        resources.getDimension(R.dimen.photo_margin).toInt()
+                    )
+                    imgView.layoutParams = lP
+
+                    Glide.with(this@DettaglioOggettoActivity)
+                        .load(imgUri)
+                        .into(imgView)
+
+                    findViewById<LinearLayout>(R.id.contenitore_immagini).addView(imgView)
+                }
+
+            } else {
+                val img = ImageView(this@DettaglioOggettoActivity)
+                img.setImageResource(R.drawable.no_image_placeholder)
+                img.adjustViewBounds = true
+                img.layoutParams = ViewGroup.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT,LinearLayout.LayoutParams.WRAP_CONTENT)
+
+                val lP = LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT,LinearLayout.LayoutParams.WRAP_CONTENT)
+                lP.setMargins(
+                    (resources.displayMetrics.density * 10).toInt(),
+                    TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 10f, resources.displayMetrics).toInt(),
+                    resources.getDimension(R.dimen.photo_margin).toInt(),
+                    resources.getDimension(R.dimen.photo_margin).toInt())
+                lP.gravity = Gravity.CENTER
+
+                img.layoutParams = lP
+
+                findViewById<LinearLayout>(R.id.contenitore_immagini).addView(img)
+            }
+        }
+
+
 //        val imgScaricate = arrayOf("img1", "img2")
 //        for(imgEl in imgScaricate) {
 //            val img = ImageView(this)
@@ -108,7 +155,7 @@ class DettaglioOggettoActivity : AppCompatActivity(), OnMapReadyCallback {
             .findFragmentById(R.id.object_position) as SupportMapFragment
         mapFragment.getMapAsync(this)
 
-        val img = ImageView(this)
+        /*val img = ImageView(this)
         img.setImageResource(R.drawable.sea_wave_beautifully_1920x1080)
         img.adjustViewBounds = true
         img.layoutParams = ViewGroup.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT,LinearLayout.LayoutParams.WRAP_CONTENT)
@@ -122,17 +169,17 @@ class DettaglioOggettoActivity : AppCompatActivity(), OnMapReadyCallback {
 
         img.layoutParams = lP
 
-        findViewById<LinearLayout>(R.id.contenitore_immagini).addView(img)
+        findViewById<LinearLayout>(R.id.contenitore_immagini).addView(img)*/
 
 //        img.layoutParams.height = LinearLayout.LayoutParams.WRAP_CONTENT
 //        img.layoutParams.width = LinearLayout.LayoutParams.WRAP_CONTENT
 //        img.requestLayout()
 
-        val img2 = ImageView(this)
+        /*val img2 = ImageView(this)
         img2.setImageResource(R.drawable.sea_wave_beautifully_1920x1080)
         img2.adjustViewBounds = true
         img2.layoutParams = lP
-        findViewById<LinearLayout>(R.id.contenitore_immagini).addView(img2)
+        findViewById<LinearLayout>(R.id.contenitore_immagini).addView(img2)*/
         //fine immagini
 
         val btnRecensioniVenditore = findViewById<Button>(R.id.visualizza_recensioni_venditore)

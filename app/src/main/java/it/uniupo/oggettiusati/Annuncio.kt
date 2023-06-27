@@ -260,7 +260,7 @@ data class Annuncio(
      * @return Lista di URI delle immagini recuperate
      */
     suspend fun recuperaImmaginiSuFirebase(): ArrayList<Uri> {
-
+        storageRef = FirebaseStorage.getInstance().reference.child(annuncioId)
         val myListImmaginiRef = storageRef.listAll().await()
 
         //Log.d("Mostra immagini: ${titolo} ",storageRef.name)
