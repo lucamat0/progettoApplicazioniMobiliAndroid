@@ -438,7 +438,7 @@ class HomeFragment(private val isAdmin: Boolean) : Fragment() {
             disabilitaTuttiIFiltri()
         }
 
-        Toast.makeText(activity, "Sei nella sezione home", Toast.LENGTH_SHORT).show()
+
     }
 
     private fun disabilitaTuttiIFiltri() {

@@ -384,7 +384,7 @@ data class Annuncio(
         return this.proprietarioRecensito
     }
 
-    //setRichiesta prende in input userId, si controlla che sia quella del acquirente, per un maggiore livello di sicurezza
+    // in input userId dell'utente autenticato, si controlla che sia quella del venditore, per un maggiore livello di sicurezza
     suspend fun setAcquirenteRecensito(userId: String) {
         if(this.userId == userId){
             acquirenteRecensito = true
@@ -392,6 +392,7 @@ data class Annuncio(
         }
     }
 
+    // in input userId dell'utente autenticato, si controlla che sia quella dell'acquirente (solo lui puo' recensire il proprietario legato ad un annuncio)
     suspend fun setProprietarioRecensito(userId: String) {
         if(this.userIdAcquirente == userId){
             proprietarioRecensito = true

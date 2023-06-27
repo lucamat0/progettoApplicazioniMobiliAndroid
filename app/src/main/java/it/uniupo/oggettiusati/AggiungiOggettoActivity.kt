@@ -1,5 +1,6 @@
 package it.uniupo.oggettiusati
 
+import android.content.DialogInterface
 import android.content.Intent
 import android.location.Address
 import android.location.Geocoder
@@ -7,8 +8,11 @@ import android.location.Location
 import android.net.Uri
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.util.Log
 import android.util.TypedValue
+import android.view.Gravity
 import android.view.View
+import android.view.ViewGroup
 import android.widget.AdapterView
 import android.widget.AdapterView.OnItemSelectedListener
 import android.widget.ArrayAdapter
@@ -20,7 +24,9 @@ import android.widget.LinearLayout
 import android.widget.Spinner
 import android.widget.TextView
 import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.widget.SwitchCompat
+import com.bumptech.glide.Glide
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
@@ -146,28 +152,60 @@ class AggiungiOggettoActivity : AppCompatActivity() {
 
                 findViewById<HorizontalScrollView>(R.id.immagini_oggetto).visibility = View.VISIBLE
 
-                val imgScaricate = arrayOf("img1", "img2")
-//                for(imgEl in imgScaricate) {
-//                    val img = ImageView(this)
-//                    img.setImageResource(R.drawable.sea_wave_beautifully_1920x1080)
-//                    img.adjustViewBounds = true
-//                    val lP = LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT,LinearLayout.LayoutParams.WRAP_CONTENT)
-//                    lP.setMargins(
-//                        (this.resources.displayMetrics.density * 10).toInt(),
-//                        TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 10f, this.resources.displayMetrics).toInt(),
-//                        resources.getDimension(R.dimen.photo_margin).toInt(),
-//                        resources.getDimension(R.dimen.photo_margin).toInt()
-//                    )
-//                    img.layoutParams = lP
-//
-//                    img.setTag(0, imgEl.id)
-//                    img.setOnClickListener {
-//                        cancellaImmagine(img.getTag(0))
-//                    }
-//
-//                    findViewById<LinearLayout>(R.id.contenitore_immagini).addView(img)
-//                }
+                runBlocking {
+                    val myArrayListImmagini = annuncioCorrente.recuperaImmaginiSuFirebase()
+                    if (myArrayListImmagini.size > 0) {
+                        for(imgUri in myArrayListImmagini) {
 
+                            val imgView = ImageView(this@AggiungiOggettoActivity)
+                            imgView.adjustViewBounds = true
+                            val lP = LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT,LinearLayout.LayoutParams.WRAP_CONTENT)
+                            lP.setMargins(
+                                (resources.displayMetrics.density * 10).toInt(),
+                                TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 10f, resources.displayMetrics).toInt(),
+                                resources.getDimension(R.dimen.photo_margin).toInt(),
+                                resources.getDimension(R.dimen.photo_margin).toInt()
+                            )
+                            imgView.layoutParams = lP
+
+                            val imagePath = imgUri.path
+                            if(imagePath != null) {
+                                val folders = imagePath.split("/")
+                                val foldersLen = folders.size - 1
+                                val idAnnuncio = folders[foldersLen - 1]
+                                val nomeFileImg = folders[foldersLen]
+
+                                imgView.tag = arrayOf(idAnnuncio, nomeFileImg)
+
+                                imgView.setOnClickListener {
+                                    AlertDialog.Builder(this@AggiungiOggettoActivity)
+                                        .setTitle("Attenzione")
+                                        .setMessage("Sei sicuro di voler eliminare l'immagine?")
+                                        .setPositiveButton("Si") { dialog : DialogInterface, _:Int ->
+                                            dialog.dismiss()
+                                            runBlocking {
+                                                Log.d("idImmagine", "${(imgView.tag as Array<*>)[0]} ${(imgView.tag as Array<*>)[1]}")
+                                                Toast.makeText(this@AggiungiOggettoActivity, "Rimuovo nome immagine $nomeFileImg", Toast.LENGTH_SHORT).show()
+                                                imgView.visibility = View.GONE
+//                                                cancellaImmagine((imgView.tag as Array<*>)[0], (imgView.tag as Array<*>)[1])
+                                            }
+                                        }
+                                        .setNegativeButton("No") { dialog : DialogInterface, _:Int ->
+                                            dialog.dismiss()
+                                        }
+                                        .show()
+                                }
+                            }
+
+                            Glide.with(this@AggiungiOggettoActivity)
+                                .load(imgUri)
+                                .into(imgView)
+
+                            findViewById<LinearLayout>(R.id.contenitore_immagini).addView(imgView)
+                        }
+
+                    }
+                }
             }
         }
 
@@ -219,6 +257,7 @@ class AggiungiOggettoActivity : AppCompatActivity() {
 
                     runBlocking {
                         if(flagModifica == true) {
+                            //le immagini vengono eliminate nell'onclick, quelle che vengono aggiunte devono essere passate e caricate qui'
                             // modificaAnnuncio()
                             Toast.makeText(this@AggiungiOggettoActivity, "Modifico...", Toast.LENGTH_LONG).show()
                         } else {

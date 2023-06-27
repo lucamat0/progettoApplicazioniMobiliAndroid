@@ -46,7 +46,7 @@ class CustomAdapter(private val myArrayList: HashMap<String, Annuncio>, private 
             //sets the text to the textview from our itemHolder class
             holder.textView.text = annuncioCorrente.getTitolo()
 
-            holder.priceTextView.text = annuncioCorrente.getPrezzoToString()
+            holder.priceTextView.text = annuncioCorrente.getPrezzoToString() + if(annuncioCorrente.isVenduto()) "\n(VENDUTO)" else ""
 
             holder.card.setOnClickListener { viewClicked ->
                 try {
@@ -68,17 +68,20 @@ class CustomAdapter(private val myArrayList: HashMap<String, Annuncio>, private 
             if (layout == R.layout.card_view_remove_buy_design) {
                 // il layout della card caricato contiene i bottoni rimuovi e richiedi oggetto
 
-                if (annuncioCorrente.getAcquirente().equals(auth.uid) && annuncioCorrente.getRichiesta()) {
+                if (annuncioCorrente.isAcquirente(auth.uid!!) && annuncioCorrente.getRichiesta()) {
                     uiRequestFromCurrentUser(holder)
-                    if(annuncioCorrente.isVenduto() && (!annuncioCorrente.getProprietarioRecensito())) {
+                    if(annuncioCorrente.isVenduto() ) {
                         holder.imgReqSent?.visibility = View.GONE
-                        val btnAcquirente = holder.btnRecensisciVenditore
-                        btnAcquirente?.visibility = View.VISIBLE
-                        btnAcquirente?.setOnClickListener {
+                        if(!annuncioCorrente.getProprietarioRecensito()) {
+                            val btnAcquirente = holder.btnRecensisciVenditore
+                            btnAcquirente?.visibility = View.VISIBLE
+                            btnAcquirente?.setOnClickListener {
 //                            Activity CREA RECENSIONE
-                            val i = Intent(holder.itemView.context, AggiungiRecensioneActivity::class.java)
-                                .putExtra("idUtenteRecensito", annuncioCorrente.getProprietario())
-                            it.context.startActivity(i)
+                                val i = Intent(holder.itemView.context, AggiungiRecensioneActivity::class.java)
+                                    .putExtra("idUtenteRecensito", annuncioCorrente.getProprietario())
+                                i.putExtra("annuncio", annuncioCorrente)
+                                it.context.startActivity(i)
+                            }
                         }
                     }
                 } else {
@@ -97,9 +100,14 @@ class CustomAdapter(private val myArrayList: HashMap<String, Annuncio>, private 
                     if(holder.btnRequest != null) {
                         holder.btnRequest.setOnClickListener {
                             runBlocking {
-                                annuncioCorrente.setRichiesta(auth.uid!!)
+                                val requestResult = CartFragment.inviaRichiestaAcqiustoAnnuncio(auth.uid!!, annuncioCorrente)
+                                if(requestResult) {
+                                    Toast.makeText(holder.itemView.context, "Richiesta inoltrata", Toast.LENGTH_SHORT).show()
+                                    uiRequestFromCurrentUser(holder)
+                                } else {
+                                    Toast.makeText(holder.itemView.context, "Budget non sufficiente, esegui una ricarica ", Toast.LENGTH_SHORT).show()
+                                }
                             }
-                            uiRequestFromCurrentUser(holder)
                         }
                     }
                 }
@@ -128,6 +136,7 @@ class CustomAdapter(private val myArrayList: HashMap<String, Annuncio>, private 
 //                            Activity CREA RECENSIONE
                                     val i = Intent(holder.itemView.context, AggiungiRecensioneActivity::class.java)
                                         .putExtra("idUtenteRecensito", annuncioCorrente.getAcquirente())
+                                    i.putExtra("annuncio", annuncioCorrente)
                                     it.context.startActivity(i)
                                 }
                             }

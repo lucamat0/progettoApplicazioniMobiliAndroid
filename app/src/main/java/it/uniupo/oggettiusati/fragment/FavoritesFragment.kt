@@ -164,6 +164,6 @@ class FavoritesFragment(private val isAdmin: Boolean) : Fragment() {
             //setting the Adapter with the recyclerView
             recyclerVu?.adapter = adapter
         }
-        Toast.makeText(activity, "Sei nella sezione preferiti", Toast.LENGTH_SHORT).show()
+
     }
 }

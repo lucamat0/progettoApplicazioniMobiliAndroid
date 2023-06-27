@@ -28,7 +28,8 @@
 
             <HorizontalScrollView
                 android:layout_width="wrap_content"
-                android:layout_height="400dp">
+                android:layout_height="400dp"
+                android:layout_gravity="center">
 
                 <LinearLayout
                     android:id="@+id/contenitore_immagini"

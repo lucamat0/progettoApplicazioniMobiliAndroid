@@ -47,7 +47,7 @@ class ChatFragment(private val isAdmin: Boolean) : Fragment() {
             recyclerViewUtenti.adapter = adapterUtenti
         }
 
-        Toast.makeText(activity, "Sei nella sezione chat", Toast.LENGTH_SHORT).show()
+
     }
 
 }

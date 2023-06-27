@@ -34,7 +34,7 @@
             android:maxLines="5" />
 
         <RatingBar
-            android:id="@+id/valutazione_venditore"
+            android:id="@+id/valutazione_utente_recensito"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:numStars="5"

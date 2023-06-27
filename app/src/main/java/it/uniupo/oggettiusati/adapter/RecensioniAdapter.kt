@@ -26,7 +26,7 @@ class RecensioniAdapter(private val listaRecensioni: List<RecensioniActivity.Rec
         val valoreVoto = listaRecensioni[position].votoAlUtente
 //        val valutazione = "${valoreVoto}/5"
 //        holder.textViewData.text = valutazione
-        holder.ratingBarRecensione.rating = valoreVoto.toFloat()
+        holder.ratingBarRecensione.rating = valoreVoto
         holder.ratingBarRecensione.setIsIndicator(true) // false quando devo creare la recensione
     }
 
@@ -35,6 +35,6 @@ class RecensioniAdapter(private val listaRecensioni: List<RecensioniActivity.Rec
         val textViewTesto :TextView = itemView.findViewById(R.id.testo_recensione)
         val textViewAutore :TextView = itemView.findViewById(R.id.autore_recensione)
 //        val textViewData :TextView = itemView.findViewById(R.id.data_recensione)
-        val ratingBarRecensione :RatingBar = itemView.findViewById(R.id.valutazione_venditore)
+        val ratingBarRecensione :RatingBar = itemView.findViewById(R.id.valutazione_utente)
     }
 }

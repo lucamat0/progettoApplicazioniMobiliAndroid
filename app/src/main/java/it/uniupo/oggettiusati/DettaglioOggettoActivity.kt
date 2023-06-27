@@ -59,15 +59,16 @@ class DettaglioOggettoActivity : AppCompatActivity(), OnMapReadyCallback {
 
         runBlocking {
             val myIdSottocategoria: String? = myAnnuncio.getSottocategoria()
+            val textVCategoria = findViewById<TextView>(R.id.categoria)
             if (myIdSottocategoria != null) {
-                findViewById<TextView>(R.id.categoria).text = "Categoria: ${
+                textVCategoria.text = "Categoria: ${
                     myDocumentRefCategoria.get().await().getString("nome")
                 } - ${
                     myDocumentRefCategoria.collection("sottocategoria").document(myIdSottocategoria)
                         .get().await().getString("nome")
                 }"
             } else {
-                findViewById<TextView>(R.id.categoria).text =
+                textVCategoria.text =
                     "Categoria: ${myDocumentRefCategoria.get().await().getString("nome")}"
             }
         }
@@ -75,7 +76,7 @@ class DettaglioOggettoActivity : AppCompatActivity(), OnMapReadyCallback {
         findViewById<TextView>(R.id.nome).text = myAnnuncio.getTitolo()
         findViewById<TextView>(R.id.posizione).text = "Coordinate oggetto: Lat ${myAnnuncio.getPosizione().latitude}, Lon ${myAnnuncio.getPosizione().longitude}"
         findViewById<TextView>(R.id.descrizione).text = "Descrizione: ${myAnnuncio.getDescrizione()}"
-        findViewById<TextView>(R.id.prezzo).text = myAnnuncio.getPrezzoToString()
+        findViewById<TextView>(R.id.prezzo).text = myAnnuncio.getPrezzoToString() + if(myAnnuncio.isVenduto()) "\n(VENDUTO)" else ""
         // 0 = difettoso, 1 = qualche lieve difetto, 2 = usato ma in perfette condizioni, 3 = nuovo
         findViewById<TextView>(R.id.stato).text = if(myAnnuncio.getStato() == 0) "Stato: difettoso" else if(myAnnuncio.getStato() == 1) "Stato: qualche lieve difetto" else if(myAnnuncio.getStato() == 2) "Stato: usato ma in perfette condizioni" else "Stato: nuovo"
         val spediz = "Spedizione: ${if(myAnnuncio.getDisponibilitaSpedire()) "Si" else "No"}"
@@ -92,6 +93,7 @@ class DettaglioOggettoActivity : AppCompatActivity(), OnMapReadyCallback {
 
         runBlocking {
             val myArrayListImmagini = myAnnuncio.recuperaImmaginiSuFirebase()
+            val layoutImmagini = findViewById<LinearLayout>(R.id.contenitore_immagini)
             if (myArrayListImmagini.size > 0) {
                 for(imgUri in myArrayListImmagini) {
 
@@ -110,7 +112,7 @@ class DettaglioOggettoActivity : AppCompatActivity(), OnMapReadyCallback {
                         .load(imgUri)
                         .into(imgView)
 
-                    findViewById<LinearLayout>(R.id.contenitore_immagini).addView(imgView)
+                    layoutImmagini.addView(imgView)
                 }
 
             } else {
@@ -125,11 +127,10 @@ class DettaglioOggettoActivity : AppCompatActivity(), OnMapReadyCallback {
                     TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 10f, resources.displayMetrics).toInt(),
                     resources.getDimension(R.dimen.photo_margin).toInt(),
                     resources.getDimension(R.dimen.photo_margin).toInt())
-                lP.gravity = Gravity.CENTER
 
                 img.layoutParams = lP
 
-                findViewById<LinearLayout>(R.id.contenitore_immagini).addView(img)
+                layoutImmagini.addView(img)
             }
         }
 
@@ -185,7 +186,7 @@ class DettaglioOggettoActivity : AppCompatActivity(), OnMapReadyCallback {
         val btnRecensioniVenditore = findViewById<Button>(R.id.visualizza_recensioni_venditore)
         btnRecensioniVenditore.setOnClickListener {
             val i = Intent(this, RecensioniActivity::class.java)
-            i.putExtra("idVenditore", proprietarioAnnuncio)
+            i.putExtra("idUtente", proprietarioAnnuncio)
             startActivity(i)
         }
 
@@ -197,6 +198,10 @@ class DettaglioOggettoActivity : AppCompatActivity(), OnMapReadyCallback {
         }
 
         val utenteProprietario = myAnnuncio.isProprietario(auth.uid!!)
+        val btnPreferiti = findViewById<Button>(R.id.aggiungi_preferiti)
+        val btnCarrello = findViewById<Button>(R.id.aggiungi_carrello)
+        val btnModifica = findViewById<Button>(R.id.modifica_oggetto)
+        val btnElimina = findViewById<Button>(R.id.elimina_oggetto)
 
         if(utenteProprietario || isAdmin) { //l'annuncio appartiene all'utente autenticato:
             if(utenteProprietario)
@@ -205,53 +210,54 @@ class DettaglioOggettoActivity : AppCompatActivity(), OnMapReadyCallback {
             if(utenteProprietario)
                 findViewById<LinearLayout>(R.id.layout_contatta_aggiungi).visibility = View.GONE
             else {
-                findViewById<Button>(R.id.aggiungi_carrello).visibility = View.GONE
-                findViewById<Button>(R.id.aggiungi_preferiti).visibility = View.GONE
+                btnCarrello.visibility = View.GONE
+                btnPreferiti.visibility = View.GONE
             }
-
+            val layoutRichiesta = findViewById<LinearLayout>(R.id.layout_richiesta)
             if(myAnnuncio.getRichiesta()) {
                 if(!myAnnuncio.isVenduto()) {
                     Log.d("venduto", "${myAnnuncio.isVenduto()}")
-                    findViewById<LinearLayout>(R.id.layout_richiesta).visibility = View.VISIBLE
+                    layoutRichiesta.visibility = View.VISIBLE
+                    val btnAccetta = findViewById<Button>(R.id.accetta)
+                    val btnRifiuta = findViewById<Button>(R.id.rifiuta)
                     if(isAdmin) {
                         findViewById<TextView>(R.id.titolo_richiesta).text = "Richiesta di acquisto"
                         findViewById<LinearLayout>(R.id.accetta_rifiuta).visibility = View.GONE
-                        listOf(findViewById<Button>(R.id.accetta),
-                            findViewById(R.id.rifiuta)).map { it.isEnabled = false }
+                        listOf(btnAccetta,
+                            btnRifiuta).map { it.isEnabled = false }
                     }
                     findViewById<Button>(R.id.visualizza_recensioni_acquirente).setOnClickListener {
-                        //startActivity(Recensioni.kt)
+                        val i = Intent(this, RecensioniActivity::class.java)
+                        i.putExtra("idUtente", myAnnuncio.getAcquirente())
+                        startActivity(i)
                     }
 
-                    findViewById<Button>(R.id.accetta).setOnClickListener {
-                        val idAcquirente = myAnnuncio.getAcquirente()
-                        if(idAcquirente != null) {
-                            runBlocking {
-                                myAnnuncio.setVenduto(/*idAcquirente*/)
-                            }
+                    btnAccetta.setOnClickListener {
+                        runBlocking {
+                            myAnnuncio.setVenduto()
                         }
-                        findViewById<LinearLayout>(R.id.layout_richiesta).visibility = View.GONE
+                        layoutRichiesta.visibility = View.GONE
                     }
 
-                    findViewById<Button>(R.id.rifiuta).setOnClickListener {
-                        runBlocking { myAnnuncio.setEliminaRichiesta(auth.uid.toString()) }
-                        findViewById<Button>(R.id.layout_richiesta).visibility = View.GONE
+                    btnRifiuta.setOnClickListener {
+                        runBlocking { myAnnuncio.setEliminaRichiesta(auth.uid!!) }
+                        layoutRichiesta.visibility = View.GONE
                     }
                 }
 
             } else { //se non c'è una richiesta e sono il proprietario/admin posso modificare ed eliminare l'oggetto
-                findViewById<Button>(R.id.modifica_oggetto).visibility = View.VISIBLE
+                btnModifica.visibility = View.VISIBLE
                 // creare funzione e aggiungerlo anche per admin
-                findViewById<Button>(R.id.modifica_oggetto).setOnClickListener {
+                btnModifica.setOnClickListener {
                     val i = Intent(this, AggiungiOggettoActivity::class.java)
                     i.putExtra("editMode", true)
                     i.putExtra("annuncioId", myAnnuncio.getAnnuncioId())
                     startActivity(i)
                 }
 
-                findViewById<Button>(R.id.elimina_oggetto).visibility = View.VISIBLE
+                btnElimina.visibility = View.VISIBLE
                 // creare funzione e aggiungerlo anche per admin
-                findViewById<Button>(R.id.elimina_oggetto).setOnClickListener {
+                btnElimina.setOnClickListener {
 
                     AlertDialog.Builder(this)
                         .setTitle("Attenzione")
@@ -270,29 +276,29 @@ class DettaglioOggettoActivity : AppCompatActivity(), OnMapReadyCallback {
                 }
             }
         } else {
-            listOf(findViewById<Button>(R.id.modifica_oggetto),
+            listOf(btnModifica,
             findViewById(R.id.elimina_oggetto)).map { it.isEnabled = false }
             runBlocking {
-                if(isPreferito(auth.uid!!, myAnnuncio.getAnnuncioId())){
-                    findViewById<Button>(R.id.aggiungi_preferiti).visibility = View.GONE
+                if(isPreferito(auth.uid!!, myAnnuncio.getAnnuncioId()) || myAnnuncio.isVenduto()){
+                    btnPreferiti.visibility = View.GONE
                 } else {
-                    findViewById<Button>(R.id.aggiungi_preferiti).setOnClickListener {
+                    btnPreferiti.setOnClickListener {
                         runBlocking {
                             //inserisci oggetto nei preferiti
                             FavoritesFragment.inserisciAnnuncioPreferitoFirebaseFirestore(auth.uid!!, myAnnuncio.getAnnuncioId(), this@DettaglioOggettoActivity)
                         }
-                        findViewById<Button>(R.id.aggiungi_preferiti).visibility = View.GONE
+                        btnPreferiti.visibility = View.GONE
                     }
                 }
 
-                if(isCarrello(auth.uid!!, myAnnuncio.getAnnuncioId())){
-                    findViewById<Button>(R.id.aggiungi_carrello).visibility = View.GONE
+                if(isCarrello(auth.uid!!, myAnnuncio.getAnnuncioId()) || myAnnuncio.isVenduto()){
+                    btnCarrello.visibility = View.GONE
                 } else {
-                    findViewById<Button>(R.id.aggiungi_carrello).setOnClickListener {
+                    btnCarrello.setOnClickListener {
                         runBlocking {
                             CartFragment.inserisciAnnuncioCarrelloFirebaseFirestore(auth.uid!!, myAnnuncio.getAnnuncioId())
                         }
-                        findViewById<Button>(R.id.aggiungi_carrello).visibility = View.GONE
+                        btnCarrello.visibility = View.GONE
                     }
                 }
             }

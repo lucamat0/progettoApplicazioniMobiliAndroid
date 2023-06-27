@@ -6,6 +6,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
+import android.widget.TextView
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -51,6 +52,9 @@ class CartFragment(private val isAdmin: Boolean) : Fragment() {
         //perform here operation when fragment changes and this become visible (i.e. do updates dynamically when fragment is again visible)
 
         runBlocking {
+            val importo = "Budget: ${String.format("%.2f", saldoAccount(auth.uid!!)) + "€"}"
+            view?.findViewById<TextView>(R.id.saldo_account)?.text = importo
+
             //getting the recyclerView by its id
             val recyclerVu = view?.findViewById<RecyclerView>(R.id.recyclerview_cart)
             //this creates a vertical layout Manager
@@ -61,7 +65,7 @@ class CartFragment(private val isAdmin: Boolean) : Fragment() {
             recyclerVu?.adapter = adapter
         }
 
-        Toast.makeText(activity, "Sei nella sezione carrello", Toast.LENGTH_SHORT).show()
+
 
     }
 
@@ -198,22 +202,19 @@ class CartFragment(private val isAdmin: Boolean) : Fragment() {
 
             return myDocumentRefAnnunci
         }
-    }
 
-    private suspend fun inviaRichiestaAcqiustoAnnuncio(idUtente: String, myAnnuncio: Annuncio): Boolean{
+        internal suspend fun inviaRichiestaAcqiustoAnnuncio(idUtente: String, myAnnuncio: Annuncio) : Boolean {
 
-        if(isAcquistabile(idUtente,myAnnuncio.getPrezzo())){
+            if (isAcquistabile(idUtente, myAnnuncio.getPrezzo())) {
 
-            salvaTransazioneSuFirestoreFirebase(idUtente,myAnnuncio.getPrezzo(),false)
+                salvaTransazioneSuFirestoreFirebase(idUtente, myAnnuncio.getPrezzo(), false)
 
-            myAnnuncio.setRichiesta(idUtente)
-            return true
+                myAnnuncio.setRichiesta(idUtente)
+                return true
+            }
+            return false
         }
-        return false
 
     }
-
-
-
 
 }
