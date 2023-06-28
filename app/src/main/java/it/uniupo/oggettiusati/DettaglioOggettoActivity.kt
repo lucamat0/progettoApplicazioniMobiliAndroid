@@ -7,7 +7,6 @@ import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
 import android.util.TypedValue
-import android.view.Gravity
 import android.view.Menu
 import android.view.MenuInflater
 import android.view.MenuItem
@@ -214,7 +213,7 @@ class DettaglioOggettoActivity : AppCompatActivity(), OnMapReadyCallback {
                 btnModifica.visibility = View.VISIBLE
                 // creare funzione e aggiungerlo anche per admin
                 btnModifica.setOnClickListener {
-                    val i = Intent(this, AggiungiOggettoActivity::class.java)
+                    val i = Intent(this, AggiungiModificaOggettoActivity::class.java)
 
                     i.putExtra("annuncio", myAnnuncio)
                     startActivity(i)

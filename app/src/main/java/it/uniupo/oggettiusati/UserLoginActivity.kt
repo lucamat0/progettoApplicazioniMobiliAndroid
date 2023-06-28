@@ -361,7 +361,7 @@ open class UserLoginActivity : AppCompatActivity() {
 
         val fabAggiungiOggetto = findViewById<FloatingActionButton>(R.id.aggiungi_oggetto)
         fabAggiungiOggetto.setOnClickListener {
-            val i = Intent(this, AggiungiOggettoActivity::class.java)
+            val i = Intent(this, AggiungiModificaOggettoActivity::class.java)
             val a : Annuncio? = null
             i.putExtra("annuncio", a)
             startActivity(i)
