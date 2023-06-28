@@ -47,12 +47,12 @@ class AggiungiOggettoActivity : AppCompatActivity() {
     val database = Firebase.firestore
 
     private var myImmaginiAnnuncio = ArrayList<Uri>()
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_aggiungi_oggetto)
 
-        val flagModifica = intent.extras?.getBoolean("editMode")
-        val annuncioId = intent.extras?.getString("annuncioId")
+        val myAnnuncio: Annuncio? = intent.getParcelableExtra("annuncio", Annuncio::class.java)!!
 
         val viewNomeOgg = findViewById<EditText>(R.id.nome)
         val viewCategoriaOgg = findViewById<Spinner>(R.id.categoria)
@@ -65,16 +65,6 @@ class AggiungiOggettoActivity : AppCompatActivity() {
 
         val categorie: List<UserLoginActivity.Categoria>
         var userInteraction = false
-        var annuncioCorrenteN: Annuncio? = null
-
-        if(flagModifica == true && annuncioId != null) {
-                runBlocking {
-                    annuncioCorrenteN = UserLoginActivity.documentoAnnuncioToObject(
-                        database.collection(Annuncio.nomeCollection).document(annuncioId).get()
-                            .await()
-                    )
-                }
-        }
 
         runBlocking {
             categorie = UserLoginActivity.recuperaCategorieFirebase()
@@ -100,12 +90,8 @@ class AggiungiOggettoActivity : AppCompatActivity() {
                     } else {
                         findViewById<LinearLayout>(R.id.layout_sottocategoria).visibility = View.GONE
                     }
-                    if(userInteraction == false) {
-                        if(annuncioCorrenteN != null) {
-
-                            val annuncioCorrente = annuncioCorrenteN as Annuncio
-                            impostaCategoriaOggetto(categorie, annuncioCorrente, viewCategoriaOgg, viewSottoCategOgg)
-                        }
+                    if(userInteraction == false && myAnnuncio != null) {
+                        impostaCategoriaOggetto(categorie, myAnnuncio, viewCategoriaOgg, viewSottoCategOgg)
                         userInteraction = true
                     }
                 }
@@ -115,96 +101,93 @@ class AggiungiOggettoActivity : AppCompatActivity() {
 
 
         val btnCreaOggetto = findViewById<Button>(R.id.crea_nuovo_oggetto)
-        if(flagModifica == true) {
+        if(myAnnuncio != null) {
             btnCreaOggetto.text = "salva modifiche"
             findViewById<TextView>(R.id.titolo_activity_aggiungi_oggetto).text = "Modifica oggetto:"
-            if(annuncioCorrenteN != null){
 
-                val annuncioCorrente = annuncioCorrenteN as Annuncio
-                viewNomeOgg.setText(annuncioCorrente.getTitolo())
+            viewNomeOgg.setText(myAnnuncio.getTitolo())
 
-                impostaCategoriaOggetto(categorie, annuncioCorrente, viewCategoriaOgg, viewSottoCategOgg)
+            impostaCategoriaOggetto(categorie, myAnnuncio, viewCategoriaOgg, viewSottoCategOgg)
 
-                val posizione = annuncioCorrente.getPosizione()
+            val posizione = myAnnuncio.getPosizione()
 
-                var geocodeAddressesMatches: List<Address>? = null
+            var geocodeAddressesMatches: List<Address>? = null
 
-                try {
-                    geocodeAddressesMatches = Geocoder(this@AggiungiOggettoActivity).getFromLocation(posizione.latitude, posizione.longitude, 1)
-                } catch (e: IOException) {
-                    e.printStackTrace()
-                }
-                val locality: String?
+            try {
+                geocodeAddressesMatches = Geocoder(this@AggiungiOggettoActivity).getFromLocation(posizione.latitude, posizione.longitude, 1)
+            } catch (e: IOException) {
+                e.printStackTrace()
+            }
+            val locality: String?
 
 
-                if (!geocodeAddressesMatches.isNullOrEmpty()) {
-                    locality = geocodeAddressesMatches[0].locality //comune
-                    viewTestoPosizioneOgg.setText("$locality")
-                } else
-                    Toast.makeText(this@AggiungiOggettoActivity, "Error getting address ", Toast.LENGTH_LONG).show()
+            if (!geocodeAddressesMatches.isNullOrEmpty()) {
+                locality = geocodeAddressesMatches[0].locality //comune
+                viewTestoPosizioneOgg.setText("$locality")
+            } else
+                Toast.makeText(this@AggiungiOggettoActivity, "Error getting address ", Toast.LENGTH_LONG).show()
 
 //                    viewTestoPosizioneOgg.setText("${posizione?.latitude} ${posizione?.longitude}")
 
-                viewDescrizioneOgg.setText(annuncioCorrente.getDescrizione())
-                viewTestoPrezzoOgg.setText(annuncioCorrente.getPrezzo().toString())
-                viewStatoOgg.setSelection(annuncioCorrente.getStato())
-                viewSpedizioneOgg.isChecked = annuncioCorrente.getDisponibilitaSpedire()
+            viewDescrizioneOgg.setText(myAnnuncio.getDescrizione())
+            viewTestoPrezzoOgg.setText(myAnnuncio.getPrezzo().toString())
+            viewStatoOgg.setSelection(myAnnuncio.getStato())
+            viewSpedizioneOgg.isChecked = myAnnuncio.getDisponibilitaSpedire()
 
-                findViewById<HorizontalScrollView>(R.id.immagini_oggetto).visibility = View.VISIBLE
+            findViewById<HorizontalScrollView>(R.id.immagini_oggetto).visibility = View.VISIBLE
 
-                runBlocking {
-                    val myArrayListImmagini = annuncioCorrente.recuperaImmaginiSuFirebase()
-                    if (myArrayListImmagini.size > 0) {
-                        for(imgUri in myArrayListImmagini) {
+            runBlocking {
+                val myArrayListImmagini = myAnnuncio.recuperaImmaginiSuFirebase()
+                if (myArrayListImmagini.size > 0) {
+                    for(imgUri in myArrayListImmagini) {
 
-                            val imgView = ImageView(this@AggiungiOggettoActivity)
-                            imgView.adjustViewBounds = true
-                            val lP = LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT,LinearLayout.LayoutParams.WRAP_CONTENT)
-                            lP.setMargins(
-                                (resources.displayMetrics.density * 10).toInt(),
-                                TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 10f, resources.displayMetrics).toInt(),
-                                resources.getDimension(R.dimen.photo_margin).toInt(),
-                                resources.getDimension(R.dimen.photo_margin).toInt()
-                            )
-                            imgView.layoutParams = lP
+                        val imgView = ImageView(this@AggiungiOggettoActivity)
+                        imgView.adjustViewBounds = true
+                        val lP = LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT,LinearLayout.LayoutParams.WRAP_CONTENT)
+                        lP.setMargins(
+                            (resources.displayMetrics.density * 10).toInt(),
+                            TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 10f, resources.displayMetrics).toInt(),
+                            resources.getDimension(R.dimen.photo_margin).toInt(),
+                            resources.getDimension(R.dimen.photo_margin).toInt()
+                        )
+                        imgView.layoutParams = lP
 
-                            val imagePath = imgUri.path
-                            if(imagePath != null) {
-                                val folders = imagePath.split("/")
-                                val foldersLen = folders.size - 1
-                                val idAnnuncio = folders[foldersLen - 1]
-                                val nomeFileImg = folders[foldersLen]
+                        val imagePath = imgUri.path
+                        if(imagePath != null) {
+                            val folders = imagePath.split("/")
+                            val foldersLen = folders.size - 1
+                            val idAnnuncio = folders[foldersLen - 1]
+                            val nomeFileImg = folders[foldersLen]
 
-                                imgView.tag = arrayOf(idAnnuncio, nomeFileImg)
+                            imgView.tag = arrayOf(idAnnuncio, nomeFileImg)
 
-                                imgView.setOnClickListener {
-                                    AlertDialog.Builder(this@AggiungiOggettoActivity)
-                                        .setTitle("Attenzione")
-                                        .setMessage("Sei sicuro di voler eliminare l'immagine?")
-                                        .setPositiveButton("Si") { dialog : DialogInterface, _:Int ->
-                                            dialog.dismiss()
-                                            runBlocking {
-                                                Log.d("idImmagine", "${(imgView.tag as Array<*>)[0]} ${(imgView.tag as Array<*>)[1]}")
-                                                Toast.makeText(this@AggiungiOggettoActivity, "Rimuovo nome immagine $nomeFileImg", Toast.LENGTH_SHORT).show()
-                                                imgView.visibility = View.GONE
-                                                annuncioCorrente.eliminaImmagineSuFirebase(nomeFileImg)
-                                            }
+                            imgView.setOnClickListener {
+                                AlertDialog.Builder(this@AggiungiOggettoActivity)
+                                    .setTitle("Attenzione")
+                                    .setMessage("Sei sicuro di voler eliminare l'immagine?")
+                                    .setPositiveButton("Si") { dialog : DialogInterface, _:Int ->
+                                        dialog.dismiss()
+                                        runBlocking {
+                                            Log.d("idImmagine", "${(imgView.tag as Array<*>)[0]} ${(imgView.tag as Array<*>)[1]}")
+                                            Toast.makeText(this@AggiungiOggettoActivity, "Rimuovo nome immagine $nomeFileImg", Toast.LENGTH_SHORT).show()
+                                            imgView.visibility = View.GONE
+                                            myAnnuncio.eliminaImmagineSuFirebase(nomeFileImg)
                                         }
-                                        .setNegativeButton("No") { dialog : DialogInterface, _:Int ->
-                                            dialog.dismiss()
-                                        }
-                                        .show()
-                                }
+                                    }
+                                    .setNegativeButton("No") { dialog : DialogInterface, _:Int ->
+                                        dialog.dismiss()
+                                    }
+                                    .show()
                             }
-
-                            Glide.with(this@AggiungiOggettoActivity)
-                                .load(imgUri)
-                                .into(imgView)
-
-                            findViewById<LinearLayout>(R.id.contenitore_immagini).addView(imgView)
                         }
 
+                        Glide.with(this@AggiungiOggettoActivity)
+                            .load(imgUri)
+                            .into(imgView)
+
+                        findViewById<LinearLayout>(R.id.contenitore_immagini).addView(imgView)
                     }
+
                 }
             }
         }
@@ -253,15 +236,34 @@ class AggiungiOggettoActivity : AppCompatActivity() {
                     posizioneOgg.longitude = geocodeCoordinatesMatches[0].longitude
 
                     val prezzoOgg = testoPrezzoOgg.toDouble()
-                    val newAnnuncio = Annuncio(auth.uid!!, nomeOgg, descrizioneOgg, prezzoOgg, viewStatoOgg.selectedItemPosition, viewSpedizioneOgg.isChecked, idCategoriaOgg, idSottoCategOgg, posizioneOgg)
-
                     runBlocking {
-                        if(flagModifica == true) {
-                            //le immagini vengono eliminate nell'onclick, quelle che vengono aggiunte devono essere passate e caricate qui'
-                            
-                            newAnnuncio.modificaAnnuncioSuFirebase()
+                        if(myAnnuncio != null) {
+
+                            val userIdUtenteLoggato = auth.uid!!
+                            if(nomeOgg != myAnnuncio.getTitolo())
+                                myAnnuncio.setTitolo(nomeOgg,userIdUtenteLoggato)
+                            if(descrizioneOgg != myAnnuncio.getDescrizione())
+                                myAnnuncio.setDescrizione(descrizioneOgg, userIdUtenteLoggato)
+                            if(prezzoOgg != myAnnuncio.getPrezzo())
+                                myAnnuncio.setPrezzo(prezzoOgg, userIdUtenteLoggato)
+                            if(viewStatoOgg.selectedItemPosition != myAnnuncio.getStato())
+                                myAnnuncio.setStato(viewStatoOgg.selectedItemPosition, userIdUtenteLoggato)
+                            if(viewSpedizioneOgg.isChecked != myAnnuncio.getDisponibilitaSpedire())
+                                myAnnuncio.setDisponibilitaSpedire(viewSpedizioneOgg.isChecked, userIdUtenteLoggato)
+                            if(idCategoriaOgg != myAnnuncio.getCategoria())
+                                myAnnuncio.setCategoria(idCategoriaOgg, userIdUtenteLoggato)
+                            if(idSottoCategOgg != myAnnuncio.getSottocategoria())
+                                myAnnuncio.setSottocategoria(idSottoCategOgg, userIdUtenteLoggato)
+                            if(posizioneOgg != myAnnuncio.getPosizione())
+                                myAnnuncio.setPosizione(posizioneOgg, userIdUtenteLoggato)
+                            if(myImmaginiAnnuncio.size>0)
+                                myAnnuncio.caricaImmaginiSuFirebase(myImmaginiAnnuncio)
+
+
                             Toast.makeText(this@AggiungiOggettoActivity, "Modifico...", Toast.LENGTH_LONG).show()
                         } else {
+                            val newAnnuncio = Annuncio(auth.uid!!, nomeOgg, descrizioneOgg, prezzoOgg,
+                                viewStatoOgg.selectedItemPosition, viewSpedizioneOgg.isChecked, idCategoriaOgg, idSottoCategOgg, posizioneOgg)
                             newAnnuncio.salvaAnnuncioSuFirebase(myImmaginiAnnuncio)
                         }
                         startActivity(Intent(this@AggiungiOggettoActivity, UserLoginActivity::class.java))

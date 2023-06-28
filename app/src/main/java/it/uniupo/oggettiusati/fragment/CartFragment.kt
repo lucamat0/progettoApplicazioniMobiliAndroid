@@ -14,6 +14,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.DocumentSnapshot
+import com.google.firebase.firestore.FieldPath
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 import it.uniupo.oggettiusati.Annuncio
@@ -233,25 +234,26 @@ class CartFragment(private val isAdmin: Boolean) : Fragment() {
          * @param userId Identificativo dell'utente
          * @return Un ArrayList contenente i documenti agli annunci
          */
-        suspend fun recuperaAnnunciRefCarrelloFirebaseFirestore(userId: String): ArrayList<DocumentSnapshot> {
+        suspend fun recuperaAnnunciRefCarrelloFirebaseFirestore(userId: String): MutableList<DocumentSnapshot> {
 
             val myDocumentRef =
                 database.collection(UserLoginActivity.Utente.nomeCollection).document(userId)
             val myElementiCarrello = myDocumentRef.collection("carrello").get().await()
 
-            val myDocumentRefAnnunci = ArrayList<DocumentSnapshot>()
+
             if (myElementiCarrello.size() > 0) {
+
+                val myListaId = mutableListOf<String>()
+
+                for (myCarrello in myElementiCarrello.documents)
+                    myListaId.add(myCarrello.id)
 
                 val myCollectionAnnuncio = database.collection(Annuncio.nomeCollection)
 
-                for (myElemento in myElementiCarrello.documents) {
-                    myDocumentRefAnnunci.add(
-                        myCollectionAnnuncio.document(myElemento.id).get().await()
-                    )
-                }
+                return myCollectionAnnuncio.whereIn(FieldPath.documentId(), myListaId).get().await().documents
             }
 
-            return myDocumentRefAnnunci
+            return ArrayList<DocumentSnapshot>()
         }
 
         /**

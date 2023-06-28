@@ -52,8 +52,8 @@ open class UserLoginActivity : AppCompatActivity() {
     companion object {
 
         private val database = Firebase.firestore
-        @JvmStatic
-        protected val auth = FirebaseAuth.getInstance()
+
+        private val auth = FirebaseAuth.getInstance()
 
         /**
          * Recupera le categorie e sottocategorie da Firebase.
@@ -310,7 +310,8 @@ open class UserLoginActivity : AppCompatActivity() {
                 myDocumento.getString("numeroDiTelefono") as String,
                 myDocumento.getBoolean("sospeso") as Boolean,
                 myDocumento.getString("dataNascita") as String,
-                myDocumento.getBoolean("eliminato") as Boolean
+                myDocumento.getBoolean("eliminato") as Boolean,
+                myDocumento.getString("email") as String
             )
         }
 
@@ -360,7 +361,10 @@ open class UserLoginActivity : AppCompatActivity() {
 
         val fabAggiungiOggetto = findViewById<FloatingActionButton>(R.id.aggiungi_oggetto)
         fabAggiungiOggetto.setOnClickListener {
-            startActivity(Intent(this, AggiungiOggettoActivity::class.java))
+            val i = Intent(this, AggiungiOggettoActivity::class.java)
+            val a : Annuncio? = null
+            i.putExtra("annuncio", a)
+            startActivity(i)
         }
 
         lateinit var username: String
@@ -630,7 +634,8 @@ open class UserLoginActivity : AppCompatActivity() {
         private val numeroDiTelefono: String,
         private val sospeso: Boolean,
         private val dataNascita: String,
-        private val eliminato: Boolean
+        private val eliminato: Boolean,
+        private val email: String
     ) {
         companion object {  const val nomeCollection = "utente" }
 
@@ -642,6 +647,14 @@ open class UserLoginActivity : AppCompatActivity() {
          */
         fun getNomeCognome(): String {
             return "${this.nome} ${this.cognome}"
+        }
+
+        fun getEmail(): String {
+            return this.email
+        }
+
+        fun getNumeroTelefono(): String{
+            return this.numeroDiTelefono
         }
 
         fun getEliminato(): Boolean {
@@ -715,7 +728,7 @@ open class UserLoginActivity : AppCompatActivity() {
 
                     //Log.d("TEMPO FINE VENDITA", "Il tempo fine vendita é $timeStampFineVendita")
 
-                    tempoTotale += (timeStampFineVendita!!.toLong() - timeStampInizioVendita!!.toLong()) * -1
+                    tempoTotale += (timeStampFineVendita!!.toLong() - timeStampInizioVendita!!.toLong())
 
                     //Log.d("TEMPO TOTALE", "Il tempo totale é $tempoTotale")
 

@@ -57,6 +57,7 @@ class DettaglioOggettoActivity : AppCompatActivity(), OnMapReadyCallback {
 
         val myDocumentRefCategoria = database.collection("categoria").document(myAnnuncio.getCategoria())
 
+
         runBlocking {
             val myIdSottocategoria: String? = myAnnuncio.getSottocategoria()
             val textVCategoria = findViewById<TextView>(R.id.categoria)
@@ -73,6 +74,8 @@ class DettaglioOggettoActivity : AppCompatActivity(), OnMapReadyCallback {
             }
         }
 
+
+
         findViewById<TextView>(R.id.nome).text = myAnnuncio.getTitolo()
         findViewById<TextView>(R.id.posizione).text = "Coordinate oggetto: Lat ${myAnnuncio.getPosizione().latitude}, Lon ${myAnnuncio.getPosizione().longitude}"
         findViewById<TextView>(R.id.descrizione).text = "Descrizione: ${myAnnuncio.getDescrizione()}"
@@ -82,14 +85,14 @@ class DettaglioOggettoActivity : AppCompatActivity(), OnMapReadyCallback {
         val spediz = "Spedizione: ${if(myAnnuncio.getDisponibilitaSpedire()) "Si" else "No"}"
         findViewById<TextView>(R.id.spedizione).text = spediz
 
-        var nomeVenditore :String
-        val proprietarioAnnuncio = myAnnuncio.getProprietario()
-        runBlocking {
-            nomeVenditore = "Proprietario: ${UserLoginActivity.recuperaUtente(proprietarioAnnuncio).getNomeCognome()}"
-        }
-        findViewById<TextView>(R.id.nomeVenditore).text = nomeVenditore
+        val nomeVenditore: String
+       runBlocking {
+           val proprietario = UserLoginActivity.recuperaUtente(myAnnuncio.getProprietario())
 
-        //immagini oggetto
+           findViewById<TextView>(R.id.infoVenditore).text = proprietario.getEmail() +" "+ proprietario.getNumeroTelefono()
+           nomeVenditore = proprietario.getNomeCognome()
+           findViewById<TextView>(R.id.nomeVenditore).text = nomeVenditore
+       }
 
         runBlocking {
             val myArrayListImmagini = myAnnuncio.recuperaImmaginiSuFirebase()
@@ -134,66 +137,24 @@ class DettaglioOggettoActivity : AppCompatActivity(), OnMapReadyCallback {
             }
         }
 
-
-//        val imgScaricate = arrayOf("img1", "img2")
-//        for(imgEl in imgScaricate) {
-//            val img = ImageView(this)
-//            img.setImageResource(R.drawable.sea_wave_beautifully_1920x1080)
-//            img.adjustViewBounds = true
-//            val lP = LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT,LinearLayout.LayoutParams.WRAP_CONTENT)
-//            lP.setMargins(
-//                (this.resources.displayMetrics.density * 10).toInt(),
-//                TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 10f, this.resources.displayMetrics).toInt(),
-//                resources.getDimension(R.dimen.photo_margin).toInt(),
-//                resources.getDimension(R.dimen.photo_margin).toInt()
-//            )
-//            img.layoutParams = lP
-//            findViewById<LinearLayout>(R.id.contenitore_immagini).addView(img)
-//        }
         coordinateOgg = myAnnuncio.getPosizione()
 
         val mapFragment = supportFragmentManager
             .findFragmentById(R.id.object_position) as SupportMapFragment
         mapFragment.getMapAsync(this)
 
-        /*val img = ImageView(this)
-        img.setImageResource(R.drawable.sea_wave_beautifully_1920x1080)
-        img.adjustViewBounds = true
-        img.layoutParams = ViewGroup.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT,LinearLayout.LayoutParams.WRAP_CONTENT)
-
-        val lP = LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT,LinearLayout.LayoutParams.WRAP_CONTENT)
-        lP.setMargins(
-            (this.resources.displayMetrics.density * 10).toInt(),
-            TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 10f, this.resources.displayMetrics).toInt(),
-            resources.getDimension(R.dimen.photo_margin).toInt(),
-            resources.getDimension(R.dimen.photo_margin).toInt())
-
-        img.layoutParams = lP
-
-        findViewById<LinearLayout>(R.id.contenitore_immagini).addView(img)*/
-
-//        img.layoutParams.height = LinearLayout.LayoutParams.WRAP_CONTENT
-//        img.layoutParams.width = LinearLayout.LayoutParams.WRAP_CONTENT
-//        img.requestLayout()
-
-        /*val img2 = ImageView(this)
-        img2.setImageResource(R.drawable.sea_wave_beautifully_1920x1080)
-        img2.adjustViewBounds = true
-        img2.layoutParams = lP
-        findViewById<LinearLayout>(R.id.contenitore_immagini).addView(img2)*/
-        //fine immagini
 
         val btnRecensioniVenditore = findViewById<Button>(R.id.visualizza_recensioni_venditore)
         btnRecensioniVenditore.setOnClickListener {
             val i = Intent(this, RecensioniActivity::class.java)
-            i.putExtra("idUtente", proprietarioAnnuncio)
+            i.putExtra("idUtente", myAnnuncio.getProprietario())
             startActivity(i)
         }
 
         findViewById<Button>(R.id.chatta_con_proprietario).setOnClickListener {
             val intent = Intent(this, ChatActivity::class.java)
             intent.putExtra("nome", nomeVenditore)
-            intent.putExtra("uid", proprietarioAnnuncio)
+            intent.putExtra("uid", myAnnuncio.getProprietario())
             startActivity(intent)
         }
 
@@ -250,8 +211,8 @@ class DettaglioOggettoActivity : AppCompatActivity(), OnMapReadyCallback {
                 // creare funzione e aggiungerlo anche per admin
                 btnModifica.setOnClickListener {
                     val i = Intent(this, AggiungiOggettoActivity::class.java)
-                    i.putExtra("editMode", true)
-                    i.putExtra("annuncioId", myAnnuncio.getAnnuncioId())
+
+                    i.putExtra("annuncio", myAnnuncio)
                     startActivity(i)
                 }
 

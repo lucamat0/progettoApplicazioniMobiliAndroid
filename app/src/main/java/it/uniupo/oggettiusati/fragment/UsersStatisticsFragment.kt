@@ -15,19 +15,24 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import com.google.android.material.slider.Slider
-import it.uniupo.oggettiusati.AdminLoginActivity
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.ktx.firestore
+import com.google.firebase.ktx.Firebase
+import it.uniupo.oggettiusati.Annuncio
 import it.uniupo.oggettiusati.R
 import it.uniupo.oggettiusati.UserLoginActivity
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.tasks.await
 import java.util.stream.Collectors
+import kotlin.streams.toList
 
 
 class UsersStatisticsFragment : Fragment() {
-//    private val database = Firebase.firestore
-//    private val auth = FirebaseAuth.getInstance()
+
+    private val database = Firebase.firestore
+    private val auth = FirebaseAuth.getInstance()
 
     lateinit var categorie: List<UserLoginActivity.Categoria>
-//    lateinit var viewCategorie: Spinner
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -64,8 +69,8 @@ class UsersStatisticsFragment : Fragment() {
     override fun onResume() {
         super.onResume()
         runBlocking {
-            val numTotOgg = AdminLoginActivity.numeroOggettiInVendita()
-            val tMedioGiorni = AdminLoginActivity.calcolaTempoMedioAnnunciVenduti()
+            val numTotOgg = numeroOggettiInVendita()
+            val tMedioGiorni = String.format("%.4f", calcolaTempoMedioAnnunciVenduti())
             activity?.findViewById<TextView>(R.id.num_ogg_in_vendita)?.text = "Oggetti in vendita in questo momento: ${numTotOgg}"
             activity?.findViewById<TextView>(R.id.tempo_medio_vendita)?.text = "Tempo medio vendita di un oggetto: ${tMedioGiorni} giorni "
 
@@ -78,7 +83,7 @@ class UsersStatisticsFragment : Fragment() {
                         val posiz = Location("provider")
                         posiz.latitude = lat.toDouble()
                         posiz.longitude = lon.toDouble()
-                        val numOggDistanzaPunto = AdminLoginActivity.numeroOggettiInVenditaPerRaggioDistanza(posiz, dist) //ricercaOggettiDistanzaMinore().size
+                        val numOggDistanzaPunto = numeroOggettiInVenditaPerRaggioDistanza(posiz, dist) //ricercaOggettiDistanzaMinore().size
                         activity?.findViewById<TextView>(R.id.risultato_ricerca_admin)?.text = "Oggetti trovati: ${numOggDistanzaPunto}"
                     }
 
@@ -160,7 +165,7 @@ class UsersStatisticsFragment : Fragment() {
             if(nomeNuovaCateg.isBlank())
                 Toast.makeText(activity, "Il nome non puo'essere vuoto", Toast.LENGTH_SHORT).show()
             else {
-                runBlocking{ AdminLoginActivity.creaNuovaCategoriaFirebaseFirestore(nomeNuovaCateg) }
+                runBlocking{ creaNuovaCategoriaFirebaseFirestore(nomeNuovaCateg) }
                 eTextNomeNuovaCateg.setText("")
                 Toast.makeText(activity, "Categoria aggiunta", Toast.LENGTH_SHORT).show()
             }
@@ -172,7 +177,7 @@ class UsersStatisticsFragment : Fragment() {
             if(nomeAggCateg.isBlank())
                 Toast.makeText(activity, "Il nome non puo'essere vuoto", Toast.LENGTH_SHORT).show()
             else {
-                runBlocking{ AdminLoginActivity.modificaCategoriaFirebaseFirestore(idCategoria, nomeAggCateg) }
+                runBlocking{ modificaCategoriaFirebaseFirestore(idCategoria, nomeAggCateg) }
                 Toast.makeText(activity, "Categoria modificata", Toast.LENGTH_SHORT).show()
             }
         }
@@ -185,7 +190,7 @@ class UsersStatisticsFragment : Fragment() {
             if(nomeAggSottoCateg.isBlank())
                 Toast.makeText(activity, "Il nome non puo'essere vuoto", Toast.LENGTH_SHORT).show()
             else {
-                runBlocking{ AdminLoginActivity.modificaSottocategoriaFirebaseFirestore(idCategoria, idSottoCateg, nomeAggSottoCateg) }
+                runBlocking{ modificaSottocategoriaFirebaseFirestore(idCategoria, idSottoCateg, nomeAggSottoCateg) }
                 Toast.makeText(activity, "Sottocategoria di ${categoria.nome} modificata", Toast.LENGTH_SHORT).show()
             }
         }
@@ -198,10 +203,102 @@ class UsersStatisticsFragment : Fragment() {
             if(nomeNuovaSottoCateg.isBlank())
                 Toast.makeText(activity, "Il nome non puo'essere vuoto", Toast.LENGTH_SHORT).show()
             else {
-                runBlocking{ AdminLoginActivity.creaNuovaSottocategoriaFirebaseFirestore(idCategoria, nomeNuovaSottoCateg) }
+                runBlocking{ creaNuovaSottocategoriaFirebaseFirestore(idCategoria, nomeNuovaSottoCateg) }
                 eTextNuovaSottoCateg.setText("")
                 Toast.makeText(activity, "Sottocategoria di ${categoria.nome} aggiunta", Toast.LENGTH_SHORT).show()
             }
         }
+    }
+
+    //--- Accesso a dati statistici ---
+
+    /**
+     * Restituisce il numero di oggetti attualmente in vendita
+     *
+     * @author Amato Luca
+     * @return Numero di oggetti
+     */
+    private suspend fun numeroOggettiInVendita(): Int {
+        return database.collection(Annuncio.nomeCollection).whereEqualTo("venduto", false).get().await().size()
+    }
+
+    /**
+     * Restituisce il numero di oggetti attualmente in vendita entro una certa distanza dalla posizione dell'utente
+     *
+     * @author Amato Luca
+     * @param posizioneUtente Posizione dell'utente
+     * @param distanzaKmMax Distanza massima in km entro cui cercare gli oggetti in vendita
+     * @return Numero di oggetti
+     */
+    private suspend fun numeroOggettiInVenditaPerRaggioDistanza(posizioneUtente: Location, distanzaKmMax: Int): Int {
+        return UserLoginActivity.recuperaAnnunciFiltrati(
+            null,
+            null,
+            null,
+            null,
+            posizioneUtente,
+            distanzaKmMax
+        ).size
+    }
+
+
+    /**
+     * Calcola il tempo medio degli Annunci che sono stati venduti
+     *
+     * @author Amato Luca
+     * @return tempo medio annunci venduti
+     */
+    private suspend fun calcolaTempoMedioAnnunciVenduti(): Double{
+
+        val myUtenti = UserLoginActivity.recuperaUtenti(auth.uid!!)
+            .stream().filter{ utente-> runBlocking {  utente.calcolaTempoMedioAnnunciVenduti() != 0.0 } }.toList()
+
+        return myUtenti.sumOf { utente -> runBlocking {  utente.calcolaTempoMedioAnnunciVenduti() } } / myUtenti.size
+    }
+
+    /**
+     * Crea una nuova categoria
+     *
+     * @author Amato Luca
+     * @param nomeNuovaCategoria Nome della nuova categoria
+     */
+    private suspend fun creaNuovaCategoriaFirebaseFirestore(nomeNuovaCategoria: String){
+        database.collection("categoria").add(hashMapOf("nome" to  nomeNuovaCategoria)).await()
+    }
+
+    /**
+     * Modifica una categoria esistente
+     *
+     * @author Amato Luca
+     * @param idCategoria Identificativo della categoria
+     * @param nomeAggiornatoCategoria Nome aggiornato della categoria
+     */
+    private suspend fun modificaCategoriaFirebaseFirestore(idCategoria: String,nomeAggiornatoCategoria: String){
+        database.collection("categoria").document(idCategoria).update("nome", nomeAggiornatoCategoria).await()
+    }
+
+    /**
+     * Modifica una sottocategoria esistente
+     *
+     * @author Amato Luca
+     * @param idCategoria Identificativo della categoria a cui appartiene la sottocategoria
+     * @param idSottocategoria Identificativo della sottocategoria
+     * @param nomeAggiornatoSottocategoria Nome aggiornato della sottocategoria
+     */
+    private suspend fun modificaSottocategoriaFirebaseFirestore(idCategoria: String, idSottocategoria: String, nomeAggiornatoSottocategoria: String){
+        database.collection("categoria").document(idCategoria).collection("sottocategoria").document(idSottocategoria).update("nome", nomeAggiornatoSottocategoria).await()
+    }
+
+    /**
+     * Crea una nuova sottocategoria
+     *
+     * @author Amato Luca
+     * @param idCategoria Identificativo della categoria a cui appartiene la sottocategoria
+     * @param nomeNuovaSottocategoria Nome della nuova sottocategoria
+     */
+    private suspend fun creaNuovaSottocategoriaFirebaseFirestore(idCategoria: String, nomeNuovaSottocategoria: String){
+        database.collection("categoria").document(idCategoria).collection("sottocategoria").add(
+            hashMapOf("nome" to nomeNuovaSottocategoria)
+        ).await()
     }
 }
