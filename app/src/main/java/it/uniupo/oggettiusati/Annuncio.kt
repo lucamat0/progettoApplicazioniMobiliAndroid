@@ -17,16 +17,6 @@ import java.io.File
 /**
  * Rappresenta un Annuncio
  *
- * @author Amato Luca
- * @property userId Identificativo dell'utente che ha creato l'annuncio
- * @property titolo Titolo dell'annuncio
- * @property descrizione Descrizione dell'annuncio
- * @property prezzo Prezzo dell'annuncio
- * @property stato Stato dell'annuncio (0 = difettoso, 1 = qualche lieve difetto, 2 = usato ma in perfette condizioni, 3 = nuovo)
- * @property disponibilitaSpedire Indica se l'oggetto dell'annuncio è disponibile per la spedizione
- * @property categoria Categoria dell'annuncio
- * @property sottocategoria Sottocategoria dell'annuncio, parametro opzionale
- * @property posizione Posizione geografica dell'annuncio, parametro opzionale
  */
 data class Annuncio(
 
@@ -55,7 +45,7 @@ data class Annuncio(
     companion object {
         private val database = Firebase.firestore
 
-        val nomeCollection = "annuncio"
+        const val nomeCollection = "annuncio"
 
         @JvmField val CREATOR = object : Parcelable.Creator<Annuncio> {
             override fun createFromParcel(parcel: Parcel): Annuncio {
@@ -195,19 +185,6 @@ data class Annuncio(
                 caricaImmaginiSuFirebase(myImmagini)
     }
 
-
-    /**
-     * Aggiorna annuncio corrente su Firebase
-     *
-     * @author Amato Luca
-     */
-    suspend fun modificaAnnuncioSuFirebase() {
-
-        val adRif = database.collection(nomeCollection).document(this.annuncioId)
-
-        adRif.update("userId", userId, "titolo", titolo, "descrizione", descrizione, "prezzo", prezzo, "stato", stato, "disponibilitaSpedire", disponibilitaSpedire, "categoria", categoria, "venduto", venduto, "userIdAcquirente", userIdAcquirente, "timeStampFineVendita", timeStampFineVendita, "acquirenteRecensito", this.acquirenteRecensito, "proprietarioRecensito", this.proprietarioRecensito, "sottocategoria", this.sottocategoria).await()
-    }
-
     /**
      * Elimina annuncio corrente da Firebase
      *
@@ -238,7 +215,7 @@ data class Annuncio(
      * @author Amato Luca
      * @param myImmagini La lista delle URI delle immagini da caricare.
      */
-    private fun caricaImmaginiSuFirebase(myImmagini: ArrayList<Uri>) {
+    fun caricaImmaginiSuFirebase(myImmagini: ArrayList<Uri>) {
 
         for(immagineUri in myImmagini) {
 
@@ -291,13 +268,13 @@ data class Annuncio(
      */
     suspend fun setVenduto() {
         //aggiunta di un nuovo campo booleano che viene settato a true quando acquirente ha dato ok
-        if(this.userIdAcquirente != null /*&& this.venduto == false*/){
+        if(this.userIdAcquirente != null && this.venduto == false){
             this.venduto = true
             this.timeStampFineVendita = System.currentTimeMillis()
 
             CartFragment.salvaTransazioneSuFirestoreFirebase(this.userId, this.prezzo, true)
 
-            modificaAnnuncioSuFirebase()
+            database.collection(nomeCollection).document(this.annuncioId).update("venduto", this.venduto,"timeStampFineVendita", this.timeStampFineVendita).await()
         }
         //Errore, dove si informa che non è stata avanzata nessuna richiesta
     }
@@ -313,7 +290,8 @@ data class Annuncio(
             this.userIdAcquirente = userIdAcquirente
 
             CartFragment.salvaTransazioneSuFirestoreFirebase(this.userIdAcquirente!!, this.prezzo, false)
-            modificaAnnuncioSuFirebase()
+
+            database.collection(nomeCollection).document(this.annuncioId).update("userIdAcquirente", this.userIdAcquirente).await()
             return true
         } else {
             //richiesta già inoltrata, da qualcunaltro, comunicalo e rimuovilo dal carrello
@@ -399,16 +377,18 @@ data class Annuncio(
     // in input userId dell'utente autenticato, si controlla che sia quella del venditore, per un maggiore livello di sicurezza
     suspend fun setAcquirenteRecensito(userId: String) {
         if(this.userId == userId || AdminLoginActivity.isAmministratore(userId)){
-            acquirenteRecensito = true
-            modificaAnnuncioSuFirebase()
+            this.acquirenteRecensito = true
+
+            database.collection(nomeCollection).document(this.annuncioId).update("acquirenteRecensito", this.acquirenteRecensito).await()
         }
     }
 
     // in input userId dell'utente autenticato, si controlla che sia quella dell'acquirente (solo lui puo' recensire il proprietario legato ad un annuncio)
     suspend fun setProprietarioRecensito(userId: String) {
         if(this.userIdAcquirente == userId || AdminLoginActivity.isAmministratore(userId)){
-            proprietarioRecensito = true
-            modificaAnnuncioSuFirebase()
+            this.proprietarioRecensito = true
+
+            database.collection(nomeCollection).document(this.annuncioId).update("proprietarioRecensito", this.proprietarioRecensito).await()
         }
     }
 
@@ -428,7 +408,8 @@ data class Annuncio(
 
             this.userIdAcquirente = null
 
-            modificaAnnuncioSuFirebase()
+            database.collection(nomeCollection).document(this.annuncioId).update("userIdAcquirente", this.userIdAcquirente).await()
+
         }
         //non sono il proprietario o/e non c'è stata nessuna richiesta
     }
@@ -441,10 +422,10 @@ data class Annuncio(
      * @param userId Identificativo della persona che vuole modificare il titolo dell'annuncio
      */
     suspend fun setTitolo(newTitolo: String, userId: String) {
-        if(isProprietario(userId) || AdminLoginActivity.isAmministratore(userId)) {
+        if((isProprietario(userId) || AdminLoginActivity.isAmministratore(userId)) && userIdAcquirente == null) {
             this.titolo = newTitolo
 
-            modificaAnnuncioSuFirebase()
+            database.collection(nomeCollection).document(this.annuncioId).update("titolo", this.titolo).await()
         }
     }
 
@@ -455,10 +436,10 @@ data class Annuncio(
      * @param userId Identificativo della persona che vuole modificare il titolo dell'annuncio
      */
     suspend fun setDescrizione(newDescrizione: String, userId: String) {
-        if(isProprietario(userId) || AdminLoginActivity.isAmministratore(userId)) {
+        if((isProprietario(userId) || AdminLoginActivity.isAmministratore(userId)) && userIdAcquirente == null) {
             this.descrizione = newDescrizione
 
-            modificaAnnuncioSuFirebase()
+            database.collection(nomeCollection).document(this.annuncioId).update("descrizione", this.descrizione).await()
         }
     }
 
@@ -470,10 +451,42 @@ data class Annuncio(
      * @param userId Identificativo della persona che vuole modificare la categoria dell'annuncio
      */
     suspend fun setCategoria(newCategoria: String, userId: String) {
-        if(isProprietario(userId) || AdminLoginActivity.isAmministratore(userId)) {
+        if((isProprietario(userId) || AdminLoginActivity.isAmministratore(userId)) && userIdAcquirente == null) {
             this.categoria = newCategoria
 
-            modificaAnnuncioSuFirebase()
+            database.collection(nomeCollection).document(this.annuncioId).update("categoria", this.categoria).await()
+        }
+    }
+
+    suspend fun setStato(newStato: Int, userId: String) {
+        if((isProprietario(userId) || AdminLoginActivity.isAmministratore(userId)) && userIdAcquirente == null) {
+            this.stato = newStato
+
+            database.collection(nomeCollection).document(this.annuncioId).update("stato", this.stato).await()
+        }
+    }
+
+    suspend fun setSottocategoria(newSottocategoria: String?, userId: String) {
+        if((isProprietario(userId) || AdminLoginActivity.isAmministratore(userId)) && userIdAcquirente == null) {
+            this.sottocategoria = newSottocategoria
+
+            database.collection(nomeCollection).document(this.annuncioId).update("sottocategoria", this.sottocategoria).await()
+        }
+    }
+
+    suspend fun setDisponibilitaSpedire(newDisponibilita: Boolean, userId: String) {
+        if((isProprietario(userId) || AdminLoginActivity.isAmministratore(userId)) && userIdAcquirente == null) {
+            this.disponibilitaSpedire = newDisponibilita
+
+            database.collection(nomeCollection).document(this.annuncioId).update("disponibilitaSpedire", this.disponibilitaSpedire).await()
+        }
+    }
+
+    suspend fun setPosizione(newPosizione: Location, userId: String) {
+        if((isProprietario(userId) || AdminLoginActivity.isAmministratore(userId)) && userIdAcquirente == null) {
+            this.posizione = newPosizione
+
+            database.collection(nomeCollection).document(this.annuncioId).update("posizione", GeoPoint(this.posizione.latitude, this.posizione.longitude)).await()
         }
     }
 
@@ -487,8 +500,7 @@ data class Annuncio(
     suspend fun setPrezzo(newPrezzo: Double, userId: String) {
         if((isProprietario(userId) || AdminLoginActivity.isAmministratore(userId)) && userIdAcquirente == null) {
             this.prezzo = newPrezzo
-
-            modificaAnnuncioSuFirebase()
+            database.collection(nomeCollection).document(this.annuncioId).update("prezzo", this.prezzo).await()
         }
     }
 
@@ -575,4 +587,6 @@ data class Annuncio(
     override fun describeContents(): Int {
         return 0
     }
+
+
 }

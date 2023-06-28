@@ -19,9 +19,11 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 import it.uniupo.oggettiusati.AdminLoginActivity
+import it.uniupo.oggettiusati.Annuncio
 import it.uniupo.oggettiusati.R
 import it.uniupo.oggettiusati.UserLoginActivity
 import it.uniupo.oggettiusati.chat.ChatActivity
+import it.uniupo.oggettiusati.fragment.CartFragment
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.tasks.await
 
@@ -109,7 +111,7 @@ class UserAdapter(private val userList: ArrayList<UserLoginActivity.Utente>, pri
 
             holder.btnSospendi.setOnClickListener {
                 runBlocking{
-                    AdminLoginActivity.sospendiUtente(utenteCorrente.getId())
+                    sospendiUtente(utenteCorrente.getId())
                 }
 
                 mostraSospeso(holder)
@@ -118,7 +120,7 @@ class UserAdapter(private val userList: ArrayList<UserLoginActivity.Utente>, pri
 
             holder.btnAttiva.setOnClickListener {
                 runBlocking{
-                    AdminLoginActivity.attivaUtente(utenteCorrente.getId())
+                    attivaUtente(utenteCorrente.getId())
                 }
                 mostraUtenteNormale(holder)
 
@@ -132,7 +134,7 @@ class UserAdapter(private val userList: ArrayList<UserLoginActivity.Utente>, pri
                     .setPositiveButton("Si") { dialog : DialogInterface, _:Int ->
                         dialog.dismiss()
                         runBlocking {
-                            AdminLoginActivity.eliminaUtente(utenteCorrente.getId())
+                            eliminaUtente(utenteCorrente.getId())
                             mostraEliminato(holder)
                             rimuoviColoreLayoutUtente(holder)
                         }
@@ -145,7 +147,7 @@ class UserAdapter(private val userList: ArrayList<UserLoginActivity.Utente>, pri
 
             runBlocking {
                 val punteggio = utenteCorrente.recuperaPunteggioRecensioniFirebase()
-                val numOgg = AdminLoginActivity.numeroOggettiInVenditaPerSpecificoUtente(utenteCorrente.getId())
+                val numOgg = numeroOggettiInVenditaPerSpecificoUtente(utenteCorrente.getId())
 
                 holder.punteggioUtente.text = "Punteggio: ${punteggio}"
                 holder.numOggUtente.text = "Oggetti in vendita: ${numOgg}"
@@ -235,5 +237,56 @@ class UserAdapter(private val userList: ArrayList<UserLoginActivity.Utente>, pri
         val sospendiElimina = itemView.findViewById<LinearLayout>(R.id.layout_sospendi_elimina)
         val layoutUtente = itemView.findViewById<LinearLayout>(R.id.user_layout_chat)
     }
+
+
+    /**
+     * Elimina l'utente specificato, nel caso in cui ci fosse stata una richiesta di acquisto ai suoi annunci i soldi vengono riaccreditati
+     *
+     * @author Amato Luca
+     * @param userId Identificativo dell'utente
+     */
+    private suspend fun eliminaUtente(userId: String) {
+
+        database.collection(UserLoginActivity.Utente.nomeCollection).document(userId).update("eliminato", true).await()
+
+        database.collection(Annuncio.nomeCollection).get().await().documents.stream().forEach {
+                doc -> if(doc.getString("userId") as String == userId){
+            if(doc.getString("userIdAcquirente") != null && !(doc.getBoolean("venduto") as Boolean))
+                runBlocking {  CartFragment.salvaTransazioneSuFirestoreFirebase(doc.getString("userIdAcquirente") as String, doc.getDouble("prezzo") as Double, true) }
+        }
+        }
+    }
+
+    /**
+     * Sospende l'utente specificato
+     *
+     * @author Amato Luca
+     * @param userId Identificativo dell'utente
+     */
+    private suspend fun sospendiUtente(userId: String) {
+        database.collection(UserLoginActivity.Utente.nomeCollection).document(userId).update("sospeso", true).await()
+    }
+
+    /**
+     * Riammette l'utente specificato
+     *
+     * @author Amato Luca
+     * @param userId Identificativo dell'utente
+     */
+    private suspend fun attivaUtente(userId: String){
+        database.collection(UserLoginActivity.Utente.nomeCollection).document(userId).update("sospeso", false).await()
+    }
+
+    /**
+     * Restituisce il numero di oggetti attualmente in vendita per un particolare utente
+     *
+     * @author Amato Luca
+     * @param userId Identificativo dell'utente
+     * @return Numero di oggetti
+     */
+    suspend fun numeroOggettiInVenditaPerSpecificoUtente(userId: String): Int {
+        return database.collection(Annuncio.nomeCollection).whereEqualTo("venduto", false).whereEqualTo("userId", userId).get().await().size()
+    }
+
 }
 

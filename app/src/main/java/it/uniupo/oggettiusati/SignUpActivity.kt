@@ -115,7 +115,8 @@ class SignUpActivity : AppCompatActivity() {
                                         nome,
                                         cognome,
                                         dataNascita,
-                                        numeroDiTelefono
+                                        numeroDiTelefono,
+                                        email
                                     ) == null
                                 ) {
                                     //Se non si é riuscito a creare il documento bisogna eliminare utente
@@ -176,7 +177,8 @@ class SignUpActivity : AppCompatActivity() {
         nome: String,
         cognome: String,
         dataNascita: String,
-        numeroDiTelefono: String
+        numeroDiTelefono: String,
+        email: String
     ): String? {
         //Applico il controllo che il numero deve essere composto da 10 caratteri numerici,
         //per una questione di riusabilità, questo controllo viene comunque effettuato nel front end
@@ -189,7 +191,8 @@ class SignUpActivity : AppCompatActivity() {
                 "amministratore" to false,
                 "sospeso" to false,
                 "eliminato" to false,
-                "userId" to utenteDaSalvareId
+                "userId" to utenteDaSalvareId,
+                "email" to email
             )
 
             database.collection(UserLoginActivity.Utente.nomeCollection).document(utenteDaSalvareId).set(userValues).await()
