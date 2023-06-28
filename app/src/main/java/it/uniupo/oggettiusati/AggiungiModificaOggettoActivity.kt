@@ -8,7 +8,6 @@ import android.location.Location
 import android.net.Uri
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import android.util.Log
 import android.util.TypedValue
 import android.view.Menu
 import android.view.MenuInflater
@@ -41,7 +40,7 @@ import java.util.stream.Collectors
  * @author Amato Luca
  * @author Busto Matteo
  */
-class AggiungiOggettoActivity : AppCompatActivity() {
+class AggiungiModificaOggettoActivity : AppCompatActivity() {
 
     private val auth = FirebaseAuth.getInstance()
     val database = Firebase.firestore
@@ -68,7 +67,7 @@ class AggiungiOggettoActivity : AppCompatActivity() {
 
         runBlocking {
             categorie = UserLoginActivity.recuperaCategorieFirebase()
-            val spinnerCategorieAdapter: ArrayAdapter<String> = ArrayAdapter(this@AggiungiOggettoActivity, android.R.layout.simple_spinner_dropdown_item, categorie.stream().map { categoria -> categoria.nome }.collect(Collectors.toList()))
+            val spinnerCategorieAdapter: ArrayAdapter<String> = ArrayAdapter(this@AggiungiModificaOggettoActivity, android.R.layout.simple_spinner_dropdown_item, categorie.stream().map { categoria -> categoria.nome }.collect(Collectors.toList()))
             spinnerCategorieAdapter.setDropDownViewResource(android.R.layout.simple_spinner_item)
             viewCategoriaOgg.adapter = spinnerCategorieAdapter
 
@@ -84,7 +83,7 @@ class AggiungiOggettoActivity : AppCompatActivity() {
                         findViewById<LinearLayout>(R.id.layout_sottocategoria).visibility = View.VISIBLE
 
                         val sottoCategorie = categoriaSelezionata.sottocategorie!!.stream().map { sottocategoria -> sottocategoria.nome }.collect(Collectors.toList())
-                        val spinnerSottoCategAdapter: ArrayAdapter<String> = ArrayAdapter(this@AggiungiOggettoActivity, android.R.layout.simple_spinner_dropdown_item, sottoCategorie)
+                        val spinnerSottoCategAdapter: ArrayAdapter<String> = ArrayAdapter(this@AggiungiModificaOggettoActivity, android.R.layout.simple_spinner_dropdown_item, sottoCategorie)
                         spinnerSottoCategAdapter.setDropDownViewResource(android.R.layout.simple_spinner_item)
                         viewSottoCategOgg.adapter = spinnerSottoCategAdapter
                     } else {
@@ -114,7 +113,7 @@ class AggiungiOggettoActivity : AppCompatActivity() {
             var geocodeAddressesMatches: List<Address>? = null
 
             try {
-                geocodeAddressesMatches = Geocoder(this@AggiungiOggettoActivity).getFromLocation(posizione.latitude, posizione.longitude, 1)
+                geocodeAddressesMatches = Geocoder(this@AggiungiModificaOggettoActivity).getFromLocation(posizione.latitude, posizione.longitude, 1)
             } catch (e: IOException) {
                 e.printStackTrace()
             }
@@ -125,7 +124,7 @@ class AggiungiOggettoActivity : AppCompatActivity() {
                 locality = geocodeAddressesMatches[0].locality //comune
                 viewTestoPosizioneOgg.setText("$locality")
             } else
-                Toast.makeText(this@AggiungiOggettoActivity, "Error getting address ", Toast.LENGTH_LONG).show()
+                Toast.makeText(this@AggiungiModificaOggettoActivity, "Error getting address ", Toast.LENGTH_LONG).show()
 
 //                    viewTestoPosizioneOgg.setText("${posizione?.latitude} ${posizione?.longitude}")
 
@@ -134,14 +133,14 @@ class AggiungiOggettoActivity : AppCompatActivity() {
             viewStatoOgg.setSelection(myAnnuncio.getStato())
             viewSpedizioneOgg.isChecked = myAnnuncio.getDisponibilitaSpedire()
 
-            findViewById<HorizontalScrollView>(R.id.immagini_oggetto).visibility = View.VISIBLE
 
             runBlocking {
-                val myArrayListImmagini = myAnnuncio.recuperaImmaginiSuFirebase()
+                var myArrayListImmagini = myAnnuncio.recuperaImmaginiSuFirebase()
                 if (myArrayListImmagini.size > 0) {
+                    findViewById<HorizontalScrollView>(R.id.immagini_oggetto).visibility = View.VISIBLE
                     for(imgUri in myArrayListImmagini) {
 
-                        val imgView = ImageView(this@AggiungiOggettoActivity)
+                        val imgView = ImageView(this@AggiungiModificaOggettoActivity)
                         imgView.adjustViewBounds = true
                         val lP = LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT,LinearLayout.LayoutParams.WRAP_CONTENT)
                         lP.setMargins(
@@ -156,22 +155,23 @@ class AggiungiOggettoActivity : AppCompatActivity() {
                         if(imagePath != null) {
                             val folders = imagePath.split("/")
                             val foldersLen = folders.size - 1
-                            val idAnnuncio = folders[foldersLen - 1]
                             val nomeFileImg = folders[foldersLen]
 
-                            imgView.tag = arrayOf(idAnnuncio, nomeFileImg)
-
                             imgView.setOnClickListener {
-                                AlertDialog.Builder(this@AggiungiOggettoActivity)
+                                AlertDialog.Builder(this@AggiungiModificaOggettoActivity)
                                     .setTitle("Attenzione")
                                     .setMessage("Sei sicuro di voler eliminare l'immagine?")
                                     .setPositiveButton("Si") { dialog : DialogInterface, _:Int ->
                                         dialog.dismiss()
                                         runBlocking {
-                                            Log.d("idImmagine", "${(imgView.tag as Array<*>)[0]} ${(imgView.tag as Array<*>)[1]}")
-                                            Toast.makeText(this@AggiungiOggettoActivity, "Rimuovo nome immagine $nomeFileImg", Toast.LENGTH_SHORT).show()
+
                                             imgView.visibility = View.GONE
                                             myAnnuncio.eliminaImmagineSuFirebase(nomeFileImg)
+
+                                            myArrayListImmagini = myAnnuncio.recuperaImmaginiSuFirebase()
+
+                                            if(myArrayListImmagini.size < 1)
+                                                findViewById<HorizontalScrollView>(R.id.immagini_oggetto).visibility = View.GONE
                                         }
                                     }
                                     .setNegativeButton("No") { dialog : DialogInterface, _:Int ->
@@ -181,7 +181,7 @@ class AggiungiOggettoActivity : AppCompatActivity() {
                             }
                         }
 
-                        Glide.with(this@AggiungiOggettoActivity)
+                        Glide.with(this@AggiungiModificaOggettoActivity)
                             .load(imgUri)
                             .into(imgView)
 
@@ -260,13 +260,13 @@ class AggiungiOggettoActivity : AppCompatActivity() {
                                 myAnnuncio.caricaImmaginiSuFirebase(myImmaginiAnnuncio)
 
 
-                            Toast.makeText(this@AggiungiOggettoActivity, "Modifico...", Toast.LENGTH_LONG).show()
+                            Toast.makeText(this@AggiungiModificaOggettoActivity, "Modifico...", Toast.LENGTH_LONG).show()
                         } else {
                             val newAnnuncio = Annuncio(auth.uid!!, nomeOgg, descrizioneOgg, prezzoOgg,
                                 viewStatoOgg.selectedItemPosition, viewSpedizioneOgg.isChecked, idCategoriaOgg, idSottoCategOgg, posizioneOgg)
                             newAnnuncio.salvaAnnuncioSuFirebase(myImmaginiAnnuncio)
                         }
-                        startActivity(Intent(this@AggiungiOggettoActivity, UserLoginActivity::class.java))
+                        startActivity(Intent(this@AggiungiModificaOggettoActivity, UserLoginActivity::class.java))
                         finish()
                     }
                 } else {

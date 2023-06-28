@@ -25,7 +25,7 @@
             android:name=".RecensioniActivity"
             android:exported="false" />
         <activity
-            android:name=".AggiungiOggettoActivity"
+            android:name=".AggiungiModificaOggettoActivity"
             android:exported="false"
             android:label="@string/title_activity_aggiungi_oggetto"
             android:theme="@style/Theme.OggettiUsati.NoActionBar" />
