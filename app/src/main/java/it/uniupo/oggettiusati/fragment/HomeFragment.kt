@@ -323,25 +323,8 @@ class HomeFragment(private val isAdmin: Boolean) : Fragment() {
                     recyclerVu?.adapter = adapterRicerca
 
                 }
-//                posizioneUtente.latitude = 44.922
-//                posizioneUtente.longitude = 8.617
-
-                //fine posizione Utente
             }
         }
-
-        //---
-
-//        //logica bottone logout
-//        val logoutButton = view?.findViewById<Button>(R.id.logout)
-//        logoutButton?.setOnClickListener {
-//            Toast.makeText(activity, "Uscita...", Toast.LENGTH_SHORT).show()
-//            FirebaseAuth.getInstance().signOut()
-//            startActivity(Intent(activity, MainActivity::class.java))
-//        }
-
-        // --- Inizio metodi relativi ai filtri ---
-
 
         distanceSlider?.setLabelFormatter { value -> "$value km"; }
 
@@ -465,19 +448,6 @@ class HomeFragment(private val isAdmin: Boolean) : Fragment() {
 
     private fun requestPermission(permissioType: String, requestCode: Int) {
         ActivityCompat.requestPermissions(requireActivity(), arrayOf(permissioType), requestCode)
-    }
-
-    /**
-     * Reimposta le variabili di stato per recuperare tutti gli annunci.
-     *
-     * @author Amato Luca
-     */
-    fun recuperaTuttiAnnunci() {
-
-        this.disponibilitaSpedire = null
-        this.prezzoSuperiore = null
-        this.prezzoInferiore = null
-        this.disponibilitaSpedire = null
     }
 
     /**
