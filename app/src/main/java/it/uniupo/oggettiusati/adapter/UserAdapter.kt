@@ -18,6 +18,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
+import it.uniupo.oggettiusati.AdminLoginActivity
 import it.uniupo.oggettiusati.R
 import it.uniupo.oggettiusati.UserLoginActivity
 import it.uniupo.oggettiusati.chat.ChatActivity
@@ -107,16 +108,20 @@ class UserAdapter(private val userList: ArrayList<UserLoginActivity.Utente>, pri
             setUpEliminatoSospeso(utenteCorrente, holder)
 
             holder.btnSospendi.setOnClickListener {
-                //sospendi utente
-                Toast.makeText(holder.itemView.context, "Sospendo", Toast.LENGTH_SHORT).show()
+                runBlocking{
+                    AdminLoginActivity.sospendiUtente(utenteCorrente.getId())
+                }
+
                 mostraSospeso(holder)
                 rimuoviColoreLayoutUtente(holder)
             }
 
             holder.btnAttiva.setOnClickListener {
-                //attiva
+                runBlocking{
+                    AdminLoginActivity.attivaUtente(utenteCorrente.getId())
+                }
                 mostraUtenteNormale(holder)
-                Toast.makeText(holder.itemView.context, "Attivo", Toast.LENGTH_SHORT).show()
+
             }
 
             holder.btnElimina.setOnClickListener {
@@ -127,8 +132,7 @@ class UserAdapter(private val userList: ArrayList<UserLoginActivity.Utente>, pri
                     .setPositiveButton("Si") { dialog : DialogInterface, _:Int ->
                         dialog.dismiss()
                         runBlocking {
-//                            eliminaUtente()
-                            //elimina utente
+                            AdminLoginActivity.eliminaUtente(utenteCorrente.getId())
                             mostraEliminato(holder)
                             rimuoviColoreLayoutUtente(holder)
                         }
@@ -139,11 +143,15 @@ class UserAdapter(private val userList: ArrayList<UserLoginActivity.Utente>, pri
                     .show()
             }
 
-            val punteggio = 0.0
-            val numOgg = 0
+            runBlocking {
+                val punteggio = utenteCorrente.recuperaPunteggioRecensioniFirebase()
+                val numOgg = AdminLoginActivity.numeroOggettiInVenditaPerSpecificoUtente(utenteCorrente.getId())
 
-            holder.punteggioUtente.text = "Punteggio: ${punteggio}"
-            holder.numOggUtente.text = "Oggetti in vendita: ${numOgg}"
+                holder.punteggioUtente.text = "Punteggio: ${punteggio}"
+                holder.numOggUtente.text = "Oggetti in vendita: ${numOgg}"
+            }
+
+
         }
     }
 

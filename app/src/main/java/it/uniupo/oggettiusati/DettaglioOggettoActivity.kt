@@ -266,7 +266,7 @@ class DettaglioOggettoActivity : AppCompatActivity(), OnMapReadyCallback {
                             dialog.dismiss()
                             startActivity(Intent(this, UserLoginActivity::class.java))
                             runBlocking {
-//                                eliminaAnnuncioFirebase()
+                                myAnnuncio.eliminaAnnuncioDaFirebase()
                             }
                         }
                         .setNegativeButton("No") { dialog :DialogInterface, _:Int ->

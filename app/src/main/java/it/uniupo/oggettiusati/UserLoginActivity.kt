@@ -682,7 +682,7 @@ open class UserLoginActivity : AppCompatActivity() {
 
                 var totalePunteggioRecensioni = 0.0
                 for (myRecensioni in queryRecensioni.documents)
-                    totalePunteggioRecensioni += (myRecensioni.getLong("votoAlUtente") as Long).toDouble()
+                    totalePunteggioRecensioni += (myRecensioni.getDouble("votoAlUtente")!!.toFloat()).toDouble()
 
                 return totalePunteggioRecensioni / numeroRecensioni
             }

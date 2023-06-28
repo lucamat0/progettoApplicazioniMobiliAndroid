@@ -76,7 +76,7 @@
                 android:layout_margin="5dp"
                 android:value="1"
                 android:valueFrom="1"
-                android:valueTo="100"
+                android:valueTo="1000"
                 android:stepSize="1"
                 />
 

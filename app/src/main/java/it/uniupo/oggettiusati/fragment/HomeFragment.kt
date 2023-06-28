@@ -136,6 +136,7 @@ class HomeFragment(private val isAdmin: Boolean) : Fragment() {
             //this creates a vertical layout Manager
             recyclerVu?.layoutManager = LinearLayoutManager(activity)
             //this will pass the ArrayList to our Adapter
+            requireView().findViewById<TextView>(R.id.info_home).text = if(myAnnunciHome.size > 0) "${myAnnunciHome.size} oggetti " else "Non sono presenti oggetti nel sistema"
             val adapter = CustomAdapter(myAnnunciHome, R.layout.card_view_design, isAdmin)
             //setting the Adapter with the recyclerView
             recyclerVu?.adapter = adapter
@@ -296,7 +297,7 @@ class HomeFragment(private val isAdmin: Boolean) : Fragment() {
                                 posizioneUtente.longitude = 8.617
                             }
 
-                            Toast.makeText(activity, "${posizioneUtente.latitude} ${posizioneUtente.longitude}", Toast.LENGTH_SHORT).show()
+                            //Toast.makeText(activity, "${posizioneUtente.latitude} ${posizioneUtente.longitude}", Toast.LENGTH_SHORT).show()
                         }
                     }
 
@@ -315,7 +316,7 @@ class HomeFragment(private val isAdmin: Boolean) : Fragment() {
 
                     //-- Definisco i nuovi listener, per i documenti che ho ora nella Home --
                     myListenerAnnunciHome = subscribeRealTimeDatabase(myDocumentiRef,myListenerAnnunciHome,myAnnunciHome)
-
+                    requireView().findViewById<TextView>(R.id.info_home).text = if(myAnnunciHome.size > 0) "${myAnnunciHome.size} risultati di ricerca " else "Nessun oggetto corrisponde ai parametri"
                     val adapterRicerca = CustomAdapter(myAnnunciHome, R.layout.card_view_design, isAdmin)
                     val recyclerVu = view?.findViewById<RecyclerView>(R.id.recyclerview)
                     //setting the Adapter with the recyclerView

@@ -6,6 +6,7 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.TextView
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -181,7 +182,7 @@ class FavoritesFragment(private val isAdmin: Boolean) : Fragment() {
 
             //Ogni volta che il mio fragment viene messo in primo piano recupero i miei annunci preferiti
             myAnnunciPreferiti = recuperaAnnunciPreferitiFirebaseFirestore(auth.uid!!, requireActivity())
-
+            requireView().findViewById<TextView>(R.id.info_preferiti).text = if(myAnnunciPreferiti.size > 0) "${myAnnunciPreferiti.size} preferiti" else "Non sono presenti oggetti tra i preferiti"
             //this will pass the ArrayList to our Adapter
             val adapter = CustomAdapter(myAnnunciPreferiti, R.layout.card_view_remove_design, isAdmin)
 

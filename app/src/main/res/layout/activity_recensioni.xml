@@ -4,7 +4,18 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".RecensioniActivity">
+    tools:context=".RecensioniActivity"
+    android:orientation="vertical">
+
+    <TextView
+        android:id="@+id/info_recensioni"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textStyle="italic"
+        android:textSize="20sp"
+        android:layout_marginStart="5dp"
+        android:gravity="center"
+        android:text="Nessuna recensione per questo utente"/>
 
     <ScrollView
         android:layout_width="match_parent"

@@ -9,6 +9,15 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="vertical">
+        <TextView
+            android:id="@+id/info_carrello"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textStyle="italic"
+            android:textSize="20sp"
+            android:layout_marginStart="5dp"
+            android:gravity="center"
+            android:text="Non sono presenti oggetti nel carrello"/>
         <ScrollView
             android:layout_width="match_parent"
             android:layout_height="0dp"
@@ -24,7 +33,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     tools:itemCount="5"
-                    tools:listitem="@layout/card_view_remove_design" />
+                    tools:listitem="@layout/card_view_remove_buy_design" />
             </LinearLayout>
         </ScrollView>
         <LinearLayout

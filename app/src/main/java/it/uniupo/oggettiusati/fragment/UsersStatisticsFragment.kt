@@ -1,5 +1,6 @@
 package it.uniupo.oggettiusati.fragment
 
+import android.location.Location
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -14,10 +15,7 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import com.google.android.material.slider.Slider
-import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.firestore.ktx.firestore
-import com.google.firebase.ktx.Firebase
-import it.uniupo.oggettiusati.Annuncio
+import it.uniupo.oggettiusati.AdminLoginActivity
 import it.uniupo.oggettiusati.R
 import it.uniupo.oggettiusati.UserLoginActivity
 import kotlinx.coroutines.runBlocking
@@ -58,8 +56,40 @@ class UsersStatisticsFragment : Fragment() {
             }
         })
 
-        val viewCategorie = fragmentRootView.findViewById<Spinner>(R.id.categorie)
-        val viewSottoCateg = fragmentRootView.findViewById<Spinner>(R.id.sottocategorie)
+
+
+        return fragmentRootView
+    }
+
+    override fun onResume() {
+        super.onResume()
+        runBlocking {
+            val numTotOgg = AdminLoginActivity.numeroOggettiInVendita()
+            val tMedioGiorni = AdminLoginActivity.calcolaTempoMedioAnnunciVenduti()
+            activity?.findViewById<TextView>(R.id.num_ogg_in_vendita)?.text = "Oggetti in vendita in questo momento: ${numTotOgg}"
+            activity?.findViewById<TextView>(R.id.tempo_medio_vendita)?.text = "Tempo medio vendita di un oggetto: ${tMedioGiorni} giorni "
+
+            activity?.findViewById<Button>(R.id.btn_ricerca_admin)?.setOnClickListener {
+                val lat = activity?.findViewById<EditText>(R.id.latitudine_ricerca_admin)?.text.toString()
+                val lon = activity?.findViewById<EditText>(R.id.longitudine_ricerca_admin)?.text.toString()
+                val dist = activity?.findViewById<Slider>(R.id.adminDistanceSlider)?.value?.toInt()!!
+                if(arrayOf(lat, lon).all { it.isNotBlank() } && dist > 0) {
+                    runBlocking {
+                        val posiz = Location("provider")
+                        posiz.latitude = lat.toDouble()
+                        posiz.longitude = lon.toDouble()
+                        val numOggDistanzaPunto = AdminLoginActivity.numeroOggettiInVenditaPerRaggioDistanza(posiz, dist) //ricercaOggettiDistanzaMinore().size
+                        activity?.findViewById<TextView>(R.id.risultato_ricerca_admin)?.text = "Oggetti trovati: ${numOggDistanzaPunto}"
+                    }
+
+                } else {
+                    Toast.makeText(activity, "Alcuni campi vuoti, compilali", Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
+
+        val viewCategorie = requireActivity().findViewById<Spinner>(R.id.categorie)
+        val viewSottoCateg = requireActivity().findViewById<Spinner>(R.id.sottocategorie)
 
         runBlocking{
             categorie = UserLoginActivity.recuperaCategorieFirebase()
@@ -70,6 +100,9 @@ class UsersStatisticsFragment : Fragment() {
         spinnerCategorieAdapter.setDropDownViewResource(android.R.layout.simple_spinner_item)
         viewCategorie.adapter = spinnerCategorieAdapter
 
+        val eTextNomeAggCateg = requireActivity().findViewById<EditText>(R.id.nome_aggiornato_categoria)
+        val eTextNuovaSottoCateg = requireActivity().findViewById<EditText>(R.id.nome_nuova_sottocategoria)
+
         viewCategorie.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
             override fun onItemSelected(
                 parent: AdapterView<*>?,
@@ -78,10 +111,12 @@ class UsersStatisticsFragment : Fragment() {
                 id: Long
             ) {
                 val categoriaSelezionata = categorie[viewCategorie.selectedItemPosition]
-                fragmentRootView.findViewById<EditText>(R.id.nome_aggiornato_categoria).setText(categoriaSelezionata.nome)
+                eTextNomeAggCateg.setText(categoriaSelezionata.nome)
+
+                val layoutSottocategorie = activity!!.findViewById<LinearLayout>(R.id.layout_sottocategorie)
 
                 if(UserLoginActivity.hasSottocategorie(categoriaSelezionata)) {
-                    fragmentRootView.findViewById<LinearLayout>(R.id.layout_sottocategorie).visibility = View.VISIBLE
+                    layoutSottocategorie.visibility = View.VISIBLE
 
                     val sottoCategorie = categoriaSelezionata.sottocategorie!!.stream().map { sottocategoria -> sottocategoria.nome }.collect(
                         Collectors.toList())
@@ -89,18 +124,20 @@ class UsersStatisticsFragment : Fragment() {
                     spinnerSottoCategAdapter.setDropDownViewResource(android.R.layout.simple_spinner_item)
                     viewSottoCateg.adapter = spinnerSottoCategAdapter
                 } else {
-                    fragmentRootView.findViewById<LinearLayout>(R.id.layout_sottocategorie).visibility = View.GONE
+                    layoutSottocategorie.visibility = View.GONE
                 }
 
-                val viewNuovaSottoCateg = fragmentRootView.findViewById<EditText>(R.id.nome_nuova_sottocategoria)
+
                 val categoria = categorie[viewCategorie.selectedItemPosition]
-                viewNuovaSottoCateg.hint = "Nuova sottocategoria di ${categoria.nome}"
+                eTextNuovaSottoCateg.hint = "Nuova sottocategoria di ${categoria.nome}"
 
             }
             override fun onNothingSelected(parent: AdapterView<*>?) { }
         }
 
-            viewSottoCateg.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+        val eTextNomeAggSottocateg = requireActivity().findViewById<EditText>(R.id.nome_aggiornato_sottocategoria)
+
+        viewSottoCateg.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
             override fun onItemSelected(
                 parent: AdapterView<*>?,
                 view: View?,
@@ -111,63 +148,59 @@ class UsersStatisticsFragment : Fragment() {
 
                 if(UserLoginActivity.hasSottocategorie(categoriaSelezionata)) {
                     val nomeSottoCateg = categorie[viewCategorie.selectedItemPosition].sottocategorie!!.toList().get(viewSottoCateg.selectedItemPosition).nome
-                    fragmentRootView.findViewById<EditText>(R.id.nome_aggiornato_sottocategoria).setText(nomeSottoCateg)
+                    eTextNomeAggSottocateg.setText(nomeSottoCateg)
                 }
             }
             override fun onNothingSelected(parent: AdapterView<*>?) { }
         }
 
-        fragmentRootView.findViewById<Button>(R.id.aggiungi_categoria).setOnClickListener {
-            val nomeNuovaCateg = fragmentRootView.findViewById<EditText>(R.id.nome_nuova_categoria).text
-
+        requireActivity().findViewById<Button>(R.id.aggiungi_categoria).setOnClickListener {
+            val eTextNomeNuovaCateg = requireActivity().findViewById<EditText>(R.id.nome_nuova_categoria)
+            val nomeNuovaCateg = eTextNomeNuovaCateg.text.toString()
+            if(nomeNuovaCateg.isBlank())
+                Toast.makeText(activity, "Il nome non puo'essere vuoto", Toast.LENGTH_SHORT).show()
+            else {
+                runBlocking{ AdminLoginActivity.creaNuovaCategoriaFirebaseFirestore(nomeNuovaCateg) }
+                eTextNomeNuovaCateg.setText("")
+                Toast.makeText(activity, "Categoria aggiunta", Toast.LENGTH_SHORT).show()
+            }
         }
 
-        fragmentRootView.findViewById<Button>(R.id.modifica_categoria).setOnClickListener {
+        requireActivity().findViewById<Button>(R.id.modifica_categoria).setOnClickListener {
             val idCategoria = categorie[viewCategorie.selectedItemPosition].id
-            val nomeAggCateg = fragmentRootView.findViewById<EditText>(R.id.nome_aggiornato_categoria).text
-
+            val nomeAggCateg = eTextNomeAggCateg.text.toString()
+            if(nomeAggCateg.isBlank())
+                Toast.makeText(activity, "Il nome non puo'essere vuoto", Toast.LENGTH_SHORT).show()
+            else {
+                runBlocking{ AdminLoginActivity.modificaCategoriaFirebaseFirestore(idCategoria, nomeAggCateg) }
+                Toast.makeText(activity, "Categoria modificata", Toast.LENGTH_SHORT).show()
+            }
         }
 
-        fragmentRootView.findViewById<Button>(R.id.modifica_sottocategoria).setOnClickListener {
-            val idCategoria = categorie[viewCategorie.selectedItemPosition].id
-            val idSottoCateg = categorie[viewCategorie.selectedItemPosition].sottocategorie?.toList()?.get(viewSottoCateg.selectedItemPosition)?.id
-            val nomeAggSottoCateg = fragmentRootView.findViewById<EditText>(R.id.nome_aggiornato_sottocategoria).text
-
-        }
-
-        fragmentRootView.findViewById<Button>(R.id.aggiungi_sottocategoria).setOnClickListener {
+        requireActivity().findViewById<Button>(R.id.modifica_sottocategoria).setOnClickListener {
             val categoria = categorie[viewCategorie.selectedItemPosition]
             val idCategoria = categoria.id
-            val viewNuovaSottoCateg = fragmentRootView.findViewById<EditText>(R.id.nome_nuova_sottocategoria)
-            val nomeAggSottoCateg = viewNuovaSottoCateg.text
-
+            val idSottoCateg = categorie[viewCategorie.selectedItemPosition].sottocategorie!!.toList()[viewSottoCateg.selectedItemPosition].id
+            val nomeAggSottoCateg = eTextNomeAggSottocateg.text.toString()
+            if(nomeAggSottoCateg.isBlank())
+                Toast.makeText(activity, "Il nome non puo'essere vuoto", Toast.LENGTH_SHORT).show()
+            else {
+                runBlocking{ AdminLoginActivity.modificaSottocategoriaFirebaseFirestore(idCategoria, idSottoCateg, nomeAggSottoCateg) }
+                Toast.makeText(activity, "Sottocategoria di ${categoria.nome} modificata", Toast.LENGTH_SHORT).show()
+            }
         }
 
+        requireActivity().findViewById<Button>(R.id.aggiungi_sottocategoria).setOnClickListener {
+            val categoria = categorie[viewCategorie.selectedItemPosition]
+            val idCategoria = categoria.id
 
-
-
-
-        return fragmentRootView
-    }
-
-    override fun onResume() {
-        super.onResume()
-        runBlocking {
-            val numTotOgg = 0
-            val tMedioGiorni = 0.0
-            activity?.findViewById<TextView>(R.id.num_ogg_in_vendita)?.text = "Oggetti in vendita in questo momento: ${numTotOgg}"
-            activity?.findViewById<TextView>(R.id.tempo_medio_vendita)?.text = "Tempo medio vendita di un oggetto: ${tMedioGiorni} giorni "
-
-            activity?.findViewById<Button>(R.id.btn_ricerca_admin)?.setOnClickListener {
-                val lat = activity?.findViewById<EditText>(R.id.latitudine_ricerca_admin)?.text.toString()
-                val lon = activity?.findViewById<EditText>(R.id.longitudine_ricerca_admin)?.text.toString()
-                val dist = activity?.findViewById<Slider>(R.id.adminDistanceSlider)?.value?.toInt()!!
-                if(arrayOf(lat, lon).all { it.isNotBlank() } && dist > 0) {
-                    val numOggDistanzaPunto = 0 //ricercaOggettiDistanzaMinore().size
-                    activity?.findViewById<TextView>(R.id.risultato_ricerca_admin)?.text = "Oggetti trovati: ${numOggDistanzaPunto}"
-                } else {
-                    Toast.makeText(activity, "Alcuni campi vuoti, compilali", Toast.LENGTH_SHORT).show()
-                }
+            val nomeNuovaSottoCateg = eTextNuovaSottoCateg.text.toString()
+            if(nomeNuovaSottoCateg.isBlank())
+                Toast.makeText(activity, "Il nome non puo'essere vuoto", Toast.LENGTH_SHORT).show()
+            else {
+                runBlocking{ AdminLoginActivity.creaNuovaSottocategoriaFirebaseFirestore(idCategoria, nomeNuovaSottoCateg) }
+                eTextNuovaSottoCateg.setText("")
+                Toast.makeText(activity, "Sottocategoria di ${categoria.nome} aggiunta", Toast.LENGTH_SHORT).show()
             }
         }
     }

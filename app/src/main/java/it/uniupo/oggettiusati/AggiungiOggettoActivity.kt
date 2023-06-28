@@ -187,7 +187,7 @@ class AggiungiOggettoActivity : AppCompatActivity() {
                                                 Log.d("idImmagine", "${(imgView.tag as Array<*>)[0]} ${(imgView.tag as Array<*>)[1]}")
                                                 Toast.makeText(this@AggiungiOggettoActivity, "Rimuovo nome immagine $nomeFileImg", Toast.LENGTH_SHORT).show()
                                                 imgView.visibility = View.GONE
-//                                                cancellaImmagine((imgView.tag as Array<*>)[0], (imgView.tag as Array<*>)[1])
+                                                annuncioCorrente.eliminaImmagineSuFirebase(nomeFileImg)
                                             }
                                         }
                                         .setNegativeButton("No") { dialog : DialogInterface, _:Int ->
@@ -258,7 +258,8 @@ class AggiungiOggettoActivity : AppCompatActivity() {
                     runBlocking {
                         if(flagModifica == true) {
                             //le immagini vengono eliminate nell'onclick, quelle che vengono aggiunte devono essere passate e caricate qui'
-                            // modificaAnnuncio()
+                            
+                            newAnnuncio.modificaAnnuncioSuFirebase()
                             Toast.makeText(this@AggiungiOggettoActivity, "Modifico...", Toast.LENGTH_LONG).show()
                         } else {
                             newAnnuncio.salvaAnnuncioSuFirebase(myImmaginiAnnuncio)

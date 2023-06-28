@@ -5,11 +5,13 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.TextView
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.firebase.auth.FirebaseAuth
+import it.uniupo.oggettiusati.AdminLoginActivity
 import it.uniupo.oggettiusati.R
 import it.uniupo.oggettiusati.UserLoginActivity
 import it.uniupo.oggettiusati.adapter.UserAdapter
@@ -36,9 +38,10 @@ class ChatFragment(private val isAdmin: Boolean) : Fragment() {
         //perform here operation when fragment changes and this become visible (i.e. do updates dynamically when fragment is again visible)
         runBlocking {
 
-            val myUtenti = UserLoginActivity.recuperaUtenti(auth.uid!!)
-
-            Log.d("Chat", myUtenti.toString() + " "+ auth.uid!!)
+            val myUtenti =
+                if(isAdmin) AdminLoginActivity.classificaUtentiRecensitiConVotoPiuAlto()
+                else  UserLoginActivity.recuperaUtenti(auth.uid!!)
+            requireView().findViewById<TextView>(R.id.info_utenti).text = if(myUtenti.size > 0) "${myUtenti.size} utenti" else "Non sono presenti altri utenti"
 
             val recyclerViewUtenti = view?.findViewById<RecyclerView>(R.id.recyclerviewUtenti)
             recyclerViewUtenti!!.layoutManager = LinearLayoutManager(activity)

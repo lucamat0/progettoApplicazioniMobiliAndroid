@@ -5,24 +5,41 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <ScrollView
+    <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:layout_height="match_parent"
+        android:orientation="vertical">
 
-        <LinearLayout
+        <TextView
+            android:id="@+id/info_preferiti"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical">
+            android:textStyle="italic"
+            android:textSize="20sp"
+            android:layout_marginStart="5dp"
+            android:gravity="center"
+            android:text="Non sono presenti oggetti tra i preferiti"/>
 
-            <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/recyclerview_favorites"
+        <ScrollView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                tools:itemCount="5"
-                tools:listitem="@layout/card_view_remove_design" />
+                android:orientation="vertical">
 
-        </LinearLayout>
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/recyclerview_favorites"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    tools:itemCount="5"
+                    tools:listitem="@layout/card_view_remove_design" />
 
-    </ScrollView>
+            </LinearLayout>
+
+        </ScrollView>
+
+    </LinearLayout>
 
 </FrameLayout>

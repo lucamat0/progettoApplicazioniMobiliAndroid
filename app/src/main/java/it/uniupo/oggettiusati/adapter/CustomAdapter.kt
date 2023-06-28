@@ -89,7 +89,7 @@ class CustomAdapter(private val myArrayList: HashMap<String, Annuncio>, private 
                         holder.btnRemove.setOnClickListener { viewClicked ->
                             runBlocking {
                                 CartFragment.eliminaAnnuncioCarrelloFirebaseFirestore(auth.uid!!, annuncioCorrente.getAnnuncioId())
-                                Toast.makeText(holder.itemView.context, "Rimuovo l'oggetto ${null} dal carrello", Toast.LENGTH_SHORT).show()
+                                Toast.makeText(holder.itemView.context, "Rimuovo l'oggetto dal carrello", Toast.LENGTH_SHORT).show()
                                 holder.card.visibility = View.GONE
                                 val intent = Intent(holder.itemView.context, UserLoginActivity::class.java)
                                 viewClicked.context.startActivity(intent)
@@ -100,7 +100,7 @@ class CustomAdapter(private val myArrayList: HashMap<String, Annuncio>, private 
                     if(holder.btnRequest != null) {
                         holder.btnRequest.setOnClickListener {
                             runBlocking {
-                                val requestResult = CartFragment.inviaRichiestaAcqiustoAnnuncio(auth.uid!!, annuncioCorrente)
+                                val requestResult = CartFragment.inviaRichiestaAcqiustoAnnuncio(auth.uid!!, annuncioCorrente, holder.itemView.context)
                                 if(requestResult) {
                                     Toast.makeText(holder.itemView.context, "Richiesta inoltrata", Toast.LENGTH_SHORT).show()
                                     uiRequestFromCurrentUser(holder)
@@ -120,7 +120,7 @@ class CustomAdapter(private val myArrayList: HashMap<String, Annuncio>, private 
                             val intent = Intent(holder.itemView.context, UserLoginActivity::class.java)
                             it.context.startActivity(intent)
                         }
-                        Toast.makeText(holder.itemView.context, "Rimuovo l'oggetto $annuncioCorrente dai preferiti", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(holder.itemView.context, "Rimuovo l'oggetto dai preferiti", Toast.LENGTH_SHORT).show()
                     }
                 }
             } else if(layout == R.layout.card_view_design){

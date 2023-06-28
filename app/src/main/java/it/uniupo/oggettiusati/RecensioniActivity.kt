@@ -2,6 +2,7 @@ package it.uniupo.oggettiusati
 
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.widget.TextView
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.firebase.auth.FirebaseAuth
@@ -40,7 +41,9 @@ class RecensioniActivity : AppCompatActivity() {
         runBlocking {//fill Recyclerview
             val recyclerVu = findViewById<RecyclerView>(R.id.recyclerview_recensioni)
             recyclerVu?.layoutManager = LinearLayoutManager(this@RecensioniActivity)
-            val adapter = RecensioniAdapter(recuperaRecensioniFirebaseFirestore(idUtente!!))
+            val recensioni = recuperaRecensioniFirebaseFirestore(idUtente!!)
+            findViewById<TextView>(R.id.info_recensioni).text = if(recensioni.size > 0) "Queto utente ha ${recensioni.size} recensioni" else "Nessuna recensione per questo utente"
+            val adapter = RecensioniAdapter(recensioni)
             recyclerVu?.adapter = adapter
         }
     }

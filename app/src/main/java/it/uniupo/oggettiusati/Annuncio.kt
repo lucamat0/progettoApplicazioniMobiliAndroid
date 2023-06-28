@@ -201,7 +201,7 @@ data class Annuncio(
      *
      * @author Amato Luca
      */
-    private suspend fun modificaAnnuncioSuFirebase() {
+    suspend fun modificaAnnuncioSuFirebase() {
 
         val adRif = database.collection(nomeCollection).document(this.annuncioId)
 
@@ -295,6 +295,8 @@ data class Annuncio(
             this.venduto = true
             this.timeStampFineVendita = System.currentTimeMillis()
 
+            CartFragment.salvaTransazioneSuFirestoreFirebase(this.userId, this.prezzo, true)
+
             modificaAnnuncioSuFirebase()
         }
         //Errore, dove si informa che non è stata avanzata nessuna richiesta
@@ -306,15 +308,17 @@ data class Annuncio(
      * @author Amato Luca
      * @param userIdAcquirente Identificativo dell'acquirente
      */
-    suspend fun setRichiesta(userIdAcquirente: String){
+    suspend fun setRichiesta(userIdAcquirente: String): Boolean{
         if(this.userIdAcquirente == null) {
             this.userIdAcquirente = userIdAcquirente
 
+            CartFragment.salvaTransazioneSuFirestoreFirebase(this.userIdAcquirente!!, this.prezzo, false)
             modificaAnnuncioSuFirebase()
-        }
-        else{
+            return true
+        } else {
             //richiesta già inoltrata, da qualcunaltro, comunicalo e rimuovilo dal carrello
             CartFragment.eliminaAnnuncioCarrelloFirebaseFirestore(userIdAcquirente, this.annuncioId)
+            return false
         }
     }
 

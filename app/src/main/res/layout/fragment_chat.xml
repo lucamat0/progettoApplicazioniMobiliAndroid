@@ -5,12 +5,28 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/recyclerviewUtenti"
+    <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        tools:itemCount="5"
-        tools:listitem="@layout/user_layout" />
-    />
+        android:layout_height="match_parent"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/info_utenti"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textStyle="italic"
+            android:textSize="20sp"
+            android:layout_marginStart="5dp"
+            android:layout_marginBottom="5dp"
+            android:gravity="center"
+            android:text="Non sono presenti altri utenti"/>
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/recyclerviewUtenti"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            tools:itemCount="5"
+            tools:listitem="@layout/user_layout" />
+        />
+    </LinearLayout>
 
 </FrameLayout>

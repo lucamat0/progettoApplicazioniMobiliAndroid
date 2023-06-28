@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.TextView
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -44,7 +45,7 @@ class OwnerObjecsFragment(private val isAdmin: Boolean) : Fragment() {
 
             //Ogni volta che il mio fragment viene messo in primo piano recupero i miei annunci preferiti
             val annunciProprietario = recuperaMieiAnnunci(auth.uid!!)
-
+            requireView().findViewById<TextView>(R.id.info_personal).text = if(annunciProprietario.size > 0) "Hai ${annunciProprietario.size} oggetti " else "Non hai ancora inserito tuoi oggetti"
             //this will pass the ArrayList to our Adapter
             val adapter = CustomAdapter(annunciProprietario, R.layout.card_view_design, isAdmin)
 

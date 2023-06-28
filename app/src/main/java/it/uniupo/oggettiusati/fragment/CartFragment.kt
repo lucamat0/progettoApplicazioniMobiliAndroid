@@ -1,5 +1,6 @@
 package it.uniupo.oggettiusati.fragment
 
+import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -58,7 +59,9 @@ class CartFragment(private val isAdmin: Boolean) : Fragment() {
             //this creates a vertical layout Manager
             recyclerVu?.layoutManager = LinearLayoutManager(activity)
             //this will pass the ArrayList to our Adapter
-            val adapter = CustomAdapter(recuperaAnnunciCarrelloFirebaseFirestore(auth.uid!!), R.layout.card_view_remove_buy_design, isAdmin)
+            val annunciCarrello = recuperaAnnunciCarrelloFirebaseFirestore(auth.uid!!)
+            requireView().findViewById<TextView>(R.id.info_carrello).text = if(annunciCarrello.size > 0) "${annunciCarrello.size} oggetti nel carrello" else "Non sono presenti oggetti nel carrello"
+            val adapter = CustomAdapter(annunciCarrello, R.layout.card_view_remove_buy_design, isAdmin)
             //setting the Adapter with the recyclerView
             recyclerVu?.adapter = adapter
         }
@@ -259,21 +262,21 @@ class CartFragment(private val isAdmin: Boolean) : Fragment() {
          * @param myAnnuncio Annuncio per il quale si vuole inviare la richiesta di acquisto
          * @return True se l'annuncio è acquistabile e la richiesta viene inviata correttamente altrimenti False
          */
-        internal suspend fun inviaRichiestaAcqiustoAnnuncio(idUtente: String, myAnnuncio: Annuncio) : Boolean {
+        internal suspend fun inviaRichiestaAcqiustoAnnuncio(idUtente: String, myAnnuncio: Annuncio, ctx: Context) : Boolean {
 
             if (isAcquistabile(idUtente, myAnnuncio.getPrezzo())) {
 
-                salvaTransazioneSuFirestoreFirebase(idUtente, myAnnuncio.getPrezzo(), false)
-
-                myAnnuncio.setRichiesta(idUtente)
+                val result = myAnnuncio.setRichiesta(idUtente)
+                if(!result)
+                    Toast.makeText(ctx, "L'oggetto non e' piu' disponibile", Toast.LENGTH_SHORT).show()
                 return true
             }
             return false
         }
-
+        
     }
 
-
+    
 
 
 

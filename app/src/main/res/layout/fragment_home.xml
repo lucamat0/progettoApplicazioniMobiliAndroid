@@ -282,6 +282,16 @@
 
         </LinearLayout>
 
+        <TextView
+            android:id="@+id/info_home"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textStyle="italic"
+            android:textSize="20sp"
+            android:layout_marginStart="5dp"
+            android:gravity="center"
+            android:text="Non sono presenti oggetti nel sistema"/>
+
         <ScrollView
             android:layout_width="match_parent"
             android:layout_height="match_parent">
