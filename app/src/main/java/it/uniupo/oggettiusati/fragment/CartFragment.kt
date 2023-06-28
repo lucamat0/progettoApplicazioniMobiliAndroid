@@ -277,10 +277,4 @@ class CartFragment(private val isAdmin: Boolean) : Fragment() {
         }
         
     }
-
-    
-
-
-
-
 }

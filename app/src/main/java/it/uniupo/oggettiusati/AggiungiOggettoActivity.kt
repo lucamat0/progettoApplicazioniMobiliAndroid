@@ -10,12 +10,10 @@ import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
 import android.util.TypedValue
-import android.view.Gravity
 import android.view.Menu
 import android.view.MenuInflater
 import android.view.MenuItem
 import android.view.View
-import android.view.ViewGroup
 import android.widget.AdapterView
 import android.widget.AdapterView.OnItemSelectedListener
 import android.widget.ArrayAdapter
@@ -34,7 +32,6 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.tasks.await
 import java.io.IOException
 import java.util.stream.Collectors
 
@@ -55,7 +52,7 @@ class AggiungiOggettoActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_aggiungi_oggetto)
 
-        val myAnnuncio: Annuncio? = intent.getParcelableExtra("annuncio", Annuncio::class.java)!!
+        val myAnnuncio: Annuncio? = intent.getParcelableExtra("annuncio", Annuncio::class.java)
 
         val viewNomeOgg = findViewById<EditText>(R.id.nome)
         val viewCategoriaOgg = findViewById<Spinner>(R.id.categoria)

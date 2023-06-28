@@ -284,7 +284,7 @@ open class UserLoginActivity : AppCompatActivity() {
             val myUtenti = ArrayList<Utente>()
 
             val myDocumenti =
-                database.collection(Utente.nomeCollection).whereNotEqualTo("userId", userId).whereEqualTo("sospeso",false).whereEqualTo("eliminato", false).get().await()
+                recuperaTuttiUtenti(userId).whereEqualTo("sospeso",false).whereEqualTo("eliminato", false).get().await()
 
             for (myDocumento in myDocumenti.documents) {
                 myUtenti.add(
@@ -295,13 +295,23 @@ open class UserLoginActivity : AppCompatActivity() {
         }
 
         /**
+         * Definisce una query per recuperare tutti i documenti degli utenti tranne quello specificato dall'identificativo
+         *
+         * @param userId Identificativo dell'utente
+         * @return query per recuperare tutti gli utenti tranne quello specificato
+         */
+        fun recuperaTuttiUtenti(userId: String): Query {
+            return database.collection(Utente.nomeCollection).whereNotEqualTo("userId",userId)
+        }
+
+        /**
          * Converte un documento in un oggetto Utente
          *
          * @author Amato Luca
          * @param myDocumento Documento da convertire
          * @return Oggetto Utente creato dai dati del documento
          */
-        private fun documentoUtenteToObject(myDocumento: DocumentSnapshot): Utente {
+        public fun documentoUtenteToObject(myDocumento: DocumentSnapshot): Utente {
             return Utente(
                 myDocumento.id,
                 myDocumento.getString("nome") as String,
