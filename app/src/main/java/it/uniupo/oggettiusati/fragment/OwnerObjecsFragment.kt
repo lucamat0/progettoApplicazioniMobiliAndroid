@@ -19,7 +19,7 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.tasks.await
 import java.util.HashMap
 
-class OwnerObjecsFragment(private val isAdmin: Boolean) : Fragment() {
+class OwnerObjecsFragment() : Fragment() {
     private val database = Firebase.firestore
     private val auth = FirebaseAuth.getInstance()
 
@@ -28,11 +28,7 @@ class OwnerObjecsFragment(private val isAdmin: Boolean) : Fragment() {
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        val fragmentRootView = inflater.inflate(R.layout.fragment_owner_objects, container, false)
-        //context: activity
-        //view or fragmentRootView object to use to call findViewById(): fragmentRootView
-
-        return fragmentRootView
+        return inflater.inflate(R.layout.fragment_owner_objects, container, false)
     }
 
     override fun onResume() {
@@ -47,7 +43,7 @@ class OwnerObjecsFragment(private val isAdmin: Boolean) : Fragment() {
             val annunciProprietario = recuperaMieiAnnunci(auth.uid!!)
             requireView().findViewById<TextView>(R.id.info_personal).text = if(annunciProprietario.size > 0) "Hai ${annunciProprietario.size} oggetti " else "Non hai ancora inserito tuoi oggetti"
             //this will pass the ArrayList to our Adapter
-            val adapter = CustomAdapter(annunciProprietario, R.layout.card_view_design, isAdmin)
+            val adapter = CustomAdapter(annunciProprietario, R.layout.card_view_design)
 
             //setting the Adapter with the recyclerView
             recyclerVu?.adapter = adapter

@@ -26,7 +26,7 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.tasks.await
 import java.util.Date
 
-class CartFragment(private val isAdmin: Boolean) : Fragment() {
+class CartFragment() : Fragment() {
 
     private val auth = FirebaseAuth.getInstance()
 
@@ -62,7 +62,7 @@ class CartFragment(private val isAdmin: Boolean) : Fragment() {
             //this will pass the ArrayList to our Adapter
             val annunciCarrello = recuperaAnnunciCarrelloFirebaseFirestore(auth.uid!!)
             requireView().findViewById<TextView>(R.id.info_carrello).text = if(annunciCarrello.size > 0) "${annunciCarrello.size} oggetti nel carrello" else "Non sono presenti oggetti nel carrello"
-            val adapter = CustomAdapter(annunciCarrello, R.layout.card_view_remove_buy_design, isAdmin)
+            val adapter = CustomAdapter(annunciCarrello, R.layout.card_view_remove_buy_design)
             //setting the Adapter with the recyclerView
             recyclerVu?.adapter = adapter
         }

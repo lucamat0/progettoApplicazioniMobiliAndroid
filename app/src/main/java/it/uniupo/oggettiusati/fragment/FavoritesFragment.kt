@@ -24,7 +24,7 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.tasks.await
 import java.util.Date
 
-class FavoritesFragment(private val isAdmin: Boolean) : Fragment() {
+class FavoritesFragment() : Fragment() {
 
     //--- Inizio informazioni per il collegamento con firebase firestore ---
     val auth = FirebaseAuth.getInstance()
@@ -184,7 +184,7 @@ class FavoritesFragment(private val isAdmin: Boolean) : Fragment() {
             myAnnunciPreferiti = recuperaAnnunciPreferitiFirebaseFirestore(auth.uid!!, requireActivity())
             requireView().findViewById<TextView>(R.id.info_preferiti).text = if(myAnnunciPreferiti.size > 0) "${myAnnunciPreferiti.size} preferiti" else "Non sono presenti oggetti tra i preferiti"
             //this will pass the ArrayList to our Adapter
-            val adapter = CustomAdapter(myAnnunciPreferiti, R.layout.card_view_remove_design, isAdmin)
+            val adapter = CustomAdapter(myAnnunciPreferiti, R.layout.card_view_remove_design)
 
             //setting the Adapter with the recyclerView
             recyclerVu?.adapter = adapter

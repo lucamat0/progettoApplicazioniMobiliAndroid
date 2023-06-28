@@ -23,7 +23,7 @@ import it.uniupo.oggettiusati.fragment.CartFragment
 import it.uniupo.oggettiusati.fragment.FavoritesFragment
 import kotlinx.coroutines.runBlocking
 
-class CustomAdapter(private val myArrayList: HashMap<String, Annuncio>, private val layout: Int, private val isAdmin: Boolean) : RecyclerView.Adapter<CustomAdapter.ViewHolder>() {
+class CustomAdapter(private val myArrayList: HashMap<String, Annuncio>, private val layout: Int, private val isAdmin: Boolean = false) : RecyclerView.Adapter<CustomAdapter.ViewHolder>() {
     val auth = FirebaseAuth.getInstance()
 
     //create new views

@@ -45,7 +45,7 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
 
-class HomeFragment(private val isAdmin: Boolean) : Fragment() {
+class HomeFragment(private val isAdmin: Boolean = false) : Fragment() {
 
     //--- Inizio informazioni per il collegamento con firebase firestore ---
     val auth = FirebaseAuth.getInstance()

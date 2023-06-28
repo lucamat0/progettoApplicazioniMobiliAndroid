@@ -9,7 +9,6 @@ import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.firestore.auth.User
 import it.uniupo.oggettiusati.R
 import it.uniupo.oggettiusati.UserLoginActivity
 import it.uniupo.oggettiusati.adapter.UserAdapter
@@ -18,7 +17,7 @@ import kotlinx.coroutines.tasks.await
 import java.util.ArrayList
 import kotlin.streams.toList
 
-class ChatFragment(private val isAdmin: Boolean) : Fragment() {
+class ChatFragment(private val isAdmin: Boolean = false) : Fragment() {
 
     private val auth = FirebaseAuth.getInstance()
 
