@@ -11,6 +11,9 @@ import android.os.Bundle
 import android.util.Log
 import android.util.TypedValue
 import android.view.Gravity
+import android.view.Menu
+import android.view.MenuInflater
+import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
 import android.widget.AdapterView
@@ -265,6 +268,7 @@ class AggiungiOggettoActivity : AppCompatActivity() {
                             newAnnuncio.salvaAnnuncioSuFirebase(myImmaginiAnnuncio)
                         }
                         startActivity(Intent(this@AggiungiOggettoActivity, UserLoginActivity::class.java))
+                        finish()
                     }
                 } else {
                     Toast.makeText(this, "Errore, indirizzo non valido", Toast.LENGTH_SHORT).show()
@@ -273,6 +277,28 @@ class AggiungiOggettoActivity : AppCompatActivity() {
                 }
             } else {
                 Toast.makeText(this, "Riempi tutti i campi, alcuni sono vuoti.", Toast.LENGTH_LONG).show()
+            }
+        }
+    }
+
+    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
+//        return super.onCreateOptionsMenu(menu)
+        val inflater: MenuInflater = menuInflater
+        inflater.inflate(R.menu.menu, menu)
+        return true
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        return when (item.itemId) {
+            R.id.logout_menu -> {
+                Toast.makeText(this, "Uscita...", Toast.LENGTH_SHORT).show()
+                FirebaseAuth.getInstance().signOut()
+                startActivity(Intent(this, MainActivity::class.java))
+                true
+            }
+
+            else -> {
+                super.onOptionsItemSelected(item)
             }
         }
     }

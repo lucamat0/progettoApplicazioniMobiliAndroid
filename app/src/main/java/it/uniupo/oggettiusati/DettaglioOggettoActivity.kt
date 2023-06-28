@@ -8,12 +8,16 @@ import android.os.Bundle
 import android.util.Log
 import android.util.TypedValue
 import android.view.Gravity
+import android.view.Menu
+import android.view.MenuInflater
+import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
+import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import com.bumptech.glide.Glide
 import com.google.android.gms.maps.CameraUpdateFactory
@@ -301,6 +305,28 @@ class DettaglioOggettoActivity : AppCompatActivity(), OnMapReadyCallback {
                         btnCarrello.visibility = View.GONE
                     }
                 }
+            }
+        }
+    }
+
+    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
+//        return super.onCreateOptionsMenu(menu)
+        val inflater: MenuInflater = menuInflater
+        inflater.inflate(R.menu.menu, menu)
+        return true
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        return when (item.itemId) {
+            R.id.logout_menu -> {
+                Toast.makeText(this, "Uscita...", Toast.LENGTH_SHORT).show()
+                FirebaseAuth.getInstance().signOut()
+                startActivity(Intent(this, MainActivity::class.java))
+                true
+            }
+
+            else -> {
+                super.onOptionsItemSelected(item)
             }
         }
     }
