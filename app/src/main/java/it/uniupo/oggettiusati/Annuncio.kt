@@ -1,10 +1,12 @@
 package it.uniupo.oggettiusati
 
+import android.content.Context
 import android.location.Location
 import android.net.Uri
 import android.os.Parcel
 import android.os.Parcelable
 import android.util.Log
+import android.widget.Toast
 import com.google.firebase.firestore.GeoPoint
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
@@ -284,16 +286,21 @@ data class Annuncio(
      *
      * @author Amato Luca
      * @param userIdAcquirente Identificativo dell'acquirente
+     * @param contesto Contesto dell'applicazione
      */
-    suspend fun setRichiesta(userIdAcquirente: String): Boolean{
-        if(this.userIdAcquirente == null) {
+    suspend fun setRichiesta(userIdAcquirente: String, contesto: Context): Boolean{
+        if(CartFragment.isInviataRichiesta(this.annuncioId)) {
             this.userIdAcquirente = userIdAcquirente
 
             CartFragment.salvaTransazioneSuFirestoreFirebase(this.userIdAcquirente!!, this.prezzo, false)
 
             database.collection(nomeCollection).document(this.annuncioId).update("userIdAcquirente", this.userIdAcquirente).await()
+
             return true
         } else {
+
+            Toast.makeText(contesto, "L'oggetto non e' piu' disponibile", Toast.LENGTH_SHORT).show()
+
             //richiesta già inoltrata, da qualcunaltro, comunicalo e rimuovilo dal carrello
             CartFragment.eliminaAnnuncioCarrelloFirebaseFirestore(userIdAcquirente, this.annuncioId)
             return false

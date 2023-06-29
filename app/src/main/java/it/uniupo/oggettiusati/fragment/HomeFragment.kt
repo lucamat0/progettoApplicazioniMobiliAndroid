@@ -51,9 +51,7 @@ class HomeFragment(private val isAdmin: Boolean = false) : Fragment() {
     val auth = FirebaseAuth.getInstance()
     val database = Firebase.firestore
 
-    //HashMap che mi memorizza gli annunci che devo mostrare, a seconda della pagina in cui mi trovo mi vengono mostrati i 10 elementi
     private var myAnnunciHome = HashMap<String, Annuncio>()
-    private var myListenerAnnunciHome: MutableList<ListenerRegistration> = mutableListOf()
 
     //--- Variabili utili per filtrare gli annunci ---
     private var titoloAnnuncio: String? = null
@@ -95,8 +93,6 @@ class HomeFragment(private val isAdmin: Boolean = false) : Fragment() {
         }
 
         return fragmentRootView
-
-//        return super.onCreateView(inflater, container, savedInstanceState)
     }
 
     override fun onResume() {
@@ -125,11 +121,7 @@ class HomeFragment(private val isAdmin: Boolean = false) : Fragment() {
             else
                 UserLoginActivity.recuperaAnnunciFiltrati(null, null, null, null, null, null)
 
-
             myAnnunciHome = UserLoginActivity.recuperaAnnunci(myDocumentiRef)
-
-            //-- Definisco i nuovi listener, per i documenti che ho ora nella Home --
-            myListenerAnnunciHome = subscribeRealTimeDatabase(myDocumentiRef,myListenerAnnunciHome,myAnnunciHome)
 
             //getting the recyclerView by its id
             val recyclerVu = view?.findViewById<RecyclerView>(R.id.recyclerview)
@@ -315,7 +307,7 @@ class HomeFragment(private val isAdmin: Boolean = false) : Fragment() {
                     myAnnunciHome = UserLoginActivity.recuperaAnnunci(myDocumentiRef)
 
                     //-- Definisco i nuovi listener, per i documenti che ho ora nella Home --
-                    myListenerAnnunciHome = subscribeRealTimeDatabase(myDocumentiRef,myListenerAnnunciHome,myAnnunciHome)
+                    //myListenerAnnunciHome = subscribeRealTimeDatabase(myDocumentiRef,myListenerAnnunciHome,myAnnunciHome)
                     requireView().findViewById<TextView>(R.id.info_home).text = if(myAnnunciHome.size > 0) "${myAnnunciHome.size} risultati di ricerca " else "Nessun oggetto corrisponde ai parametri"
                     val adapterRicerca = CustomAdapter(myAnnunciHome, R.layout.card_view_design, isAdmin)
                     val recyclerVu = view?.findViewById<RecyclerView>(R.id.recyclerview)
@@ -495,46 +487,6 @@ class HomeFragment(private val isAdmin: Boolean = false) : Fragment() {
      */
     fun recuperaAnnunciDisponibilitaSpedire(disponibilitaSpedire: Boolean?) {
         this.disponibilitaSpedire = disponibilitaSpedire
-    }
-
-    /**
-     * Gestisce la sottoscrizione ai cambiamenti in tempo reale dei documenti nel database.
-     *
-     * @author Amato Luca
-     * @param myDocumentiRef Riferimento al documento nel database
-     * @param myListenerPrec Lista dei listener ai documenti precedenti, da rimuovere
-     * @param myAnnunci Mappa degli annunci in cui aggiornare i documenti modificati.
-     * @return Lista dei listener aggiornati.
-     */
-    private fun subscribeRealTimeDatabase(
-        myDocumentiRef: Set<DocumentSnapshot>,
-        myListenerPrec: MutableList<ListenerRegistration>,
-        myAnnunci: HashMap<String,Annuncio>
-    ): MutableList<ListenerRegistration> {
-
-        //-- Elimino i listener per i documenti che avevo precedentemente nella home --
-        for(myListenerPrecedente in myListenerPrec)
-            myListenerPrecedente.remove()
-
-        val myListener: MutableList<ListenerRegistration> = mutableListOf()
-
-        for(myDocumentoRef in myDocumentiRef){
-            myListener.add(myDocumentoRef.reference.addSnapshotListener{ snapshot, exception ->
-
-                if (exception != null) {
-
-                    Log.e("Errore subscribeRealTimeDatabase", exception.toString())
-                    // Gestisci l'errore
-                    return@addSnapshotListener
-                }
-                if (snapshot != null && snapshot.exists()) {
-                    // Il documento è stato modificato, sostituiscilo !
-                    myAnnunci[snapshot.id] = runBlocking {  UserLoginActivity.documentoAnnuncioToObject(snapshot) }
-                }
-            }
-            )
-        }
-        return myListener
     }
 
     /**

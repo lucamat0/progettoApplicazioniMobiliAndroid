@@ -37,21 +37,21 @@ class CartFragment() : Fragment() {
     ): View? {
 
         val fragmentRootView = inflater.inflate(R.layout.fragment_cart, container, false)
+
         //context: activity
         //view or fragmentRootView object to use to call findViewById(): fragmentRootView
-
         fragmentRootView.findViewById<Button>(R.id.ricarica).setOnClickListener {
             startActivity(Intent(activity, RicaricaActivity::class.java))
         }
 
-        return fragmentRootView //super.onCreateView(inflater, container, savedInstanceState)
+        return fragmentRootView
     }
 
     override fun onResume() {
         super.onResume()
-        //perform here operation when fragment changes and this become visible (i.e. do updates dynamically when fragment is again visible)
 
         runBlocking {
+
             val importo = "Budget: ${String.format("%.2f", saldoAccount(auth.uid!!)) + "€"}"
             view?.findViewById<TextView>(R.id.saldo_account)?.text = importo
 
@@ -59,16 +59,15 @@ class CartFragment() : Fragment() {
             val recyclerVu = view?.findViewById<RecyclerView>(R.id.recyclerview_cart)
             //this creates a vertical layout Manager
             recyclerVu?.layoutManager = LinearLayoutManager(activity)
+
             //this will pass the ArrayList to our Adapter
-            val annunciCarrello = recuperaAnnunciCarrelloFirebaseFirestore(auth.uid!!)
-            requireView().findViewById<TextView>(R.id.info_carrello).text = if(annunciCarrello.size > 0) "${annunciCarrello.size} oggetti nel carrello" else "Non sono presenti oggetti nel carrello"
-            val adapter = CustomAdapter(annunciCarrello, R.layout.card_view_remove_buy_design)
+            val myAnnunciCarrello = recuperaAnnunciCarrelloFirebaseFirestore(auth.uid!!)
+
+            requireView().findViewById<TextView>(R.id.info_carrello).text = if(myAnnunciCarrello.size > 0) "${myAnnunciCarrello.size} oggetti nel carrello" else "Non sono presenti oggetti nel carrello"
+            val adapter = CustomAdapter(myAnnunciCarrello, R.layout.card_view_remove_buy_design)
             //setting the Adapter with the recyclerView
             recyclerVu?.adapter = adapter
         }
-
-
-
     }
 
     //1) Inserisce articolo nel carrello, ci possono essere più articoli.
@@ -207,6 +206,17 @@ class CartFragment() : Fragment() {
         }
 
         /**
+         * Verifica se è stata inviata una richiesta per un determinato annuncio
+         *
+         * @author Amato Luca
+         * @param annuncioId Identificativo dell'annuncio
+         * @return true se non è stata inviata alcuna richiesta per l'annuncio altrimenti false
+         */
+        suspend fun isInviataRichiesta(annuncioId: String): Boolean{
+            return database.collection(Annuncio.nomeCollection).document(annuncioId).get().await().getString("userIdAcquirente") == null
+        }
+
+        /**
          * Recupera gli annunci presenti nel carrello per l'utente specificato
          *
          * @author Amato Luca
@@ -262,19 +272,25 @@ class CartFragment() : Fragment() {
          * @author Amato Luca
          * @param idUtente Identificativo dell'utente
          * @param myAnnuncio Annuncio per il quale si vuole inviare la richiesta di acquisto
+         * @param contesto Contesto dell'applicazione
          * @return True se l'annuncio è acquistabile e la richiesta viene inviata correttamente altrimenti False
          */
-        internal suspend fun inviaRichiestaAcqiustoAnnuncio(idUtente: String, myAnnuncio: Annuncio, ctx: Context) : Boolean {
+        suspend fun inviaRichiestaAcqiustoAnnuncio(idUtente: String, myAnnuncio: Annuncio, contesto: Context) : Boolean {
+
+            Toast.makeText(contesto, "Richiesta inoltrata", Toast.LENGTH_SHORT).show()
 
             if (isAcquistabile(idUtente, myAnnuncio.getPrezzo())) {
-
-                val result = myAnnuncio.setRichiesta(idUtente)
-                if(!result)
-                    Toast.makeText(ctx, "L'oggetto non e' piu' disponibile", Toast.LENGTH_SHORT).show()
-                return true
+                return myAnnuncio.setRichiesta(idUtente, contesto)
             }
-            return false
+            else {
+                Toast.makeText(
+                    contesto,
+                    "Non hai abbastanza soldi per inoltrare la richiesta di acquisto",
+                    Toast.LENGTH_SHORT
+                ).show()
+                return false
+            }
         }
-        
+
     }
 }

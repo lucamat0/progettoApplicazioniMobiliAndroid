@@ -100,12 +100,8 @@ class CustomAdapter(private val myArrayList: HashMap<String, Annuncio>, private 
                     if(holder.btnRequest != null) {
                         holder.btnRequest.setOnClickListener {
                             runBlocking {
-                                val requestResult = CartFragment.inviaRichiestaAcqiustoAnnuncio(auth.uid!!, annuncioCorrente, holder.itemView.context)
-                                if(requestResult) {
-                                    Toast.makeText(holder.itemView.context, "Richiesta inoltrata", Toast.LENGTH_SHORT).show()
+                                if(CartFragment.inviaRichiestaAcqiustoAnnuncio(auth.uid!!, annuncioCorrente, holder.itemView.context)) {
                                     uiRequestFromCurrentUser(holder)
-                                } else {
-                                    Toast.makeText(holder.itemView.context, "Budget non sufficiente, esegui una ricarica ", Toast.LENGTH_SHORT).show()
                                 }
                             }
                         }
