@@ -1,6 +1,13 @@
 package it.uniupo.oggettiusati
 
+import android.app.Notification
+import android.app.NotificationChannel
+import android.app.NotificationManager
+import android.app.PendingIntent
+import android.content.ClipDescription
+import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.location.Location
 import android.os.Bundle
 import android.util.Log
@@ -10,8 +17,12 @@ import android.view.MenuItem
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContentProviderCompat.requireContext
 import androidx.core.content.ContextCompat
+import androidx.core.content.ContextCompat.getSystemService
 import androidx.viewpager2.widget.ViewPager2
+import com.google.android.gms.location.LocationServices
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.android.material.tabs.TabLayout
 import com.google.android.material.tabs.TabLayoutMediator
@@ -21,6 +32,7 @@ import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 import it.uniupo.oggettiusati.adapter.ViewPagerAdapter
 import it.uniupo.oggettiusati.fragment.CartFragment
+import it.uniupo.oggettiusati.fragment.FavoritesFragment
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.tasks.await
 import java.util.*
@@ -235,7 +247,7 @@ open class UserLoginActivity : AppCompatActivity() {
                         if ((myDocRef.getString("titolo") as String).lowercase().trim().contains(titoloAnnuncio.lowercase().trim()))
                             myAnnunciRef.add(myDocRef)
                     }
-                    else if(posizioneUtente != null){
+                    else if(posizioneUtente != null && distanzaKmMax != null){
 
                         val posizioneGeoPoint = myDocRef.getGeoPoint("posizione") as GeoPoint
 
@@ -339,7 +351,8 @@ open class UserLoginActivity : AppCompatActivity() {
         }
     }
 
-    //lateinit var myLocationManager: LocationManager
+    private lateinit var notificaManager : NotificationManager
+    private val idChannelRicerca = "1"
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -395,16 +408,27 @@ open class UserLoginActivity : AppCompatActivity() {
 
         //myLocationManager = this.getSystemService(LOCATION_SERVICE) as LocationManager;
 
+        notificaManager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
+
         //-- Recupero gli annunci preferiti dell'utente --
         runBlocking {
-            //recuperaRicercheSalvateFirebaseFirestore(auth.uid!!)
-            //posizione temporanea per test
+
             val posizioneUtente = Location("provider")
-            posizioneUtente.latitude = 44.922
-            posizioneUtente.longitude = 8.617
+
+                posizioneUtente.latitude = 44.922
+                posizioneUtente.longitude = 8.617
+
             controllaStatoRicercheAnnunci(auth.uid!!, posizioneUtente)
 
         }
+
+
+        createNotificationChannel(
+            idChannelRicerca,
+            "Ricerca",
+            "Notifica la modifica di una ricerca"
+        )
+
     }
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
@@ -427,6 +451,17 @@ open class UserLoginActivity : AppCompatActivity() {
                 super.onOptionsItemSelected(item)
             }
         }
+    }
+
+    private fun createNotificationChannel(id: String, name: String, description: String) {
+
+        val importance = NotificationManager.IMPORTANCE_LOW
+
+        val channel = NotificationChannel(id, name, importance)
+
+        channel.description = description
+
+        notificaManager?.createNotificationChannel(channel)
     }
 
     /**
@@ -491,15 +526,33 @@ open class UserLoginActivity : AppCompatActivity() {
 
             val numeroAnnunciRicerca = (myDocumento.get("numeroAnnunci") as Long).toInt()
 
-            val numeroAnnunci = recuperaAnnunciFiltrati(titoloAnnuncio,disponibilitaSpedire,prezzoSuperiore,prezzoInferiore,posizioneUtente, distanzaMax).size
+            val numeroAnnunci: Int
+            if(distanzaMax != null)
+                numeroAnnunci = recuperaAnnunciFiltrati(titoloAnnuncio,disponibilitaSpedire,prezzoSuperiore,prezzoInferiore, posizioneUtente, distanzaMax).size
+            else
+                numeroAnnunci = recuperaAnnunciFiltrati(titoloAnnuncio,disponibilitaSpedire,prezzoSuperiore,prezzoInferiore, null, distanzaMax).size
+
 
             if (numeroAnnunci > numeroAnnunciRicerca) {
 
-                Toast.makeText(
-                    this@UserLoginActivity,
-                    "Il numero di annunci della ricerca ${myDocumento.id} sono aumentati!",
-                    Toast.LENGTH_LONG
-                ).show()
+                val pendingIntent = PendingIntent.getActivity(
+                    this,
+                    myDocumento.id.hashCode() and Int.MAX_VALUE,
+                    intent,
+                    PendingIntent.FLAG_IMMUTABLE
+                )
+
+                val notification = Notification.Builder(this,
+                    idChannelRicerca
+                )
+                    .setContentTitle("Elementi ricerca modificati")
+                    .setContentText("Il numero dei documenti relativi alla ricerca ${myDocumento.id} sono aumentati")
+                    .setSmallIcon(android.R.drawable.ic_menu_add)
+                    .setChannelId(idChannelRicerca)
+                    .setContentIntent(pendingIntent)
+                    .build()
+
+                notificaManager?.notify(myDocumento.id.hashCode() and Int.MAX_VALUE, notification)
 
                 aggiornaRicerca(
                     userId,

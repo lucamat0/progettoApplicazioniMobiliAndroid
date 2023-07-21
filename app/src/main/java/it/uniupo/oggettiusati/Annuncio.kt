@@ -270,7 +270,7 @@ data class Annuncio(
      */
     suspend fun setVenduto() {
         //aggiunta di un nuovo campo booleano che viene settato a true quando acquirente ha dato ok
-        if(this.userIdAcquirente != null && this.venduto == false){
+        if(CartFragment.isInviataRichiesta(this.annuncioId) && this.venduto == false){
             this.venduto = true
             this.timeStampFineVendita = System.currentTimeMillis()
 
@@ -383,7 +383,7 @@ data class Annuncio(
 
     // in input userId dell'utente autenticato, si controlla che sia quella del venditore, per un maggiore livello di sicurezza
     suspend fun setAcquirenteRecensito(userId: String) {
-        if(this.userId == userId || AdminLoginActivity.isAmministratore(userId)){
+        if(CartFragment.isInviataRichiesta(this.annuncioId) || AdminLoginActivity.isAmministratore(userId)){
             this.acquirenteRecensito = true
 
             database.collection(nomeCollection).document(this.annuncioId).update("acquirenteRecensito", this.acquirenteRecensito).await()
@@ -392,7 +392,7 @@ data class Annuncio(
 
     // in input userId dell'utente autenticato, si controlla che sia quella dell'acquirente (solo lui puo' recensire il proprietario legato ad un annuncio)
     suspend fun setProprietarioRecensito(userId: String) {
-        if(this.userIdAcquirente == userId || AdminLoginActivity.isAmministratore(userId)){
+        if(CartFragment.isInviataRichiesta(this.annuncioId) || AdminLoginActivity.isAmministratore(userId)){
             this.proprietarioRecensito = true
 
             database.collection(nomeCollection).document(this.annuncioId).update("proprietarioRecensito", this.proprietarioRecensito).await()
@@ -406,7 +406,7 @@ data class Annuncio(
      * @param userId identificativo della persona che vuole eliminare la richiesta
      */
     suspend fun setEliminaRichiesta(userId: String){
-        if(this.userIdAcquirente != null && isProprietario(userId)){
+        if(CartFragment.isInviataRichiesta(this.annuncioId) && isProprietario(userId)){
 
             //Nel momento in cui il proprietario non accetta la vendita, il credito viene riaccreditato al utente.
             CartFragment.salvaTransazioneSuFirestoreFirebase(this.userIdAcquirente!!, this.prezzo, true)
@@ -429,7 +429,7 @@ data class Annuncio(
      * @param userId Identificativo della persona che vuole modificare il titolo dell'annuncio
      */
     suspend fun setTitolo(newTitolo: String, userId: String) {
-        if((isProprietario(userId) || AdminLoginActivity.isAmministratore(userId)) && userIdAcquirente == null) {
+        if((isProprietario(userId) || AdminLoginActivity.isAmministratore(userId)) && CartFragment.isInviataRichiesta(this.annuncioId)) {
             this.titolo = newTitolo
 
             database.collection(nomeCollection).document(this.annuncioId).update("titolo", this.titolo).await()
@@ -443,7 +443,7 @@ data class Annuncio(
      * @param userId Identificativo della persona che vuole modificare il titolo dell'annuncio
      */
     suspend fun setDescrizione(newDescrizione: String, userId: String) {
-        if((isProprietario(userId) || AdminLoginActivity.isAmministratore(userId)) && userIdAcquirente == null) {
+        if((isProprietario(userId) || AdminLoginActivity.isAmministratore(userId)) &&  CartFragment.isInviataRichiesta(this.annuncioId)) {
             this.descrizione = newDescrizione
 
             database.collection(nomeCollection).document(this.annuncioId).update("descrizione", this.descrizione).await()
@@ -458,7 +458,7 @@ data class Annuncio(
      * @param userId Identificativo della persona che vuole modificare la categoria dell'annuncio
      */
     suspend fun setCategoria(newCategoria: String, userId: String) {
-        if((isProprietario(userId) || AdminLoginActivity.isAmministratore(userId)) && userIdAcquirente == null) {
+        if((isProprietario(userId) || AdminLoginActivity.isAmministratore(userId)) && CartFragment.isInviataRichiesta(this.annuncioId)) {
             this.categoria = newCategoria
 
             database.collection(nomeCollection).document(this.annuncioId).update("categoria", this.categoria).await()
@@ -466,7 +466,7 @@ data class Annuncio(
     }
 
     suspend fun setStato(newStato: Int, userId: String) {
-        if((isProprietario(userId) || AdminLoginActivity.isAmministratore(userId)) && userIdAcquirente == null) {
+        if((isProprietario(userId) || AdminLoginActivity.isAmministratore(userId)) && CartFragment.isInviataRichiesta(this.annuncioId)) {
             this.stato = newStato
 
             database.collection(nomeCollection).document(this.annuncioId).update("stato", this.stato).await()
@@ -474,7 +474,7 @@ data class Annuncio(
     }
 
     suspend fun setSottocategoria(newSottocategoria: String?, userId: String) {
-        if((isProprietario(userId) || AdminLoginActivity.isAmministratore(userId)) && userIdAcquirente == null) {
+        if((isProprietario(userId) || AdminLoginActivity.isAmministratore(userId)) && CartFragment.isInviataRichiesta(this.annuncioId)) {
             this.sottocategoria = newSottocategoria
 
             database.collection(nomeCollection).document(this.annuncioId).update("sottocategoria", this.sottocategoria).await()
@@ -482,7 +482,7 @@ data class Annuncio(
     }
 
     suspend fun setDisponibilitaSpedire(newDisponibilita: Boolean, userId: String) {
-        if((isProprietario(userId) || AdminLoginActivity.isAmministratore(userId)) && userIdAcquirente == null) {
+        if((isProprietario(userId) || AdminLoginActivity.isAmministratore(userId)) && CartFragment.isInviataRichiesta(this.annuncioId)) {
             this.disponibilitaSpedire = newDisponibilita
 
             database.collection(nomeCollection).document(this.annuncioId).update("disponibilitaSpedire", this.disponibilitaSpedire).await()
@@ -490,7 +490,7 @@ data class Annuncio(
     }
 
     suspend fun setPosizione(newPosizione: Location, userId: String) {
-        if((isProprietario(userId) || AdminLoginActivity.isAmministratore(userId)) && userIdAcquirente == null) {
+        if((isProprietario(userId) || AdminLoginActivity.isAmministratore(userId)) && CartFragment.isInviataRichiesta(this.annuncioId)) {
             this.posizione = newPosizione
 
             database.collection(nomeCollection).document(this.annuncioId).update("posizione", GeoPoint(this.posizione.latitude, this.posizione.longitude)).await()
@@ -505,7 +505,7 @@ data class Annuncio(
      * @param userId Identificativo della persona che vuole modificare il prezzo dell'annuncio
      */
     suspend fun setPrezzo(newPrezzo: Double, userId: String) {
-        if((isProprietario(userId) || AdminLoginActivity.isAmministratore(userId)) && userIdAcquirente == null) {
+        if((isProprietario(userId) || AdminLoginActivity.isAmministratore(userId)) && CartFragment.isInviataRichiesta(this.annuncioId)) {
             this.prezzo = newPrezzo
             database.collection(nomeCollection).document(this.annuncioId).update("prezzo", this.prezzo).await()
         }

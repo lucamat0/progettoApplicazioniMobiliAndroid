@@ -391,9 +391,22 @@ class HomeFragment(private val isAdmin: Boolean = false) : Fragment() {
                 else
                     null
 
-                val posizioneUtente = Location("provider")
-                posizioneUtente.latitude = 44.922
-                posizioneUtente.longitude = 8.617
+                var posizioneUtente: Location? = null
+                if (selezionaDistanza.isChecked) {
+                    val fusedLocationClient =
+                        LocationServices.getFusedLocationProviderClient(requireActivity())
+
+                    posizioneUtente = Location("Provider")
+
+                    val lastUserLocation = fusedLocationClient.lastLocation.await()
+                    if (lastUserLocation != null) {
+                        posizioneUtente.latitude = lastUserLocation.latitude
+                        posizioneUtente.longitude = lastUserLocation.longitude
+                    } else {
+                        posizioneUtente.latitude = 44.922
+                        posizioneUtente.longitude = 8.617
+                    }
+                }
 
                 inserisciRicercaSuFirebaseFirestore(auth.uid!!, titoloAnnuncio, disponibilitaSpedire, prezzoSuperiore, prezzoInferiore, distMax, posizioneUtente)
             }
@@ -503,7 +516,7 @@ class HomeFragment(private val isAdmin: Boolean = false) : Fragment() {
      */
     private suspend fun inserisciRicercaSuFirebaseFirestore(
         idUtente: String,
-        titoloAnnuncio: String?, disponibilitaSpedire: Boolean?, prezzoSuperiore: Int?, prezzoInferiore: Int?, distanzaMax : Int?, posizioneUtente: Location
+        titoloAnnuncio: String?, disponibilitaSpedire: Boolean?, prezzoSuperiore: Int?, prezzoInferiore: Int?, distanzaMax : Int?, posizioneUtente: Location?
     ) {
 
         val myCollectionUtente = this.database.collection(UserLoginActivity.Utente.nomeCollection)

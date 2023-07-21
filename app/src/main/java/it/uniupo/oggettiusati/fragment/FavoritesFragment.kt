@@ -1,13 +1,17 @@
 package it.uniupo.oggettiusati.fragment
 
+import android.app.Notification
+import android.app.NotificationChannel
+import android.app.NotificationManager
+import android.app.PendingIntent
 import android.content.Context
+import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
-import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -17,6 +21,7 @@ import com.google.firebase.firestore.ListenerRegistration
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 import it.uniupo.oggettiusati.Annuncio
+import it.uniupo.oggettiusati.DettaglioOggettoActivity
 import it.uniupo.oggettiusati.adapter.CustomAdapter
 import it.uniupo.oggettiusati.R
 import it.uniupo.oggettiusati.UserLoginActivity
@@ -33,6 +38,24 @@ class FavoritesFragment() : Fragment() {
     private var myAnnunciPreferiti = HashMap<String, Annuncio>()
 
     companion object {
+
+        lateinit var notificaManager: NotificationManager
+        var idChannelPreferiti = "0"
+
+        fun showNotificationFromCompanion(fragment: Context) {
+            notificaManager = fragment.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        }
+
+        private fun createNotificationChannel(id: String, name: String, description: String) {
+
+            val importance = NotificationManager.IMPORTANCE_LOW
+
+            val channel = NotificationChannel(id, name, importance)
+
+            channel.description = description
+
+            notificaManager?.createNotificationChannel(channel)
+        }
 
         private val database = Firebase.firestore
 
@@ -81,6 +104,10 @@ class FavoritesFragment() : Fragment() {
 
                 isFirstTime = true
 
+                showNotificationFromCompanion(context)
+
+                createNotificationChannel(idChannelPreferiti, "Preferiti", "Notifica la modifica di un annuncio preferito" )
+
                 listenerPreferiti = queryPreferiti.addSnapshotListener { snapshot, e ->
                     if (e != null) {
                         Log.w("Query", "Listen failed.", e)
@@ -89,19 +116,42 @@ class FavoritesFragment() : Fragment() {
                     else if(!isFirstTime) {
                         for (myDocumentoAnnuncio in snapshot!!.documentChanges) {
 
-                            //Log.d("CAMBIO DOCUMENTO", "Il documento ${myDocumentoAnnuncio.document.id} è cambiato!")
+                            runBlocking {
 
-                            Toast.makeText(
-                                context,
-                                "Il documento ${myDocumentoAnnuncio.document.id} è cambiato!",
-                                Toast.LENGTH_SHORT
-                            ).show()
+                                showNotificationFromCompanion(context)
+
+                                val intent =
+                                    Intent(context, DettaglioOggettoActivity::class.java)
+
+                                intent.putExtra(
+                                    "annuncio",
+                                    UserLoginActivity.documentoAnnuncioToObject(myDocumentoAnnuncio.document)
+                                )
+                                intent.putExtra("isAdmin", false)
+
+                                val pendingIntent = PendingIntent.getActivity(
+                                    context,
+                                    myDocumentoAnnuncio.document.id.hashCode() and Int.MAX_VALUE,
+                                    intent,
+                                    PendingIntent.FLAG_IMMUTABLE
+                                )
+
+                                val notification = Notification.Builder(context, idChannelPreferiti)
+                                    .setContentTitle("Preferito modificato")
+                                    .setContentText("Il documento ${myDocumentoAnnuncio.document.id} nei preferiti è cambiato!")
+                                    .setSmallIcon(android.R.drawable.star_big_on)
+                                    .setChannelId(idChannelPreferiti)
+                                    .setContentIntent(pendingIntent)
+                                    .build()
+                                notificaManager?.notify(myDocumentoAnnuncio.document.id.hashCode() and Int.MAX_VALUE, notification)
+                            }
                         }
                     }
                     else
                         isFirstTime = false
                 }
             }
+
 
             return myAnnunciPreferiti
         }
@@ -166,6 +216,9 @@ class FavoritesFragment() : Fragment() {
         val fragmentRootView = inflater.inflate(R.layout.fragment_favorites, container, false)
         //context: activity
         //view or fragmentRootView object to use to call findViewById(): fragmentRootView
+
+        //showNotificationFromCompanion(requireContext())
+        //createNotificationChannel(idChannelPreferiti, "Preferiti", "Notifica la modifica di un annuncio preferito" )
 
         return fragmentRootView //super.onCreateView(inflater, container, savedInstanceState)
     }
